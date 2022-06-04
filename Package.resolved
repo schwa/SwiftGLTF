@@ -6,17 +6,26 @@
         "repositoryURL": "https://github.com/schwa/Everything",
         "state": {
           "branch": "main",
-          "revision": "810860706b219a165ccff237c09db3f163f93c81",
+          "revision": "2e4d73fcf676cf3f0c7ade664bf2c416063b19f5",
           "version": null
         }
       },
       {
-        "package": "swift-collections",
-        "repositoryURL": "https://github.com/apple/swift-collections.git",
+        "package": "SIMDSupport",
+        "repositoryURL": "https://github.com/schwa/SIMD-Support",
+        "state": {
+          "branch": "main",
+          "revision": "37faaf723f31d17adc726f2c955789db757b56c6",
+          "version": null
+        }
+      },
+      {
+        "package": "Zip",
+        "repositoryURL": "https://github.com/marmelroy/Zip.git",
         "state": {
           "branch": null,
-          "revision": "48254824bb4248676bf7ce56014ff57b142b77eb",
-          "version": "1.0.2"
+          "revision": "67fa55813b9e7b3b9acee9c0ae501def28746d76",
+          "version": "2.1.2"
         }
       }
     ]

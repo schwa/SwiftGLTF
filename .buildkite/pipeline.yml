@@ -1,0 +1,4 @@
+steps:
+    - command: "swift build"
+    - command: "swift test --enable-code-coverage"
+    #- command: "xcodebuild -scheme All -destination 'generic/platform=iOS'"

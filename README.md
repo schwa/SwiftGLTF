@@ -1,0 +1,23 @@
+# SwiftGLTF
+
+A Swift library for loading, parsing and viewing GLTF files using RealityKit and/or SceneKit.
+
+![Screenshot](Documentation/Screenshot1.png)
+
+## Features
+
+* Loading, parsing and introspecting GLTF and GLB files.
+* Converting GLTF models into RealityKit Entities
+
+## Package Contents
+
+* SwiftGLTF - SwiftPackage for loading and conversion of GLTF/GLB files.
+* SwiftGLTFViewer -- macOS CLI project for viewing files. This project downloads the latest version of the KronosGroup GLTF sample models and displays them in a RealityKit view.
+
+## Caveats
+
+This code is incomplete "hobby" code and should probably not be used in production. See CAVEATS.md for more details.
+
+## License
+
+SwiftGLTF is available under the BSD 3 clause license. See the LICENSE file for more info.

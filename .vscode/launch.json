@@ -1,0 +1,40 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug GLTFViewer",
+            "program": "${workspaceFolder:GLTF}/.build/debug/GLTFViewer",
+            "args": [],
+            "cwd": "${workspaceFolder:GLTF}",
+            "preLaunchTask": "swift: Build Debug GLTFViewer"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Release GLTFViewer",
+            "program": "${workspaceFolder:GLTF}/.build/release/GLTFViewer",
+            "args": [],
+            "cwd": "${workspaceFolder:GLTF}",
+            "preLaunchTask": "swift: Build Release GLTFViewer"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug SwiftGLTFViewer",
+            "program": "${workspaceFolder:GLTF}/.build/debug/SwiftGLTFViewer",
+            "args": [],
+            "cwd": "${workspaceFolder:GLTF}",
+            "preLaunchTask": "swift: Build Debug SwiftGLTFViewer"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Release SwiftGLTFViewer",
+            "program": "${workspaceFolder:GLTF}/.build/release/SwiftGLTFViewer",
+            "args": [],
+            "cwd": "${workspaceFolder:GLTF}",
+            "preLaunchTask": "swift: Build Release SwiftGLTFViewer"
+        }
+    ]
+}
