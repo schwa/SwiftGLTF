@@ -22,18 +22,18 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug SwiftGLTFViewer",
-            "program": "${workspaceFolder:GLTF}/.build/debug/SwiftGLTFViewer",
+            "program": "${workspaceFolder:SwiftGLTF}/.build/debug/SwiftGLTFViewer",
             "args": [],
-            "cwd": "${workspaceFolder:GLTF}",
+            "cwd": "${workspaceFolder:SwiftGLTF}",
             "preLaunchTask": "swift: Build Debug SwiftGLTFViewer"
         },
         {
             "type": "lldb",
             "request": "launch",
             "name": "Release SwiftGLTFViewer",
-            "program": "${workspaceFolder:GLTF}/.build/release/SwiftGLTFViewer",
+            "program": "${workspaceFolder:SwiftGLTF}/.build/release/SwiftGLTFViewer",
             "args": [],
-            "cwd": "${workspaceFolder:GLTF}",
+            "cwd": "${workspaceFolder:SwiftGLTF}",
             "preLaunchTask": "swift: Build Release SwiftGLTFViewer"
         }
     ]

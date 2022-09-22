@@ -18,8 +18,8 @@ let package = Package(
         .executable(name: "SwiftGLTFViewer", targets: ["SwiftGLTFViewer"]),
     ],
     dependencies: [
-        .package(name: "Everything", url: "https://github.com/schwa/Everything", .branch("main")),
-        .package(url: "https://github.com/schwa/SIMD-Support", .branch("main")),
+        .package(url: "https://github.com/schwa/Everything", branch: "main"),
+        .package(url: "https://github.com/schwa/SIMD-Support", branch: "main"),
         .package(url: "https://github.com/marmelroy/Zip", from: "2.1.0")
     ],
     targets: [
