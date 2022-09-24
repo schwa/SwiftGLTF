@@ -6,16 +6,15 @@ import PackageDescription
 let package = Package(
     name: "SwiftGLTF",
     platforms: [
-        .iOS("15.0"),
-        .macOS("12.0"),
-        .macCatalyst("15.0")
+        .iOS("16.0"),
+        .macOS("13.0"),
+        .macCatalyst("16.0")
     ],
     products: [
         .library(
             name: "SwiftGLTF",
             targets: ["SwiftGLTF"]
         ),
-        .executable(name: "SwiftGLTFViewer", targets: ["SwiftGLTFViewer"]),
     ],
     dependencies: [
         .package(url: "https://github.com/schwa/Everything", branch: "main"),
