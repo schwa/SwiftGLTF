@@ -6,9 +6,9 @@ import PackageDescription
 let package = Package(
     name: "SwiftGLTF",
     platforms: [
-        .iOS("16.0"),
-        .macOS("13.0"),
-        .macCatalyst("16.0")
+        .iOS("15.0"),
+        .macOS("12.0"),
+        .macCatalyst("15.0")
     ],
     products: [
         .library(
@@ -19,17 +19,11 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/schwa/Everything", branch: "main"),
         .package(url: "https://github.com/schwa/SIMD-Support", branch: "main"),
-        .package(url: "https://github.com/marmelroy/Zip", from: "2.1.0")
     ],
     targets: [
         .target(
             name: "SwiftGLTF",
             dependencies: ["Everything", .product(name: "SIMDSupport", package: "SIMD-Support")]
-        ),
-        .executableTarget(
-            name: "SwiftGLTFViewer",
-            dependencies: ["Everything", "SwiftGLTF", "Zip"],
-            resources: [.copy("Box.gltf"), .copy("BarramundiFish.glb")]
         ),
         .testTarget(
             name: "SwiftGLTFTests",
