@@ -1,4 +1,4 @@
 steps:
     - command: "swift build"
     - command: "swift test --enable-code-coverage"
-    - command: "cd Demo; xcodebuild -scheme All -destination 'generic/platform=iOS'"
+    - command: "cd Demo; xcodebuild -scheme SwiftGLTFDemo -destination 'generic/platform=iOS'"
