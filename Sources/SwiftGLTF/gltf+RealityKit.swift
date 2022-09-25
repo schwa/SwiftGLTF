@@ -1,5 +1,8 @@
 #if os(macOS)
 import AppKit
+#elseif os(iOS)
+import UIKit
+#endif
 import CoreImage
 import Foundation
 import RealityKit
@@ -96,7 +99,11 @@ public class RealityKitGLTFGenerator {
                 let textureResource = try TextureResource.generate(from: image, options: .init(semantic: .color))
                 reTexture = MaterialParameters.Texture(textureResource)
             }
+            #if os(macOS)
             reMaterial.baseColor = .init(tint: NSColor(red: rgba[0], green: rgba[1], blue: rgba[2], alpha: rgba[3]), texture: reTexture)
+            #elseif os(iOS)
+            reMaterial.baseColor = .init(tint: UIColor(red: rgba[0], green: rgba[1], blue: rgba[2], alpha: rgba[3]), texture: reTexture)
+            #endif
         }
         return reMaterial
     }
@@ -192,4 +199,3 @@ extension Mesh.Primitive {
         }
     }
 }
-#endif
