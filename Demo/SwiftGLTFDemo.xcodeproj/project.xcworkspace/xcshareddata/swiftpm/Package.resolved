@@ -1,0 +1,32 @@
+{
+  "pins" : [
+    {
+      "identity" : "everything",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/schwa/Everything",
+      "state" : {
+        "branch" : "main",
+        "revision" : "e1538c0800ac49ce14d83ead8b31b20facf8cd37"
+      }
+    },
+    {
+      "identity" : "simd-support",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/schwa/SIMD-Support",
+      "state" : {
+        "branch" : "main",
+        "revision" : "992af1c4b93808bdcaf38671ffd66515fe268616"
+      }
+    },
+    {
+      "identity" : "zip",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/marmelroy/Zip",
+      "state" : {
+        "revision" : "67fa55813b9e7b3b9acee9c0ae501def28746d76",
+        "version" : "2.1.2"
+      }
+    }
+  ],
+  "version" : 2
+}
