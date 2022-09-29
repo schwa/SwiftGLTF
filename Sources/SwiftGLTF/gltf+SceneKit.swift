@@ -132,7 +132,7 @@ public class SceneKitGenerator {
                 (.TEXCOORD_1, nil),
                 (.COLOR_0, .color),
                 (.JOINTS_0, nil),
-                (.WEIGHTS_0, nil),
+                (.WEIGHTS_0, nil)
             ]
 
             let sources: [SCNGeometrySource] = try semantics.compactMap {

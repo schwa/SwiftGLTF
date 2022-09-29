@@ -678,7 +678,7 @@ public struct MatrixDecoder: Decodable {
                 floats[0 ..< 4],
                 floats[4 ..< 8],
                 floats[8 ..< 12],
-                floats[12 ..< 16],
+                floats[12 ..< 16]
             ].map { SIMD4<Float>($0) }
             matrix = simd_float4x4(columns)
         }
