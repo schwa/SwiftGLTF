@@ -23,7 +23,10 @@ let package = Package(
     targets: [
         .target(
             name: "SwiftGLTF",
-            dependencies: ["Everything", .product(name: "SIMDSupport", package: "SIMD-Support")]
+            dependencies: [
+                "Everything",
+                .product(name: "SIMDSupport", package: "SIMD-Support")
+            ]
         ),
         .testTarget(
             name: "SwiftGLTFTests",

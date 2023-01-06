@@ -66,16 +66,6 @@ extension Accessor.AttributeType {
     }
 }
 
-extension Array where Element == SIMD3<Float> {
-    init(_ data: Data) {
-        // TODO: Do this with a cast not a copy.
-        self = data.withUnsafeBytes { buffer in
-            let buffer = buffer.bindMemory(to: Float.self)
-            return buffer.chunks(of: 3).map { SIMD3<Float>($0) }
-        }
-    }
-}
-
 extension Array {
     init(_ data: Data) {
         self = data.withUnsafeBytes { buffer in
