@@ -31,7 +31,10 @@ let package = Package(
         .testTarget(
             name: "SwiftGLTFTests",
             dependencies: ["SwiftGLTF"],
-            resources: [.copy("Box.gltf")]
+            resources: [
+                .copy("Box.gltf"),
+                .copy("Box-byteStride.glb"),
+            ]
         ),
     ]
 )
