@@ -67,7 +67,7 @@ extension Accessor.AttributeType {
 }
 
 extension Array {
-    init(_ data: Data) {
+    init(withUnsafeData data: Data) {
         self = data.withUnsafeBytes { buffer in
             let buffer = buffer.bindMemory(to: Element.self)
             return Array(buffer)

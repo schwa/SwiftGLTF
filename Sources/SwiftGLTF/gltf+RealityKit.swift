@@ -137,7 +137,7 @@ extension Mesh.Primitive {
             return nil
         }
         assert(accessor.componentType == .FLOAT)
-        let values = [SIMD2<Float>](try container.data(for: accessor))
+        let values = Array <SIMD2<Float>>(withUnsafeData: try container.data(for: accessor))
         assert(values.count == accessor.count)
         assert(accessor.min == nil || accessor.max == nil || values.allSatisfy({ $0.within(min: SIMD2<Float>(accessor.min!), max: SIMD2<Float>(accessor.max!)) }))
         return values
@@ -148,12 +148,21 @@ extension Mesh.Primitive {
             return nil
         }
 
+
+        struct FauxVector3 {
+            var x: Float
+            var y: Float
+            var z: Float
+        }
+
         let values: [SIMD3<Float>]
         switch accessor.componentType {
         case .FLOAT:
-            values = [SIMD3<Float>](try container.data(for: accessor))
+            values = Array <FauxVector3>(withUnsafeData: try container.data(for: accessor)).map {
+                SIMD3<Float>($0.x, $0.y, $0.z)
+            }
         case .UNSIGNED_SHORT:
-            values = [SIMD3<Float>](try container.data(for: accessor)).map { SIMD3<Float>($0.map { Float($0) }) }
+            values = Array <SIMD3<Float>>(withUnsafeData: try container.data(for: accessor)).map { SIMD3<Float>($0.map { Float($0) }) }
         default:
             fatalError()
         }
@@ -168,7 +177,7 @@ extension Mesh.Primitive {
             return nil
         }
         assert(accessor.componentType == .FLOAT)
-        let values = [SIMD4<Float>](try container.data(for: accessor))
+        let values = Array <SIMD4<Float>>(withUnsafeData: try container.data(for: accessor))
         assert(values.count == accessor.count)
         assert(accessor.min == nil || accessor.max == nil || values.allSatisfy({ $0.within(min: SIMD4<Float>(accessor.min!), max: SIMD4<Float>(accessor.max!)) }))
         return values
@@ -185,12 +194,12 @@ extension Mesh.Primitive {
             assert(indices.count == indicesAccessor.count)
             return indices.map { UInt32($0) }
         case .UNSIGNED_SHORT:
-            let indices = [UInt16](try container.data(for: indicesAccessor))
+            let indices = Array <UInt16>(withUnsafeData: try container.data(for: indicesAccessor))
             assert(indicesAccessor.min == nil || indicesAccessor.max == nil || indices.allSatisfy({ (UInt16(indicesAccessor.min![0]) ... UInt16(indicesAccessor.max![0])).contains($0) }))
             assert(indices.count == indicesAccessor.count)
             return indices.map { UInt32($0) }
         case .UNSIGNED_INT:
-            let indices = [UInt32](try container.data(for: indicesAccessor))
+            let indices = Array <UInt32>(withUnsafeData: try container.data(for: indicesAccessor))
             assert(indicesAccessor.min == nil || indicesAccessor.max == nil || indices.allSatisfy({ (UInt32(indicesAccessor.min![0]) ... UInt32(indicesAccessor.max![0])).contains($0) }))
             assert(indices.count == indicesAccessor.count)
             return indices
