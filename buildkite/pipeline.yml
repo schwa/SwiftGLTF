@@ -1,9 +1,9 @@
 steps:
-  - commands:
-      - "swift build"
-      - "swift test --enable-code-coverage"
-      - "cd Demo"
-      - "xcodebuild clean -scheme SwiftGLTFDemo -destination 'generic/platform=macOS'"
-      - "xcodebuild -scheme SwiftGLTFDemo -allowProvisioningUpdates -destination 'generic/platform=macOS'"
-      - "xcodebuild clean -scheme SwiftGLTFDemo -destination 'generic/platform=iOS'"
-      - "xcodebuild -scheme SwiftGLTFDemo -allowProvisioningUpdates -destination 'generic/platform=iOS'"
+    - commands:
+          - "swift build"
+          - "swift test"
+          - "cd Demo"
+          - "xcodebuild clean -scheme SwiftGLTFDemo -destination 'generic/platform=macOS'"
+          - "xcodebuild -scheme SwiftGLTFDemo -allowProvisioningUpdates -destination 'generic/platform=macOS'"
+          - "xcodebuild clean -scheme SwiftGLTFDemo -destination 'generic/platform=iOS'"
+          - "xcodebuild -scheme SwiftGLTFDemo -allowProvisioningUpdates -destination 'generic/platform=iOS'"
