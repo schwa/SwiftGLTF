@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/schwa/CoreGraphicsGeometrySupport",
       "state" : {
-        "branch" : "main",
-        "revision" : "63347db575440bb24130ee7724409f753972318f"
+        "revision" : "8032fa40acffc8791aa85f0ae347ae4feb197dd2",
+        "version" : "0.0.2"
       }
     },
     {
@@ -15,7 +15,7 @@
       "location" : "https://github.com/schwa/Everything",
       "state" : {
         "branch" : "main",
-        "revision" : "40721984fed65d0f0a03107349a55c62b91605c6"
+        "revision" : "0a562a585ea02b802a01d5a7583cde5a31bc4f2d"
       }
     },
     {
@@ -24,7 +24,7 @@
       "location" : "https://github.com/schwa/SIMD-Support",
       "state" : {
         "branch" : "main",
-        "revision" : "b138378462155d84f7aff9e9c34b38eb89188595"
+        "revision" : "c041a5b7086252a06ff8cf11158e289d5a3b62b4"
       }
     },
     {
