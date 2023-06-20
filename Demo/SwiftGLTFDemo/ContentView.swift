@@ -14,8 +14,9 @@ struct ContentView: View {
 }
 
 struct DownloaderView: View {
+    let applicationSupportDirectory = FileManager().urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
     let url = URL(string: "https://codeload.github.com/KhronosGroup/glTF-Sample-Models/zip/refs/heads/master")!
-    
+
     enum DownloadState {
         case waiting
         case downloading
@@ -26,30 +27,42 @@ struct DownloaderView: View {
     var state: DownloadState = .waiting
     
     var body: some View {
-        switch state {
-        case .waiting:
-            Button("Download") {
-                state = .downloading
-                Task {
-                    do {
-                        let (url, _) = try await URLSession.shared.download(for: URLRequest(url: url))
-                        print(url)
-                        let newURL = url.appendingPathExtension("zip")
-                        try FileManager().moveItem(at: url, to: newURL)
-                        try Zip.unzipFile(newURL, destination: newURL.deletingPathExtension(), overwrite: true, password: nil)
-                        state = .downloaded(newURL.deletingPathExtension())
-                    }
-                    catch {
-                        print(error)
-                        state = .waiting
+        VStack {
+            switch state {
+            case .waiting:
+                Text("This downloads approximate 1.1GB of data from [https://codeload.github.com/KhronosGroup/glTF-Sample-Models/zip/refs/heads/master](https://codeload.github.com/KhronosGroup/glTF-Sample-Models/zip/refs/heads/master) and stores it in \(applicationSupportDirectory.path)")
+                Button("Download") {
+                    state = .downloading
+                    Task {
+                        do {
+                            let (url, _) = try await URLSession.shared.download(for: URLRequest(url: url))
+                            let newURL = url.appendingPathExtension("zip")
+                            try FileManager().moveItem(at: url, to: newURL)
+                            let finalDestination = applicationSupportDirectory.appendingPathComponent("glTF-Sample-Models")
+                            try Zip.unzipFile(newURL, destination: finalDestination, overwrite: true, password: nil)
+                            print(finalDestination)
+                            
+                            state = .downloaded(finalDestination.deletingPathExtension())
+                        }
+                        catch {
+                            print(error)
+                            state = .waiting
+                        }
                     }
                 }
+            case .downloading:
+                ProgressView()
+            case .downloaded(let url):
+                GLTFModelBrowser(url: url)
             }
-        case .downloading:
-            ProgressView()
-        case .downloaded(let url):
-            GLTFModelBrowser(url: url)
         }
+        .onAppear {
+            let finalDestination = applicationSupportDirectory.appendingPathComponent("glTF-Sample-Models")
+            if FileManager().fileExists(atURL: finalDestination) {
+                state = .downloaded(finalDestination)
+            }
+        }
+
     }
 }
 
