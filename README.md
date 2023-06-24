@@ -16,7 +16,7 @@ A Swift library for loading, parsing and viewing GLTF files using RealityKit and
 
 ## Status
 
-Incomplete. Currently only supports a subset of the GLTF 2.0 spec - not all KronosGroup sample models will load or render correctly.
+Incomplete. Currently only supports a subset of the [GLTF 2.0](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html) spec - not all KronosGroup sample models will load or render correctly.
 
 ## Caveats
 
