@@ -17,8 +17,8 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/schwa/Everything", from: "0.1.0"),
-        .package(url: "https://github.com/schwa/SIMD-Support", from: "0.1.0"),
+        .package(url: "https://github.com/schwa/Everything", from: "0.1.2"),
+        .package(url: "https://github.com/schwa/SIMD-Support", from: "0.1.1"),
     ],
     targets: [
         .target(

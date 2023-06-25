@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/schwa/Everything",
       "state" : {
-        "revision" : "0a562a585ea02b802a01d5a7583cde5a31bc4f2d",
-        "version" : "0.1.1"
+        "revision" : "ae84a2ffad8597146deed736cef40966b8570f00",
+        "version" : "0.1.2"
       }
     },
     {
@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/schwa/SIMD-Support",
       "state" : {
-        "revision" : "c1518d025be0032d9c4ccb4765d8f4550a219579",
-        "version" : "0.1.0"
+        "revision" : "a7d1f9585c56f27494599b82ca51fb2cf2d0eb57",
+        "version" : "0.1.1"
       }
     },
     {
