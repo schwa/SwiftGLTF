@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/schwa/Everything",
       "state" : {
-        "revision" : "4feab6bd6b8a7f42db887a313eab66faa37b2977",
-        "version" : "0.4.4"
+        "revision" : "ae84a2ffad8597146deed736cef40966b8570f00",
+        "version" : "0.1.2"
       }
     },
     {
