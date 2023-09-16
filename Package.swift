@@ -6,9 +6,9 @@ import PackageDescription
 let package = Package(
     name: "SwiftGLTF",
     platforms: [
-        .iOS("15.0"),
-        .macOS("12.0"),
-        .macCatalyst("15.0")
+        .iOS("17.0"),
+        .macOS("14.0"),
+        .macCatalyst("17.0")
     ],
     products: [
         .library(
@@ -17,8 +17,8 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/schwa/Everything", exact: "0.1.2"),
-        .package(url: "https://github.com/schwa/SIMD-Support", exact: "0.2.0"),
+        .package(url: "https://github.com/schwa/Everything", from: "0.4.4"),
+        .package(url: "https://github.com/schwa/SIMD-Support", from: "0.2.1"),
     ],
     targets: [
         .target(
