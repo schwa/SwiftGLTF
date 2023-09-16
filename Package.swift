@@ -6,9 +6,9 @@ import PackageDescription
 let package = Package(
     name: "SwiftGLTF",
     platforms: [
-        .iOS("15.0"),
-        .macOS("12.0"),
-        .macCatalyst("15.0")
+        .iOS("17.0"),
+        .macOS("14.0"),
+        .macCatalyst("17.0")
     ],
     products: [
         .library(
