@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/schwa/SIMD-Support",
       "state" : {
-        "revision" : "54865a33c1040fadf68b814fb15c65c4d1504640",
-        "version" : "0.1.2"
+        "revision" : "9ff9b201a508ae79006a8d2ac78716dc7a83123c",
+        "version" : "0.2.0"
       }
     },
     {
