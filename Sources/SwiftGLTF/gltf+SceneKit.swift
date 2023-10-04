@@ -1,4 +1,5 @@
-import CoreImage
+/*
+ import CoreImage
 import Everything
 import Foundation
 import os
@@ -334,3 +335,4 @@ extension SCNWrapMode {
         }
     }
 }
+*/

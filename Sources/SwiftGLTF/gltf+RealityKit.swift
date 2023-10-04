@@ -6,6 +6,7 @@ import UIKit
 import CoreImage
 import Foundation
 import RealityKit
+import SIMDSupport
 
 public class RealityKitGLTFGenerator {
     let container: Container

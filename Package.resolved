@@ -1,29 +1,11 @@
 {
   "pins" : [
     {
-      "identity" : "coregraphicsgeometrysupport",
+      "identity" : "approximateequality",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/schwa/CoreGraphicsGeometrySupport",
+      "location" : "https://github.com/schwa/ApproximateEquality",
       "state" : {
-        "revision" : "bdfd61e3dc130c0c73b1c9ba401f7bb0df161cd3",
-        "version" : "0.1.0"
-      }
-    },
-    {
-      "identity" : "everything",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/schwa/Everything",
-      "state" : {
-        "revision" : "e4f51ca5cc860bc83b99380f9f56ed07e2c3b81d",
-        "version" : "0.5.0"
-      }
-    },
-    {
-      "identity" : "simd-support",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/schwa/SIMD-Support",
-      "state" : {
-        "revision" : "b163c8951dca3089d69f4bcc3febe60d178965ac",
+        "revision" : "13ae17c1b1eb3bab0912bb29b264d3be2ea38115",
         "version" : "0.2.1"
       }
     },
@@ -43,6 +25,24 @@
       "state" : {
         "revision" : "0a5bc04095a675662cf24757cc0640aa2204253b",
         "version" : "1.0.2"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-syntax.git",
+      "state" : {
+        "revision" : "74203046135342e4a4a627476dd6caf8b28fe11b",
+        "version" : "509.0.0"
+      }
+    },
+    {
+      "identity" : "swiftgraphics",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/schwa/SwiftGraphics",
+      "state" : {
+        "branch" : "jwight/develop",
+        "revision" : "d6ad5fb5cdacf03f4e1c5e968cea3e759b3887ac"
       }
     }
   ],

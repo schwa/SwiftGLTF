@@ -1,6 +1,5 @@
 import Foundation
 
-import Everything
 import RealityKit
 import SceneKit
 import SwiftGLTF
