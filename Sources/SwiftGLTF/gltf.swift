@@ -145,7 +145,7 @@ public struct Container {
 
 // MARK: -
 
-public struct Document: Decodable {
+public struct Document: Decodable, Hashable, Sendable {
     public let extensionsUsed: [String]
     public let extensionsRequired: [String]
     public let accessors: [Accessor]
@@ -212,12 +212,12 @@ public struct Document: Decodable {
     }
 }
 
-public struct Accessor: Decodable, Resolver {
+public struct Accessor: Decodable, Hashable, Sendable, Resolver {
     public static let documentKeyPath = \Document.accessors
 
     public let bufferView: Index<BufferView>?
     public let byteOffset: Int
-    public enum ComponentType: Int, Decodable {
+    public enum ComponentType: Int, Decodable, Hashable, Sendable {
         case BYTE = 5120
         case UNSIGNED_BYTE = 5121
         case SHORT = 5122
@@ -229,7 +229,7 @@ public struct Accessor: Decodable, Resolver {
     public let componentType: ComponentType
     public let normalized: Bool
     public let count: Int
-    public enum AttributeType: String, Decodable {
+    public enum AttributeType: String, Decodable, Hashable, Sendable {
         case SCALAR
         case VEC2
         case VEC3
@@ -279,11 +279,11 @@ public struct Accessor: Decodable, Resolver {
     }
 }
 
-public struct Animation: Decodable {
+public struct Animation: Decodable, Hashable, Sendable {
     public static let documentKeyPath = \Document.animations
 }
 
-public struct Asset: Decodable {
+public struct Asset: Decodable, Hashable, Sendable {
     public let copyright: String?
     public let generator: String?
     public let version: Version
@@ -291,7 +291,7 @@ public struct Asset: Decodable {
     // let extensions: [String: Any]?
     // let extras: Any?
 
-    public struct Version: Hashable, RawRepresentable, Decodable {
+    public struct Version: RawRepresentable, Decodable, Hashable, Sendable {
         public init?(rawValue: String) {
             self.rawValue = rawValue
         }
@@ -305,7 +305,7 @@ public struct Asset: Decodable {
     }
 }
 
-public struct Buffer: Decodable, Resolver {
+public struct Buffer: Decodable, Hashable, Sendable, Resolver {
     public static let documentKeyPath = \Document.buffers
 
     public let uri: URI?
@@ -315,7 +315,7 @@ public struct Buffer: Decodable, Resolver {
     // let extras: Any?
 }
 
-public struct BufferView: Decodable, Resolver {
+public struct BufferView: Decodable, Hashable, Sendable, Resolver {
     public static let documentKeyPath = \Document.bufferViews
 
     public let buffer: Index<Buffer>
@@ -354,7 +354,7 @@ public struct BufferView: Decodable, Resolver {
     }
 }
 
-public struct Camera: Decodable, Resolver {
+public struct Camera: Decodable, Hashable, Sendable, Resolver {
     public static let documentKeyPath = \Document.cameras
 }
 
@@ -366,7 +366,7 @@ public struct Camera: Decodable, Resolver {
 // public struct Extras: Decodable {
 // }
 
-public struct Image: Decodable, Resolver {
+public struct Image: Decodable, Hashable, Sendable, Resolver {
     public static let documentKeyPath = \Document.images
 
     public let uri: URI?
@@ -377,14 +377,14 @@ public struct Image: Decodable, Resolver {
     // let extras: Any?
 }
 
-public struct Material: Decodable, Resolver {
+public struct Material: Decodable, Hashable, Sendable, Resolver {
     public static let documentKeyPath = \Document.materials
 
     public let name: String?
     // let extensions: [String: Any]?
     // let extras: Any?
 
-    public struct PBRMetallicRoughness: Decodable {
+    public struct PBRMetallicRoughness: Decodable, Hashable, Sendable {
         public let baseColorFactor: SIMD4<Float>
         public let baseColorTexture: TextureInfo?
         public let metallicFactor: Float
@@ -424,11 +424,11 @@ public struct Material: Decodable, Resolver {
     public let doubleSided: Bool? // false
 }
 
-public struct Mesh: Decodable, Resolver {
+public struct Mesh: Decodable, Hashable, Sendable, Resolver {
     public static let documentKeyPath = \Document.meshes
 
-    public struct Primitive: Decodable {
-        public enum Semantic: String, Decodable {
+    public struct Primitive: Decodable, Hashable, Sendable {
+        public enum Semantic: String, Decodable, Hashable, Sendable {
             case POSITION
             case NORMAL
             case TANGENT
@@ -443,7 +443,7 @@ public struct Mesh: Decodable, Resolver {
         public let attributes: [Semantic: Index<Accessor>]
         public let indices: Index<Accessor>?
         public let material: Index<Material>?
-        public enum Mode: Int, Decodable {
+        public enum Mode: Int, Decodable, Hashable, Sendable {
             case POINTS = 0
             case LINES = 1
             case LINE_LOOP = 2
@@ -500,7 +500,7 @@ public struct Mesh: Decodable, Resolver {
     }
 }
 
-public struct Node: Decodable, Resolver {
+public struct Node: Decodable, Hashable, Sendable, Resolver {
     public static let documentKeyPath = \Document.nodes
 
     public let camera: Index<Camera>?
@@ -546,17 +546,32 @@ public struct Node: Decodable, Resolver {
 //        extensions = try container.decodeIfPresent(XXXX, forKey: .XXXX)
 //        extras = try container.decodeIfPresent(XXXX, forKey: .XXXX)
     }
+    
+    public func hash(into hasher: inout Hasher) {
+        camera?.hash(into: &hasher)
+        children.hash(into: &hasher)
+        //    let skin: Int?
+        matrix?.scalars.hash(into: &hasher)
+        mesh.hash(into: &hasher)
+        rotation.hash(into: &hasher)
+        scale.hash(into: &hasher)
+        translation.hash(into: &hasher)
+        //    let weights: [Int]?
+        name.hash(into: &hasher)
+        // let extensions: [String: Any]?
+        // let extras: Any?
+    }
 }
 
-public struct Sampler: Decodable, Resolver {
+public struct Sampler: Decodable, Hashable, Sendable, Resolver {
     public static let documentKeyPath = \Document.samplers
 
-    public enum MagFilter: Int, Decodable {
+    public enum MagFilter: Int, Decodable, Hashable, Sendable {
         case NEAREST = 9728
         case LINEAR = 9729
     }
 
-    public enum MinFilter: Int, Decodable {
+    public enum MinFilter: Int, Decodable, Hashable, Sendable {
         case NEAREST = 9728
         case LINEAR = 9729
         case NEAREST_MIPMAP_NEAREST = 9984
@@ -565,7 +580,7 @@ public struct Sampler: Decodable, Resolver {
         case LINEAR_MIPMAP_LINEAR = 9987
     }
 
-    public enum Wrap: Int, Decodable {
+    public enum Wrap: Int, Decodable, Hashable, Sendable {
         case CLAMP_TO_EDGE = 33071
         case MIRRORED_REPEAT = 33648
         case REPEAT = 10497
@@ -607,7 +622,7 @@ public struct Sampler: Decodable, Resolver {
     }
 }
 
-public struct Scene: Decodable, Resolver {
+public struct Scene: Decodable, Hashable, Sendable, Resolver {
     public static let documentKeyPath = \Document.scenes
 
     public let nodes: [Index<Node>]
@@ -629,11 +644,11 @@ public struct Scene: Decodable, Resolver {
     }
 }
 
-public struct Skin: Decodable {
+public struct Skin: Decodable, Hashable, Sendable {
     public static let documentKeyPath = \Document.skins
 }
 
-public struct Texture: Decodable, Resolver {
+public struct Texture: Decodable, Hashable, Sendable, Resolver {
     public static let documentKeyPath = \Document.textures
 
     public let sampler: Index<Sampler>?
@@ -643,7 +658,7 @@ public struct Texture: Decodable, Resolver {
     // let extras: Any
 }
 
-public struct TextureInfo: Decodable {
+public struct TextureInfo: Decodable, Hashable, Sendable {
     public let index: Index<Texture>
     public let texCoord: Int
     // let extensions: [String: Any]
@@ -690,7 +705,7 @@ public struct MatrixDecoder: Decodable {
 
 // MARK: -
 
-public struct URI: Decodable, Hashable {
+public struct URI: Decodable, Hashable, Sendable {
     public let string: String
 
     public init(from decoder: Decoder) throws {
@@ -699,12 +714,12 @@ public struct URI: Decodable, Hashable {
     }
 }
 
-public protocol Resolver {
+public protocol Resolver: Sendable {
     associatedtype C: RandomAccessCollection where C.Index == Int
     static var documentKeyPath: KeyPath<Document, C> { get }
 }
 
-public struct Index<R>: Decodable, Hashable where R: Resolver {
+public struct Index<R>: Decodable, Hashable, Sendable where R: Resolver {
     public typealias C = R.C
     public let index: C.Index
 
