@@ -37,12 +37,12 @@ public struct Container {
         }
     }
 
-    func resolve(path: String) throws -> Data {
+    public func resolve(path: String) throws -> Data {
         let url = url.deletingLastPathComponent().appendingPathComponent(path)
         return try Data(contentsOf: url)
     }
 
-    func resolve(chunkIndex: Int) throws -> Data {
+    public func resolve(chunkIndex: Int) throws -> Data {
         switch kind {
         case .binary(let glb):
             return glb.chunks[chunkIndex].content
@@ -57,7 +57,7 @@ public struct Container {
 
     let cache = Cache()
 
-    func data(for uri: URI) throws -> Data {
+    public func data(for uri: URI) throws -> Data {
         if let data = cache.cache[uri] {
             return data
         }
@@ -85,12 +85,12 @@ public struct Container {
         }
     }
 
-    func data(for bufferView: BufferView) throws -> Data {
+    public func data(for bufferView: BufferView) throws -> Data {
         let data = try data(for: bufferView.buffer)
         return data.subdata(in: bufferView.byteOffset ..< (bufferView.byteOffset + bufferView.byteLength))
     }
 
-    func data(for bufferIndex: Index<Buffer>) throws -> Data {
+    public func data(for bufferIndex: Index<Buffer>) throws -> Data {
         let buffer = try bufferIndex.resolve(in: document)
 
         switch (bufferIndex.index, buffer.uri, kind) {
@@ -105,7 +105,7 @@ public struct Container {
         }
     }
 
-    func data(for accessor: Accessor) throws -> Data {
+    public func data(for accessor: Accessor) throws -> Data {
         let elementSize: Int
         switch (accessor.componentType, accessor.type) {
         case (.FLOAT, .VEC4):
