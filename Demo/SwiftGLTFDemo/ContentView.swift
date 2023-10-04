@@ -5,6 +5,7 @@ import SceneKit
 import SwiftGLTF
 import SwiftUI
 import Zip
+import Everything
 
 struct ContentView: View {
     var body: some View {
@@ -57,7 +58,7 @@ struct DownloaderView: View {
         }
         .onAppear {
             let finalDestination = applicationSupportDirectory.appendingPathComponent("glTF-Sample-Models")
-            if FileManager().fileExists(atURL: finalDestination) {
+            if FileManager().fileExists(atPath: url.path) {
                 state = .downloaded(finalDestination)
             }
         }
