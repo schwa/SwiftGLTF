@@ -31,6 +31,7 @@ struct DownloaderView: View {
             switch state {
             case .waiting:
                 Text("This downloads approximate 1.1GB of data from [https://codeload.github.com/KhronosGroup/glTF-Sample-Models/zip/refs/heads/master](https://codeload.github.com/KhronosGroup/glTF-Sample-Models/zip/refs/heads/master) and stores it in \(applicationSupportDirectory.path)")
+                    .textSelection(.enabled)
                 Button("Download") {
                     state = .downloading
                     Task {
