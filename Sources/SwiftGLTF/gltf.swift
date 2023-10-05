@@ -92,9 +92,12 @@ public struct Container {
 
     public func data(for bufferIndex: Index<Buffer>) throws -> Data {
         let buffer = try bufferIndex.resolve(in: document)
-
-        switch (bufferIndex.index, buffer.uri, kind) {
-        case (0, nil, .binary(let glb)):
+        return try data(for: buffer)
+    }
+    
+    public func data(for buffer: Buffer) throws -> Data {
+        switch (buffer.uri, kind) {
+        case (nil, .binary(let glb)):
             let chunk = glb.chunks.first(where: { $0.chunkType == .bin })
             return chunk!.content
         default:
