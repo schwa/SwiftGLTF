@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-algorithms",
       "state" : {
-        "revision" : "b14b7f4c528c942f121c8b860b9410b2bf57825e",
-        "version" : "1.0.0"
+        "revision" : "f6919dfc309e7f1b56224378b11e28bab5bccc42",
+        "version" : "1.2.0"
       }
     },
     {
