@@ -1,9 +1,9 @@
 import CoreImage
-import Everything
+//import Everything
 import Foundation
 import os
 import SceneKit
-import SIMDSupport
+//import SIMDSupport
 
 // swiftlint:disable fatal_error_message
 
@@ -288,7 +288,8 @@ public class SceneKitGenerator {
 extension CGImage {
     static func load(contentsOf url: URL) throws -> CGImage {
         #if os(macOS)
-            return NSImage(contentsOf: url)!.cgImage
+            fatalError()
+//            return NSImage(contentsOf: url)!.cgImage
         #else
             fatalError()
         #endif

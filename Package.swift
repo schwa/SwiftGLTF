@@ -17,16 +17,10 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/schwa/Everything", from: "0.4.4"),
-        .package(url: "https://github.com/schwa/SIMD-Support", from: "0.2.1"),
     ],
     targets: [
         .target(
-            name: "SwiftGLTF",
-            dependencies: [
-                "Everything",
-                .product(name: "SIMDSupport", package: "SIMD-Support")
-            ]
+            name: "SwiftGLTF"
         ),
         .testTarget(
             name: "SwiftGLTFTests",

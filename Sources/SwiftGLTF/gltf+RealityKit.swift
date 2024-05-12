@@ -87,9 +87,7 @@ public class RealityKitGLTFGenerator {
     func makeMaterial(from material: Material) throws -> RealityKit.Material {
         var reMaterial = PhysicallyBasedMaterial()
         if let pbrMetallicRoughness = material.pbrMetallicRoughness {
-            let rgba = pbrMetallicRoughness.baseColorFactor.map {
-                CGFloat($0)
-            }
+            let rgba = pbrMetallicRoughness.baseColorFactor
             var reTexture: MaterialParameters.Texture?
             if let textureInfo = pbrMetallicRoughness.baseColorTexture {
                 let texture = try textureInfo.index.resolve(in: document)
@@ -100,9 +98,9 @@ public class RealityKitGLTFGenerator {
                 reTexture = MaterialParameters.Texture(textureResource)
             }
             #if os(macOS)
-            reMaterial.baseColor = .init(tint: NSColor(red: rgba[0], green: rgba[1], blue: rgba[2], alpha: rgba[3]), texture: reTexture)
+            reMaterial.baseColor = .init(tint: NSColor(red: Double(rgba[0]), green: Double(rgba[1]), blue: Double(rgba[2]), alpha: Double(rgba[3])), texture: reTexture)
             #elseif os(iOS)
-            reMaterial.baseColor = .init(tint: UIColor(red: rgba[0], green: rgba[1], blue: rgba[2], alpha: rgba[3]), texture: reTexture)
+            reMaterial.baseColor = .init(tint: UIColor(red: Double(rgba[0]), green: Double(rgba[1]), blue: Double(rgba[2]), alpha: Double(rgba[3])), texture: reTexture)
             #endif
         }
         return reMaterial
@@ -208,3 +206,5 @@ extension Mesh.Primitive {
         }
     }
 }
+
+

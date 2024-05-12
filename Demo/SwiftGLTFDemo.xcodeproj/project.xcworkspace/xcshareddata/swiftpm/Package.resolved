@@ -19,15 +19,6 @@
       }
     },
     {
-      "identity" : "simd-support",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/schwa/SIMD-Support",
-      "state" : {
-        "revision" : "b163c8951dca3089d69f4bcc3febe60d178965ac",
-        "version" : "0.2.1"
-      }
-    },
-    {
       "identity" : "swift-algorithms",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-algorithms",

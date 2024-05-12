@@ -1,6 +1,8 @@
 import CoreGraphics
 import CoreImage
 import Foundation
+import simd
+import os
 
 extension CGImage {
     @available(*, deprecated, message: "Inefficient")
@@ -29,12 +31,6 @@ extension CGImage {
 
     var blueChannel: CGImage {
         channel(CIVector(x: 0, y: 0, z: 1, w: 0))
-    }
-}
-
-extension Index: CustomStringConvertible {
-    public var description: String {
-        "\(C.Element.self)#\(index)"
     }
 }
 
@@ -83,5 +79,48 @@ extension SIMD where Scalar == Float {
             }
         }
         return true
+    }
+}
+
+internal extension SIMD3<Float> {
+    func map(_ f: (Float) -> Float) -> Self {
+        [f(x), f(y), f(z)]
+    }
+}
+
+internal extension SIMD4<Float> {
+    func map(_ f: (Float) -> Float) -> Self {
+        [f(x), f(y), f(z), f(w)]
+    }
+
+    var xyz: SIMD3<Float> {
+        return [x, y, z]
+    }
+
+    var cgColor: CGColor {
+        return CGColor(red: Double(x), green: Double(y), blue: Double(z), alpha: Double(w))
+    }
+}
+
+extension simd_float4x4 {
+    static let  identity = simd_float4x4(diagonal: [1, 1, 1, 1])
+}
+
+
+internal func warning(_ message: @autoclosure () -> String? = Optional.none, file: StaticString = #file, function: StaticString = #function, line: UInt = #line) {
+    warning(false, message(), file: file, function: function, line: line)
+}
+
+internal func warning(_ closure: @autoclosure () -> Bool = false, _ message: @autoclosure () -> String? = Optional.none, file: StaticString = #file, function: StaticString = #function, line: UInt = #line) {
+    guard closure() == false else {
+        return
+    }
+
+    let logger = Logger()
+    if let message = message() {
+        logger.debug("\(message)")
+    }
+    else {
+        logger.debug("Warning! \(file)#\(line)")
     }
 }
