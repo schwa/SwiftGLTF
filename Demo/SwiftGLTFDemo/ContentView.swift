@@ -15,7 +15,7 @@ struct ContentView: View {
 
 struct DownloaderView: View {
     let applicationSupportDirectory = FileManager().urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-    let url = URL(string: "https://codeload.github.com/KhronosGroup/glTF-Sample-Models/zip/refs/heads/master")!
+    let url = URL(string: "https://codeload.github.com/KhronosGroup/glTF-Sample-Models/zip/refs/heads/main")!
 
     enum DownloadState {
         case waiting
@@ -30,13 +30,13 @@ struct DownloaderView: View {
         VStack {
             switch state {
             case .waiting:
-                Text("This downloads approximate 1.1GB of data from [https://codeload.github.com/KhronosGroup/glTF-Sample-Models/zip/refs/heads/master](https://codeload.github.com/KhronosGroup/glTF-Sample-Models/zip/refs/heads/master) and stores it in \(applicationSupportDirectory.path)")
+                Text("This downloads approximate 1.1GB of data from [https://codeload.github.com/KhronosGroup/glTF-Sample-Models/zip/refs/heads/main](https://codeload.github.com/KhronosGroup/glTF-Sample-Models/zip/refs/heads/main) and stores it in \(applicationSupportDirectory.path)")
                     .textSelection(.enabled)
                 Button("Download") {
                     state = .downloading
                     Task {
                         do {
-                            let (url, _) = try await URLSession.shared.download(for: URLRequest(url: url))
+                            let (url, response) = try await URLSession.shared.download(for: URLRequest(url: url))
                             let newURL = url.appendingPathExtension("zip")
                             try FileManager().moveItem(at: url, to: newURL)
                             let finalDestination = applicationSupportDirectory.appendingPathComponent("glTF-Sample-Models")
@@ -75,7 +75,7 @@ struct GLTFModelBrowser: View {
         var modelInfo: [ModelInfo] = []
         
         func load() {
-            // https://codeload.github.com/KhronosGroup/glTF-Sample-Models/zip/refs/heads/master
+            // https://codeload.github.com/KhronosGroup/glTF-Sample-Models/zip/refs/heads/main
             //            rootURL = URL(fileURLWithPath: "/Users/schwa/Shared/Unorganised/glTF-Sample-Models/2.0")
             guard let rootURL = rootURL else {
                 fatalError()
@@ -128,7 +128,7 @@ struct GLTFModelBrowser: View {
             }
         }
         .onAppear {
-            model.rootURL = url.appending(component: "glTF-Sample-Models-master/2.0")
+            model.rootURL = url.appending(component: "glTF-Sample-Models-main/2.0")
             model.load()
         }
     }
