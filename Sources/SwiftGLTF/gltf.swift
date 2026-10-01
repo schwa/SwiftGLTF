@@ -94,7 +94,7 @@ public struct Container {
         let buffer = try bufferIndex.resolve(in: document)
         return try data(for: buffer)
     }
-    
+
     public func data(for buffer: Buffer) throws -> Data {
         switch (buffer.uri, kind) {
         case (nil, .binary(let glb)):
@@ -549,7 +549,7 @@ public struct Node: Decodable, Hashable, Sendable, Resolver {
 //        extensions = try container.decodeIfPresent(XXXX, forKey: .XXXX)
 //        extras = try container.decodeIfPresent(XXXX, forKey: .XXXX)
     }
-    
+
     public func hash(into hasher: inout Hasher) {
         camera?.hash(into: &hasher)
         children.hash(into: &hasher)

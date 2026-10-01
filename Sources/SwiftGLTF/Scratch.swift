@@ -1,8 +1,8 @@
 import CoreGraphics
 import CoreImage
 import Foundation
-import simd
 import os
+import simd
 
 extension CGImage {
     @available(*, deprecated, message: "Inefficient")
@@ -73,10 +73,8 @@ extension Array {
 
 extension SIMD where Scalar == Float {
     func within(min: Self, max: Self) -> Bool {
-        for n in 0 ..< scalarCount {
-            if (min[n] ... max[n]).contains(self[n]) == false {
-                return false
-            }
+        for n in 0 ..< scalarCount where (min[n] ... max[n]).contains(self[n]) == false {
+            return false
         }
         return true
     }
@@ -94,11 +92,11 @@ internal extension SIMD4<Float> {
     }
 
     var xyz: SIMD3<Float> {
-        return [x, y, z]
+        [x, y, z]
     }
 
     var cgColor: CGColor {
-        return CGColor(red: Double(x), green: Double(y), blue: Double(z), alpha: Double(w))
+        CGColor(red: Double(x), green: Double(y), blue: Double(z), alpha: Double(w))
     }
 }
 
@@ -110,11 +108,10 @@ extension simd_float4x4 {
             self[0][0], self[1][0], self[2][0], self[3][0],
             self[0][1], self[1][1], self[2][1], self[3][1],
             self[0][2], self[1][2], self[2][2], self[3][2],
-            self[0][3], self[1][3], self[2][3], self[3][3],
+            self[0][3], self[1][3], self[2][3], self[3][3]
         ]
     }
 }
-
 
 internal func warning(_ message: @autoclosure () -> String? = Optional.none, file: StaticString = #file, function: StaticString = #function, line: UInt = #line) {
     warning(false, message(), file: file, function: function, line: line)

@@ -1,9 +1,9 @@
 import CoreImage
-//import Everything
+// import Everything
 import Foundation
 import os
 import SceneKit
-//import SIMDSupport
+// import SIMDSupport
 
 // swiftlint:disable fatal_error_message
 
@@ -122,8 +122,14 @@ public class SceneKitGenerator {
         return scnSource
     }
 
+    struct PrimitiveGeometry {
+        var sources: [SCNGeometrySource]
+        var element: SCNGeometryElement?
+        var materials: [SCNMaterial]
+    }
+
     func generateSCNGeometry(from mesh: Mesh) throws -> SCNGeometry {
-        let sourcesAndElements: [([SCNGeometrySource], SCNGeometryElement?, [SCNMaterial])] = try mesh.primitives.map { primitive in
+        let sourcesAndElements: [PrimitiveGeometry] = try mesh.primitives.map { primitive in
             let semantics: [(Mesh.Primitive.Semantic, SCNGeometrySource.Semantic?)] = [
                 (.POSITION, .vertex),
                 (.NORMAL, .normal),
@@ -183,12 +189,12 @@ public class SceneKitGenerator {
             let material = try primitive.material?.resolve(in: document)
             let scnMaterial = try material.map { try generateSCNMaterial(from: $0) }
 
-            return (sources, scnElement, [scnMaterial].compactMap { $0 })
+            return PrimitiveGeometry(sources: sources, element: scnElement, materials: [scnMaterial].compactMap { $0 })
         }
 
-        let sources = sourcesAndElements.flatMap(\.0)
-        let elements = sourcesAndElements.compactMap(\.1)
-        let materials = sourcesAndElements.flatMap(\.2)
+        let sources = sourcesAndElements.flatMap(\.sources)
+        let elements = sourcesAndElements.compactMap(\.element)
+        let materials = sourcesAndElements.flatMap(\.materials)
 
         let geometry = SCNGeometry(sources: sources, elements: elements)
         geometry.materials = materials
