@@ -1,6 +1,7 @@
 import Foundation
 
-import Everything
+import CoreGraphics
+import ImageIO
 import RealityKit
 import SceneKit
 import SwiftGLTF
@@ -36,7 +37,7 @@ struct DownloaderView: View {
                     state = .downloading
                     Task {
                         do {
-                            let (url, response) = try await URLSession.shared.download(for: URLRequest(url: url))
+                            let (url, _) = try await URLSession.shared.download(for: URLRequest(url: url))
                             let newURL = url.appendingPathExtension("zip")
                             try FileManager().moveItem(at: url, to: newURL)
                             let finalDestination = applicationSupportDirectory.appendingPathComponent("glTF-Sample-Models")
@@ -59,7 +60,7 @@ struct DownloaderView: View {
         }
         .onAppear {
             let finalDestination = applicationSupportDirectory.appendingPathComponent("glTF-Sample-Models")
-            if FileManager().fileExists(atURL: finalDestination) {
+            if FileManager().fileExists(atPath: finalDestination.path) {
                 state = .downloaded(finalDestination)
             }
         }
@@ -91,7 +92,7 @@ struct GLTFModelBrowser: View {
                 fatalError()
             }
             let url = rootURL.appendingPathComponent(model.name).appendingPathComponent(model.screenshot)
-            return Image(cgImage: try ImageSource(url: url).image(at: 0))
+            return Image(decorative: try cgImage(contentsOf: url), scale: 1)
         }
     }
     
@@ -186,11 +187,11 @@ struct EntityView: View {
     let rootEntity: Entity
     
     var body: some View {
-        ViewAdaptor {
+        ARViewAdaptor {
             let arView = ARView()
             
 #if os(macOS)
-            arView.environment.background = .color(.blue.blended(withFraction: 0.4, of: .green)!)
+            arView.environment.background = .color(NSColor.blue.blended(withFraction: 0.4, of: .green) ?? .blue)
 #endif
             
             let rootAnchor = AnchorEntity()
@@ -235,3 +236,39 @@ struct GLTFOutlineVIew: View {
         .background(Color.white)
     }
 }
+
+func cgImage(contentsOf url: URL) throws -> CGImage {
+    guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+          let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
+        throw CocoaError(.fileReadCorruptFile)
+    }
+    return image
+}
+
+#if os(macOS)
+struct ARViewAdaptor<ViewType: NSView>: NSViewRepresentable {
+    let make: () -> ViewType
+    let update: (ViewType) -> Void
+
+    init(make: @escaping () -> ViewType, update: @escaping (ViewType) -> Void) {
+        self.make = make
+        self.update = update
+    }
+
+    func makeNSView(context: Context) -> ViewType { make() }
+    func updateNSView(_ view: ViewType, context: Context) { update(view) }
+}
+#elseif os(iOS)
+struct ARViewAdaptor<ViewType: UIView>: UIViewRepresentable {
+    let make: () -> ViewType
+    let update: (ViewType) -> Void
+
+    init(make: @escaping () -> ViewType, update: @escaping (ViewType) -> Void) {
+        self.make = make
+        self.update = update
+    }
+
+    func makeUIView(context: Context) -> ViewType { make() }
+    func updateUIView(_ view: ViewType, context: Context) { update(view) }
+}
+#endif

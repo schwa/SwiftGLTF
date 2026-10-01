@@ -21,12 +21,12 @@ struct GLTFInspectorView: View {
                 }
                 .padding()
             }
-            .navigationDestination(for: KeyPath<Document, [Accessor]>.self) { _ in
+            .navigationDestination(for: KeyPath<SwiftGLTF.Document, [Accessor]>.self) { _ in
                 InspectorPageView(navigationPath: $navigationPath) {
                     Text("ACCESSORS")
                 }
             }
-            .navigationDestination(for: KeyPath<Document, [Buffer]>.self) { _ in
+            .navigationDestination(for: KeyPath<SwiftGLTF.Document, [Buffer]>.self) { _ in
                 InspectorPageView(navigationPath: $navigationPath) {
                     ScrollView {
                         Form {
@@ -72,7 +72,7 @@ struct ContainerView: View {
 }
 
 struct DocumentView: View {
-    let document: Document
+    let document: SwiftGLTF.Document
     var body: some View {
         Section("Document") {
             LabeledContent("Extensions Used") {
@@ -86,15 +86,15 @@ struct DocumentView: View {
                 }
             }
             LabeledContent("Accessors") {
-                NavigationLink("\(document.accessors.count) accessor(s)", value: \Document.accessors)
+                NavigationLink("\(document.accessors.count) accessor(s)", value: \SwiftGLTF.Document.accessors)
                     .buttonStyle(XButtonStyle())
             }
             LabeledContent("Animations") {
-                NavigationLink("\(document.animations.count) animation(s)", value: \Document.animations)
+                NavigationLink("\(document.animations.count) animation(s)", value: \SwiftGLTF.Document.animations)
                     .buttonStyle(XButtonStyle())
             }
             LabeledContent("Buffers") {
-                NavigationLink(value: \Document.buffers) {
+                NavigationLink(value: \SwiftGLTF.Document.buffers) {
                     Text("\(document.buffers.count) buffer(s)")
                 }
                 .buttonStyle(XButtonStyle())

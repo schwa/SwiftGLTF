@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		45042EB028DFDE17002E57EA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 45042EAF28DFDE17002E57EA /* Assets.xcassets */; };
 		45042EB428DFDE17002E57EA /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 45042EB328DFDE17002E57EA /* Preview Assets.xcassets */; };
-		45042EC928DFDE87002E57EA /* Everything in Frameworks */ = {isa = PBXBuildFile; productRef = 45042EC828DFDE87002E57EA /* Everything */; };
 		45042ECC28DFDE9C002E57EA /* SwiftGLTF in Frameworks */ = {isa = PBXBuildFile; productRef = 45042ECB28DFDE9C002E57EA /* SwiftGLTF */; };
 		45042ECF28DFDEB8002E57EA /* Zip in Frameworks */ = {isa = PBXBuildFile; productRef = 45042ECE28DFDEB8002E57EA /* Zip */; };
 		45042ED628DFE02B002E57EA /* Box.gltf in Resources */ = {isa = PBXBuildFile; fileRef = 45042ED128DFE02B002E57EA /* Box.gltf */; };
@@ -40,7 +39,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				45042ECF28DFDEB8002E57EA /* Zip in Frameworks */,
-				45042EC928DFDE87002E57EA /* Everything in Frameworks */,
 				45042ECC28DFDE9C002E57EA /* SwiftGLTF in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -122,7 +120,6 @@
 			);
 			name = SwiftGLTFDemo;
 			packageProductDependencies = (
-				45042EC828DFDE87002E57EA /* Everything */,
 				45042ECB28DFDE9C002E57EA /* SwiftGLTF */,
 				45042ECE28DFDEB8002E57EA /* Zip */,
 			);
@@ -156,7 +153,6 @@
 			);
 			mainGroup = 45042E9F28DFDE16002E57EA;
 			packageReferences = (
-				45042EC728DFDE87002E57EA /* XCRemoteSwiftPackageReference "Everything" */,
 				45042ECD28DFDEB8002E57EA /* XCRemoteSwiftPackageReference "Zip" */,
 			);
 			productRefGroup = 45042EA928DFDE16002E57EA /* Products */;
@@ -409,14 +405,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		45042EC728DFDE87002E57EA /* XCRemoteSwiftPackageReference "Everything" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/schwa/Everything";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.0.1;
-			};
-		};
 		45042ECD28DFDEB8002E57EA /* XCRemoteSwiftPackageReference "Zip" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/marmelroy/Zip.git";
@@ -428,11 +416,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		45042EC828DFDE87002E57EA /* Everything */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 45042EC728DFDE87002E57EA /* XCRemoteSwiftPackageReference "Everything" */;
-			productName = Everything;
-		};
 		45042ECB28DFDE9C002E57EA /* SwiftGLTF */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SwiftGLTF;
