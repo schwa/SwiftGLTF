@@ -15,6 +15,10 @@ let package = Package(
             name: "SwiftGLTF",
             targets: ["SwiftGLTF"]
         ),
+        .executable(
+            name: "gltf-render",
+            targets: ["gltf-render"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/schwa/GoldenImage.git", branch: "main"),
@@ -22,6 +26,10 @@ let package = Package(
     targets: [
         .target(
             name: "SwiftGLTF"
+        ),
+        .executableTarget(
+            name: "gltf-render",
+            dependencies: ["SwiftGLTF"]
         ),
         .testTarget(
             name: "SwiftGLTFTests",
