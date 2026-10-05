@@ -240,17 +240,20 @@ Acceptance: RiggedSimple/RiggedFigure decode joints + inverse bind matrices + jo
 ## 13: Decode morph target data (targets + weights)
 
 +++
-status: open
+status: closed
 priority: low
 kind: feature
 labels: effort:m, area:parsing
 created: 2026-10-05T13:57:24Z
-updated: 2026-10-05T14:39:53Z
+updated: 2026-10-05T15:12:05Z
+closed: 2026-10-05T15:12:05Z
 +++
 
 Mesh primitive 'targets' and node 'weights' are ignored. Decode morph targets into the model: per-primitive target attribute sets (POSITION/NORMAL/TANGENT deltas) and node/mesh default weights. Renderer-agnostic.
 
 Acceptance: AnimatedMorphCube/MorphPrimitivesTest decode their targets + weights; unit test reads a target delta accessor. Rendering tracked separately (depends-on).
+
+- `2026-10-05T15:12:05Z`: Primitive.targets is now typed [[Semantic: Index<Accessor>]] (was [[String: Int]]). Node.morphWeights(in:) resolves effective weights (node > mesh > zeros). Container.morphed(_:of:weights:) applies weighted deltas on the CPU as a renderer-agnostic reference. Validator checks target indices, target/base count match, and weights/targets count. Added GLTFError.invalidDocument. Rendering is #30. Tests: MorphTargetTests (exact values inline + AnimatedMorphCube).
 
 ---
 

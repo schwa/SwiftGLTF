@@ -12,6 +12,7 @@ public enum GLTFError: Error {
     case accessorOutOfBounds
     case unsupported(String)
     case missingResource(String)
+    case invalidDocument(String)
 }
 
 public struct Container {
@@ -608,7 +609,9 @@ public struct Mesh: Decodable, Hashable, Sendable, Resolver {
         }
 
         public let mode: Mode
-        public let targets: [[String: Int]]
+        // Morph targets: per target, attribute -> accessor of displacements
+        // (POSITION/NORMAL/TANGENT deltas) added to the base attribute.
+        public let targets: [[Semantic: Index<Accessor>]]
         public let extensions: Extensions?
         public let extras: JSONValue?
 
@@ -628,7 +631,8 @@ public struct Mesh: Decodable, Hashable, Sendable, Resolver {
             indices = try container.decodeIfPresent(Index<Accessor>.self, forKey: .indices)
             material = try container.decodeIfPresent(Index<Material>.self, forKey: .material)
             mode = try container.decodeIfPresent(Mode.self, forKey: .mode) ?? .TRIANGLES
-            targets = try container.decodeIfPresent([[String: Int]].self, forKey: .targets) ?? []
+            targets = try (container.decodeIfPresent([[String: Index<Accessor>]].self, forKey: .targets) ?? [])
+                .map { target in Dictionary(uniqueKeysWithValues: target.map { (Semantic(rawValue: $0), $1) }) }
             extensions = try container.decodeIfPresent(Extensions.self, forKey: .extensions)
             extras = try container.decodeIfPresent(JSONValue.self, forKey: .extras)
         }

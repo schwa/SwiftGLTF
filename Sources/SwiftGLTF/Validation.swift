@@ -167,6 +167,19 @@ private struct Validator {
                 if counts.count > 1 {
                     error("\(path)/attributes", "attribute accessors have differing counts \(counts.sorted())")
                 }
+                for (targetIndex, target) in primitive.targets.enumerated() {
+                    for (semantic, accessorIndex) in target {
+                        let targetPath = "\(path)/targets/\(targetIndex)/\(semantic.rawValue)"
+                        check(accessorIndex, targetPath)
+                        if accessorIndex.isValid(in: document), let base = counts.first,
+                           document.accessors[accessorIndex.index].count != base {
+                            error(targetPath, "target count differs from base attribute count \(base)")
+                        }
+                    }
+                }
+                if !mesh.weights.isEmpty, !primitive.targets.isEmpty, mesh.weights.count != primitive.targets.count {
+                    error("/meshes/\(meshIndex)/weights", "\(mesh.weights.count) weights for \(primitive.targets.count) targets")
+                }
             }
         }
     }
