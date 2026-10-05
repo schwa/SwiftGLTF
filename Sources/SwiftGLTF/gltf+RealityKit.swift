@@ -327,7 +327,7 @@ extension Mesh.Primitive {
         assert(accessor.componentType == .FLOAT)
         let values = [SIMD2<Float>](withUnsafeData: try container.data(for: accessor))
         assert(values.count == accessor.count)
-        assert(accessor.min == nil || accessor.max == nil || values.allSatisfy({ $0.within(min: SIMD2<Float>(accessor.min!), max: SIMD2<Float>(accessor.max!)) }))
+        assert(accessor.min == nil || accessor.max == nil || values.allSatisfy({ $0.within(min: SIMD2<Float>(accessor.min!.map { Float($0) }), max: SIMD2<Float>(accessor.max!.map { Float($0) })) }))
         return values
     }
 
@@ -366,7 +366,7 @@ extension Mesh.Primitive {
         assert(accessor.componentType == .FLOAT)
         let values = [SIMD4<Float>](withUnsafeData: try container.data(for: accessor))
         assert(values.count == accessor.count)
-        assert(accessor.min == nil || accessor.max == nil || values.allSatisfy({ $0.within(min: SIMD4<Float>(accessor.min!), max: SIMD4<Float>(accessor.max!)) }))
+        assert(accessor.min == nil || accessor.max == nil || values.allSatisfy({ $0.within(min: SIMD4<Float>(accessor.min!.map { Float($0) }), max: SIMD4<Float>(accessor.max!.map { Float($0) })) }))
         return values
     }
 

@@ -34,11 +34,12 @@ public extension Container {
                 actualMax[component] = Swift.max(actualMax[component], value)
             }
             let path = "/accessors/\(index)"
+            // Compare at the data's float32 precision (like the Khronos validator).
             if let declared = accessor.min {
-                issues += compare(declared: declared, actual: actualMin, path: "\(path)/min", isMinimum: true)
+                issues += compare(declared: declared.map { Float($0) }, actual: actualMin, path: "\(path)/min", isMinimum: true)
             }
             if let declared = accessor.max {
-                issues += compare(declared: declared, actual: actualMax, path: "\(path)/max", isMinimum: false)
+                issues += compare(declared: declared.map { Float($0) }, actual: actualMax, path: "\(path)/max", isMinimum: false)
             }
         }
         return issues

@@ -920,12 +920,13 @@ created: 2026-10-05T16:00:33Z
 ## 46: Writer changes accessor min/max precision (stored as Float)
 
 +++
-status: open
+status: closed
 priority: medium
 kind: bug
 labels: effort:s, area:parsing
 created: 2026-10-05T16:17:26Z
-updated: 2026-10-05T16:17:26Z
+updated: 2026-10-05T16:20:10Z
+closed: 2026-10-05T16:20:10Z
 +++
 
 Found by the Khronos validator check (#36): AlphaBlendModeTest and TextureCoordinateTest pass the Khronos validator as originals, but fail after a SwiftGLTF round trip with ACCESSOR_MIN_MISMATCH / ACCESSOR_ELEMENT_OUT_OF_MIN_BOUND.
@@ -935,5 +936,7 @@ Cause: Accessor.min/max are decoded as [Float]. A source value like 0.6624999940
 Fix: store min/max as [Double] (exact JSON numbers); convert to Float only where comparing with data.
 
 Acceptance: decoding then encoding min [0.6624999940395355] re-emits exactly that value; both sample models pass the Khronos validator after round trip.
+
+- `2026-10-05T16:20:10Z`: Accessor.min/max are now [Double] (exact JSON numbers). Validator and RealityKit asserts convert to Float where comparing with data (float32, like the Khronos validator). Test: AccessorBoundsPrecisionTests (0.6624999940395355 must re-emit exactly; failed before). AlphaBlendModeTest and TextureCoordinateTest round-trip outputs now pass the Khronos validator (4/4). API change: min/max type Float -> Double.
 
 ---

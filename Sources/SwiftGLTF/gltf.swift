@@ -310,8 +310,10 @@ public struct Accessor: Codable, Hashable, Sendable, Resolver {
     }
 
     public let type: AttributeType
-    public let max: [Float]?
-    public let min: [Float]?
+    // Exact JSON numbers: storing them as Float rounds to a neighboring float32
+    // and breaks the spec's exact-bounds requirement on write.
+    public let max: [Double]?
+    public let min: [Double]?
     public let sparse: Sparse?
     public let name: String?
     public let extensions: Extensions?
@@ -395,8 +397,8 @@ public struct Accessor: Codable, Hashable, Sendable, Resolver {
         normalized = try container.decodeIfPresent(Bool.self, forKey: .normalized) ?? false
         count = try container.decode(Int.self, forKey: .count)
         type = try container.decode(AttributeType.self, forKey: .type)
-        max = try container.decodeIfPresent([Float].self, forKey: .max)
-        min = try container.decodeIfPresent([Float].self, forKey: .min)
+        max = try container.decodeIfPresent([Double].self, forKey: .max)
+        min = try container.decodeIfPresent([Double].self, forKey: .min)
         sparse = try container.decodeIfPresent(Sparse.self, forKey: .sparse)
         name = try container.decodeIfPresent(String.self, forKey: .name)
         extensions = try container.decodeIfPresent(Extensions.self, forKey: .extensions)
