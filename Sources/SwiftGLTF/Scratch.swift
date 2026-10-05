@@ -59,10 +59,6 @@ internal extension SIMD3<Float> {
 }
 
 internal extension SIMD4<Float> {
-    func map(_ f: (Float) -> Float) -> Self {
-        [f(x), f(y), f(z), f(w)]
-    }
-
     var xyz: SIMD3<Float> {
         [x, y, z]
     }
