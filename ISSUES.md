@@ -1071,11 +1071,13 @@ Acceptance: UNSIGNED_SHORT VEC3 positions and normalized UNSIGNED_BYTE texcoords
 ## 52: Replace remaining GLTFError.unknown with specific errors
 
 +++
-status: open
+status: closed
 priority: low
 kind: task
 labels: effort:xs, area:parsing
 created: 2026-10-05T16:46:33Z
+updated: 2026-10-05T16:51:34Z
+closed: 2026-10-05T16:51:34Z
 +++
 
 7 throw sites still use GLTFError.unknown (gltf.swift x5, gltf+SceneKit.swift, CGImage+ColorMatrix.swift), which gives callers no information. Example: a URI containing an unencoded space fails URL(string:) and throws only .unknown.
@@ -1083,6 +1085,8 @@ created: 2026-10-05T16:46:33Z
 Replace each with a descriptive case (invalidDocument / unsupported / missingResource with a message).
 
 Acceptance: no 'GLTFError.unknown' throws remain; the unencoded-URI case reports which URI failed.
+
+- `2026-10-05T16:51:34Z`: All GLTFError.unknown throws replaced with descriptive cases (unsupported file extension, invalid URI, uri-less buffer outside GLB, wrong-sized node matrix, undecodable image, Core Image failure; resolve(chunkIndex:) was done in #50). The .unknown case is kept but marked deprecated so callers matching it still compile. Correction to this issue: an unencoded space does NOT fail URL(string:) on the current toolchain (it auto-encodes 'my file.bin'); empty or malformed URIs like 'http://[bad' do, so the test uses those. Test: ErrorMessageTests (5 cases, all failed with .unknown before).
 
 ---
 

@@ -457,7 +457,7 @@ extension CGImage {
     static func load(data: Data) throws -> CGImage {
         guard let source = CGImageSourceCreateWithData(data as CFData, nil),
               let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
-            throw GLTFError.unknown
+            throw GLTFError.unsupported("Image data could not be decoded (\(data.count) bytes)")
         }
         return image
     }

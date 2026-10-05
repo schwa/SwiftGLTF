@@ -141,7 +141,7 @@ struct RealityKitRenderingTests {
         )
         descriptor.usage = [.renderTarget, .shaderRead]
         guard let texture = device.makeTexture(descriptor: descriptor) else {
-            throw GLTFError.unknown
+            throw GLTFError.unsupported("Could not create a \(size)x\(size) render target")
         }
 
         let output = try RealityRenderer.CameraOutput(.singleProjection(colorTexture: texture))
@@ -154,7 +154,7 @@ struct RealityKitRenderingTests {
         semaphore.wait()
 
         guard let cgImage = cgImage(from: texture) else {
-            throw GLTFError.unknown
+            throw GLTFError.unsupported("Could not read back the render target")
         }
         return cgImage
     }

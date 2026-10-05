@@ -36,7 +36,7 @@ extension CGImage {
         let context = colorManaged ? CIContext() : CIContext(options: [.workingColorSpace: NSNull(), .outputColorSpace: NSNull()])
         guard let output = filter.outputImage,
               let image = context.createCGImage(output, from: output.extent) else {
-            throw GLTFError.unknown
+            throw GLTFError.unsupported("Core Image could not adjust a \(width)x\(height) texture")
         }
         return image
     }

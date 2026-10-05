@@ -7,6 +7,7 @@ import simd
 // https://github.com/KhronosGroup/glTF/tree/master/specification/2.0
 
 public enum GLTFError: Error {
+    @available(*, deprecated, message: "No longer thrown; use a case that describes the failure")
     case unknown
     case malformedGLB(String)
     case accessorOutOfBounds
@@ -37,7 +38,7 @@ public struct Container {
             let data = try Data(contentsOf: url)
             document = try JSONDecoder().decode(Document.self, from: data)
         default:
-            throw GLTFError.unknown
+            throw GLTFError.unsupported("Unsupported file extension '\(url.pathExtension)' (expected .gltf or .glb)")
         }
     }
 
@@ -69,7 +70,7 @@ public struct Container {
             return data
         }
         guard let url = URL(string: uri.string) else {
-            throw GLTFError.unknown
+            throw GLTFError.invalidDocument("Invalid URI '\(uri.string)'")
         }
         switch url.scheme {
         case "data":
@@ -110,7 +111,7 @@ public struct Container {
             return try glb.binaryBuffer()
         default:
             guard let uri = buffer.uri else {
-                throw GLTFError.unknown
+                throw GLTFError.invalidDocument("Buffer has no uri; only a GLB's binary buffer may omit it")
             }
             return try data(for: uri)
         }
@@ -911,7 +912,7 @@ public struct MatrixDecoder: Decodable {
             matrix = simd_float4x4(columns)
         }
         else {
-            throw GLTFError.unknown
+            throw GLTFError.invalidDocument("Node matrix must have 16 values, found \(floats.count)")
         }
     }
 }
