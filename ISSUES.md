@@ -1186,12 +1186,13 @@ Acceptance: no warning; gltf-render -b realitykit still renders (e.g. DamagedHel
 ## 57: RealityKitGLTFGenerator is not @MainActor
 
 +++
-status: open
+status: closed
 priority: medium
 kind: bug
 labels: effort:s, area:rendering
 created: 2026-10-05T17:49:03Z
-updated: 2026-10-05T17:49:58Z
+updated: 2026-10-05T17:59:05Z
+closed: 2026-10-05T17:59:05Z
 +++
 
 With -strict-concurrency=complete, gltf+RealityKit.swift produces ~20 diagnostics (lines 34-135, 218): Entity(), .components, .transform, addChild, MeshResource.generate(from:) and TextureResource.generate are main-actor isolated but called from a nonisolated class. Line 135 also warns 'sending descriptors risks causing data races'. All are errors in Swift 6 mode. Callers running generateRootEntity() off the main thread touch RealityKit objects off-main today; the tests already have to mark every RealityKit test @MainActor.
@@ -1199,6 +1200,8 @@ With -strict-concurrency=complete, gltf+RealityKit.swift produces ~20 diagnostic
 Fix: annotate the class '@MainActor public final class RealityKitGLTFGenerator'.
 
 Acceptance: no actor-isolation or sending diagnostics from gltf+RealityKit.swift under -strict-concurrency=complete; tests pass.
+
+- `2026-10-05T17:59:05Z`: RealityKitGLTFGenerator is now @MainActor. Reproduction/verification is the strict-concurrency build (isolation is compile-time, not observable from a unit test): gltf+RealityKit.swift diagnostics under -strict-concurrency=complete went 21 -> 0, including the 'sending descriptors' data-race warning. All callers were already main-actor (tests marked @MainActor, CLI's @MainActor render, Demo's SwiftUI body). Deliberately did NOT add 'final' as suggested in the description: it would break external subclasses and isn't needed for isolation.
 
 ---
 

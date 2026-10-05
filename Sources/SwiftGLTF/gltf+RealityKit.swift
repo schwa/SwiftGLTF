@@ -9,6 +9,8 @@ import CoreImage
 import Foundation
 import RealityKit
 
+// RealityKit entities, components and resources are main-actor isolated.
+@MainActor
 public class RealityKitGLTFGenerator {
     let container: Container?
     let document: Document
