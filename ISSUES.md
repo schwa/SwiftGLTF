@@ -1318,3 +1318,24 @@ Fix: make render(...) async using the same exactly-once checked continuation wit
 - `2026-10-05T18:06:36Z`: render(...) is now async and awaits RealityRenderer.updateAndRender via an exactly-once checked continuation with a @Sendable completion (same pattern as #56); renderAndCompare and the three calling tests are async. Verification: the golden render tests and readbackIsSRGBEncoded still pass - they would fail with a blank image if the await resumed before the GPU finished. No DispatchSemaphore remains in Sources or Tests.
 
 ---
+
+## 63: Typed decoding for transmission, volume, IOR, specular and WebP extensions
+
++++
+status: new
+priority: low
+kind: feature
+created: 2026-10-05T20:12:16Z
++++
+
+SwiftGLTF decodes KHR_materials_unlit and KHR_materials_emissive_strength as typed extensions, but not these, so consumers parse the raw JSON themselves (MetalSprocketsGLTF currently defines its own structs for the first three):
+
+- KHR_materials_transmission: transmissionFactor, transmissionTexture
+- KHR_materials_volume: thicknessFactor, thicknessTexture, attenuationDistance (default +∞), attenuationColor (default [1, 1, 1])
+- EXT_texture_webp (on Texture): source
+- KHR_materials_ior: ior (default 1.5)
+- KHR_materials_specular: specularFactor, specularTexture, specularColorFactor, specularColorTexture
+
+The KHRMaterialsEmissiveStrength pattern (GLTFExtension type plus a Material/Texture convenience with spec defaults) would fit each of them.
+
+---
