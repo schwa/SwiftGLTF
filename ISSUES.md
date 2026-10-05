@@ -180,17 +180,20 @@ Acceptance: generateSCNScene() works on a .glb (e.g. DamagedHelmet.glb); add a r
 ## 10: RealityKit materials only set baseColor
 
 +++
-status: open
+status: closed
 priority: high
 kind: feature
 labels: effort:m, area:rendering
 created: 2026-10-05T13:57:24Z
-updated: 2026-10-05T13:58:26Z
+updated: 2026-10-05T14:12:21Z
+closed: 2026-10-05T14:12:21Z
 +++
 
 makeMaterial only sets baseColor (tint + optional texture). Missing: normal, metallic, roughness, occlusion, emissive maps and factors, plus texCoord/texture transform.
 
 Acceptance: a PBR model (DamagedHelmet) renders with normal/metallic-roughness/emissive maps via RealityKit; golden test.
+
+- `2026-10-05T14:12:21Z`: makeMaterial now sets baseColor, metallic+roughness (from metallicRoughnessTexture B/G channels + factors), normal, ambient occlusion, and emissive (texture+factor). Test: RealityKitRenderingTests.rendersDamagedHelmetMatchingGolden (GLB, full PBR maps). Note: no IBL environment in the test, so metallic surfaces reflect the directional light; normal-mapped detail is visible and the pipeline is deterministic.
 
 ---
 

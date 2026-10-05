@@ -45,7 +45,27 @@ struct RealityKitRenderingTests {
         let url = Bundle.module.url(forResource: "Box", withExtension: "gltf")!
         let container = try Container(url: url)
         let root = try RealityKitGLTFGenerator(container: container).generateRootEntity()
+        try renderAndCompare(root: root, device: device, from: [4, 4, 4], goldenNamed: "Box-realitykit")
+    }
 
+    // Renders a full-PBR GLB (normal/metallic-roughness/occlusion/emissive maps).
+    @Test @MainActor
+    func rendersDamagedHelmetMatchingGolden() throws {
+        guard let device = MTLCreateSystemDefaultDevice() else {
+            return
+        }
+        let url = repoRoot
+            .appendingPathComponent(".sample-assets/Models/DamagedHelmet/glTF-Binary/DamagedHelmet.glb")
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            return // run `just download-sample-assets`
+        }
+        let container = try Container(url: url)
+        let root = try RealityKitGLTFGenerator(container: container).generateRootEntity()
+        try renderAndCompare(root: root, device: device, from: [0, 0, 4], goldenNamed: "DamagedHelmet-realitykit")
+    }
+
+    @MainActor
+    private func renderAndCompare(root: Entity, device: MTLDevice, from cameraPosition: SIMD3<Float>, goldenNamed name: String) throws {
         let renderer = try RealityRenderer()
         renderer.entities.append(root)
 
@@ -56,7 +76,7 @@ struct RealityKitRenderingTests {
 
         let camera = Entity()
         camera.components.set(PerspectiveCameraComponent())
-        camera.look(at: .zero, from: [4, 4, 4], relativeTo: nil)
+        camera.look(at: .zero, from: cameraPosition, relativeTo: nil)
         renderer.entities.append(camera)
         renderer.activeCamera = camera
 
@@ -93,7 +113,7 @@ struct RealityKitRenderingTests {
             options: .ignoreEdgeAAHalos,
             psnrThreshold: 30.0
         )
-        #expect(try golden.image(image: cgImage, matchesGoldenImageNamed: "Box-realitykit"))
+        #expect(try golden.image(image: cgImage, matchesGoldenImageNamed: name))
     }
 }
 

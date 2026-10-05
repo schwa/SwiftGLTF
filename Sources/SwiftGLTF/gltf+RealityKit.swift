@@ -153,27 +153,92 @@ public class RealityKitGLTFGenerator {
         return ModelComponent(mesh: meshResource, materials: [reMaterial])
     }
 
+    private enum TextureChannel {
+        case red
+        case green
+        case blue
+    }
+
+    private func texture(
+        from info: TextureInfo,
+        semantic: TextureResource.Semantic,
+        channel: TextureChannel? = nil
+    ) throws -> MaterialParameters.Texture {
+        let texture = try info.index.resolve(in: document)
+        let source = try texture.source!.resolve(in: document)
+        let data = try requireContainer().data(for: source)
+        var image = try CGImage.image(with: data)
+        switch channel {
+        case .red: image = image.redChannel
+        case .green: image = image.greenChannel
+        case .blue: image = image.blueChannel
+        case .none: break
+        }
+        let resource = try TextureResource.generate(from: image, options: .init(semantic: semantic))
+        return MaterialParameters.Texture(resource)
+    }
+
     func makeMaterial(from material: Material) throws -> RealityKit.Material {
         var reMaterial = PhysicallyBasedMaterial()
         if let pbrMetallicRoughness = material.pbrMetallicRoughness {
             let rgba = pbrMetallicRoughness.baseColorFactor
-            var reTexture: MaterialParameters.Texture?
+            var baseColorTexture: MaterialParameters.Texture?
             if let textureInfo = pbrMetallicRoughness.baseColorTexture {
-                let texture = try textureInfo.index.resolve(in: document)
-                let source = try texture.source!.resolve(in: document)
-                let data = try requireContainer().data(for: source)
-                let image = try CGImage.image(with: data)
-                let textureResource = try TextureResource.generate(from: image, options: .init(semantic: .color))
-                reTexture = MaterialParameters.Texture(textureResource)
+                baseColorTexture = try texture(from: textureInfo, semantic: .color)
             }
-            #if os(macOS)
-            reMaterial.baseColor = .init(tint: NSColor(red: Double(rgba[0]), green: Double(rgba[1]), blue: Double(rgba[2]), alpha: Double(rgba[3])), texture: reTexture)
-            #elseif os(iOS)
-            reMaterial.baseColor = .init(tint: UIColor(red: Double(rgba[0]), green: Double(rgba[1]), blue: Double(rgba[2]), alpha: Double(rgba[3])), texture: reTexture)
-            #endif
+            let tint = color(rgba)
+            reMaterial.baseColor = .init(tint: tint, texture: baseColorTexture)
+
+            // glTF packs roughness in G and metallic in B of one texture.
+            if let mrTexture = pbrMetallicRoughness.metallicRoughnessTexture {
+                reMaterial.roughness = .init(
+                    scale: pbrMetallicRoughness.roughnessFactor,
+                    texture: try texture(from: mrTexture, semantic: .raw, channel: .green)
+                )
+                reMaterial.metallic = .init(
+                    scale: pbrMetallicRoughness.metallicFactor,
+                    texture: try texture(from: mrTexture, semantic: .raw, channel: .blue)
+                )
+            }
+            else {
+                reMaterial.roughness = .init(floatLiteral: pbrMetallicRoughness.roughnessFactor)
+                reMaterial.metallic = .init(floatLiteral: pbrMetallicRoughness.metallicFactor)
+            }
         }
+
+        if let normalInfo = material.normalTexture {
+            reMaterial.normal = .init(texture: try texture(from: normalInfo, semantic: .normal))
+        }
+
+        if let occlusionInfo = material.occlusionTexture {
+            reMaterial.ambientOcclusion = .init(
+                texture: try texture(from: occlusionInfo, semantic: .raw, channel: .red)
+            )
+        }
+
+        let emissiveFactor = material.emissiveFactor ?? [0, 0, 0]
+        var emissiveTexture: MaterialParameters.Texture?
+        if let emissiveInfo = material.emissiveTexture {
+            emissiveTexture = try texture(from: emissiveInfo, semantic: .color)
+        }
+        if emissiveTexture != nil || emissiveFactor != [0, 0, 0] {
+            let emissiveColor = color(SIMD4<Float>(emissiveFactor.x, emissiveFactor.y, emissiveFactor.z, 1))
+            reMaterial.emissiveColor = .init(color: emissiveColor, texture: emissiveTexture)
+            reMaterial.emissiveIntensity = 1
+        }
+
         return reMaterial
     }
+
+    #if os(macOS)
+    private func color(_ rgba: SIMD4<Float>) -> NSColor {
+        NSColor(red: Double(rgba[0]), green: Double(rgba[1]), blue: Double(rgba[2]), alpha: Double(rgba[3]))
+    }
+    #else
+    private func color(_ rgba: SIMD4<Float>) -> UIColor {
+        UIColor(red: Double(rgba[0]), green: Double(rgba[1]), blue: Double(rgba[2]), alpha: Double(rgba[3]))
+    }
+    #endif
 }
 
 extension Container {
