@@ -28,9 +28,38 @@ struct SceneKitRenderingTests {
 
         let url = Bundle.module.url(forResource: "Box", withExtension: "gltf")!
         let container = try Container(url: url)
-        let generator = SceneKitGenerator(rootURL: url, document: container.document)
-        let scene = try generator.generateSCNScene()
+        let scene = try SceneKitGenerator(rootURL: url, document: container.document).generateSCNScene()
+        try renderAndCompare(scene: scene, device: device, goldenNamed: "Box-scenekit")
+    }
 
+    // Renders an embedded, textured model (base-color + metallic-roughness +
+    // normal + emissive maps), exercising texture loading and channel splitting.
+    @Test
+    func rendersDamagedHelmetMatchingGolden() throws {
+        guard let device = MTLCreateSystemDefaultDevice() else {
+            return
+        }
+        let url = sampleAssetsModels
+            .appendingPathComponent("DamagedHelmet")
+            .appendingPathComponent("glTF-Embedded")
+            .appendingPathComponent("DamagedHelmet.gltf")
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            return // run `just download-sample-assets`
+        }
+        let container = try Container(url: url)
+        let scene = try SceneKitGenerator(rootURL: url, document: container.document).generateSCNScene()
+        try renderAndCompare(scene: scene, device: device, goldenNamed: "DamagedHelmet-scenekit")
+    }
+
+    private var sampleAssetsModels: URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent(".sample-assets/Models")
+    }
+
+    private func renderAndCompare(scene: SCNScene, device: MTLDevice, goldenNamed name: String) throws {
         // Frame the camera from the scene's bounding sphere.
         let (center, radius) = scene.rootNode.boundingSphere
         let distance = CGFloat(radius) * 3 + 1
@@ -77,7 +106,7 @@ struct SceneKitRenderingTests {
             options: .ignoreEdgeAAHalos,
             psnrThreshold: 30.0
         )
-        #expect(try golden.image(image: cgImage, matchesGoldenImageNamed: "Box-scenekit"))
+        #expect(try golden.image(image: cgImage, matchesGoldenImageNamed: name))
     }
 }
 #endif

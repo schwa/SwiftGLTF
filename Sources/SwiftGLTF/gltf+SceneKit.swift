@@ -1,6 +1,7 @@
 import CoreImage
 // import Everything
 import Foundation
+import ImageIO
 import os
 import SceneKit
 // import SIMDSupport
@@ -297,12 +298,12 @@ public class SceneKitGenerator {
 
 extension CGImage {
     static func load(contentsOf url: URL) throws -> CGImage {
-        #if os(macOS)
-            fatalError()
-//            return NSImage(contentsOf: url)!.cgImage
-        #else
-            fatalError()
-        #endif
+        let data = try Data(contentsOf: url)
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
+            throw GLTFError.unknown
+        }
+        return image
     }
 }
 
