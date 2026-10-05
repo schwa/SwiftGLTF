@@ -119,10 +119,20 @@ public class RealityKitGLTFGenerator {
     }
 
     func generateMeshResource(from mesh: Mesh) throws -> ModelComponent {
-        // assert(mesh.primitives.count == 1)
-        let primitive = mesh.primitives.first!
-        let container = try requireContainer()
+        var descriptors: [MeshDescriptor] = []
+        var materials: [RealityKit.Material] = []
+        for (index, primitive) in mesh.primitives.enumerated() {
+            var descriptor = try meshDescriptor(from: primitive)
+            descriptor.materials = .allFaces(UInt32(index))
+            descriptors.append(descriptor)
+            materials.append(try reMaterial(for: primitive))
+        }
+        let meshResource = try MeshResource.generate(from: descriptors)
+        return ModelComponent(mesh: meshResource, materials: materials)
+    }
 
+    private func meshDescriptor(from primitive: Mesh.Primitive) throws -> MeshDescriptor {
+        let container = try requireContainer()
         var meshDescriptor = MeshDescriptor()
         if let positions = try primitive.value(semantic: .POSITION, type: SIMD3<Float>.self, in: container) {
             meshDescriptor.positions = MeshBuffers.Positions(positions)
@@ -140,17 +150,15 @@ public class RealityKitGLTFGenerator {
             assert(primitive.mode == .TRIANGLES)
             meshDescriptor.primitives = .triangles(indices)
         }
-        let meshResource = try MeshResource.generate(from: [meshDescriptor])
+        return meshDescriptor
+    }
 
+    private func reMaterial(for primitive: Mesh.Primitive) throws -> RealityKit.Material {
         // glTF: a primitive with no material uses the default material.
-        let reMaterial: RealityKit.Material
         if let material = try primitive.material?.resolve(in: document) {
-            reMaterial = try makeMaterial(from: material)
+            return try makeMaterial(from: material)
         }
-        else {
-            reMaterial = PhysicallyBasedMaterial()
-        }
-        return ModelComponent(mesh: meshResource, materials: [reMaterial])
+        return PhysicallyBasedMaterial()
     }
 
     private enum TextureChannel {

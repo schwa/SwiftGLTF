@@ -371,17 +371,20 @@ Acceptance: a model using sparse accessors (e.g. SimpleSparseAccessor) loads wit
 ## 20: RealityKit drops all but the first primitive per mesh
 
 +++
-status: open
+status: closed
 priority: medium
 kind: bug
 labels: effort:s, area:rendering
 created: 2026-10-05T13:58:08Z
-updated: 2026-10-05T13:58:26Z
+updated: 2026-10-05T14:14:56Z
+closed: 2026-10-05T14:14:56Z
 +++
 
 generateMeshResource uses mesh.primitives.first! and silently ignores additional primitives (multi-material meshes). Build one MeshDescriptor per primitive and combine.
 
 Acceptance: a multi-primitive mesh renders all primitives with their materials.
+
+- `2026-10-05T14:14:56Z`: generateMeshResource now builds one MeshDescriptor per primitive (each with .allFaces(materialIndex)) and combines them into one MeshResource with a materials array. Test: multiPrimitiveMeshKeepsAllPrimitives (PointLightIntensityTest.glb, mesh with 2 primitives); before fix only the first primitive was kept (maxMaterials==1), after fix ==2.
 
 ---
 

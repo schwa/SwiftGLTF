@@ -36,6 +36,29 @@ struct RealityKitRenderingTests {
         #expect(firstModelComponent(root) != nil)
     }
 
+    // A mesh with multiple primitives must produce one material per primitive.
+    @Test @MainActor
+    func multiPrimitiveMeshKeepsAllPrimitives() throws {
+        let url = repoRoot
+            .appendingPathComponent(".sample-assets/Models/PointLightIntensityTest/glTF-Binary/PointLightIntensityTest.glb")
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            return // run `just download-sample-assets`
+        }
+        let container = try Container(url: url)
+        let root = try RealityKitGLTFGenerator(container: container).generateRootEntity()
+
+        var maxMaterials = 0
+        func walk(_ entity: Entity) {
+            if let model = entity.components[ModelComponent.self] {
+                maxMaterials = max(maxMaterials, model.materials.count)
+            }
+            entity.children.forEach(walk)
+        }
+        walk(root)
+        // PointLightIntensityTest's mesh 0 has 2 primitives.
+        #expect(maxMaterials >= 2)
+    }
+
     @Test @MainActor
     func rendersBoxMatchingGolden() throws {
         guard let device = MTLCreateSystemDefaultDevice() else {
