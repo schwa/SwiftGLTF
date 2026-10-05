@@ -1093,11 +1093,13 @@ Acceptance: no 'GLTFError.unknown' throws remain; the unencoded-URI case reports
 ## 53: Confirm first CI run (Khronos validator step, Tests lint)
 
 +++
-status: open
+status: closed
 priority: low
 kind: task
 labels: effort:xs, area:api
 created: 2026-10-05T16:46:33Z
+updated: 2026-10-05T17:02:12Z
+closed: 2026-10-05T17:02:12Z
 +++
 
 Two CI changes could not be verified locally:
@@ -1105,5 +1107,7 @@ Two CI changes could not be verified locally:
 - .swiftlint.yml now lints Tests/ as well; confirm the CI SwiftLint job passes.
 
 Acceptance: both jobs green on the first push after these changes.
+
+- `2026-10-05T17:02:12Z`: Confirmed by CI run 37344444730 (all green): Khronos validator step runs on macos-26 (Node/npm present, no setup-node needed), 240/240 writer outputs pass; SwiftLint job passes with Tests/ included. Also: render golden tests run for real on the runner (~18.7s each, not skipped), so the runner has a Metal device and the goldens match within PSNR 30. The earlier failing run (37343209441) was a test compile error under SDK 26.5 (Blending not Equatable), fixed in dd889154.
 
 ---
