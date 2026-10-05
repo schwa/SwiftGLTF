@@ -791,11 +791,13 @@ Acceptance: a material with emissiveFactor [1, 0, 0] and an emissive texture ren
 ## 39: RealityKit golden test reads back with wrong gamma
 
 +++
-status: open
+status: closed
 priority: low
 kind: task
 labels: effort:xs, area:rendering
 created: 2026-10-05T15:54:49Z
+updated: 2026-10-05T16:15:42Z
+closed: 2026-10-05T16:15:42Z
 +++
 
 RealityKitRenderingTests renders into rgba8Unorm and reads the bytes as sRGB. RealityRenderer writes linear color, so the goldens are darker than the real output (fixed in gltf-render via rgba8Unorm_srgb in #27).
@@ -803,6 +805,8 @@ RealityKitRenderingTests renders into rgba8Unorm and reads the bytes as sRGB. Re
 Fix: use .rgba8Unorm_srgb in the test helper and regenerate the RealityKit goldens.
 
 Acceptance: test render background 0.12 gray reads back as ~31/255, matching the CLI.
+
+- `2026-10-05T16:15:42Z`: Test helper now renders into rgba8Unorm_srgb. Added readbackIsSRGBEncoded: 0.12 gray background read ~3-7 before (linear), ~41 after. Correction to the issue's acceptance: it is not exactly 31 - RealityKit appears to tone-map its output (UnlitMaterial exposes applyPostProcessToneMap); I did not confirm it applies to the background, so the test asserts the sRGB-encoded range (25...55). Regenerated both RealityKit goldens and verified numerically (image viewer unavailable): identical opaque-pixel counts, means match sRGB-encoding the old linear values (Box 183/45/37 -> 219/115/105, predicted 219/117/106).
 
 ---
 

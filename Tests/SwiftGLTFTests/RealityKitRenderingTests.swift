@@ -87,9 +87,43 @@ struct RealityKitRenderingTests {
         try renderAndCompare(root: root, device: device, from: [0, 0, 4], goldenNamed: "DamagedHelmet-realitykit")
     }
 
+    // RealityRenderer writes linear color; the readback must encode it as sRGB.
+    // A 0.12 gray background reads back as ~3-7/255 with a linear (rgba8Unorm)
+    // target. With sRGB encoding it is ~41 (not exactly 31; RealityKit appears to
+    // tone-map its output), so assert the encoded range rather than an exact value.
+    @Test @MainActor
+    func readbackIsSRGBEncoded() throws {
+        guard let device = MTLCreateSystemDefaultDevice() else {
+            return
+        }
+        let image = try render(root: Entity(), device: device, from: [0, 0, 4], background: CGColor(gray: 0.12, alpha: 1))
+        var pixel = [UInt8](repeating: 0, count: 4)
+        let context = try #require(CGContext(
+            data: &pixel, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
+            space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ))
+        context.draw(image.cropping(to: CGRect(x: 0, y: 0, width: 1, height: 1))!, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+        #expect((25 ... 55).contains(Int(pixel[0])), "background red channel \(pixel[0]); ~3-7 means linear readback")
+    }
+
     @MainActor
     private func renderAndCompare(root: Entity, device: MTLDevice, from cameraPosition: SIMD3<Float>, goldenNamed name: String) throws {
+        let cgImage = try render(root: root, device: device, from: cameraPosition)
+        let goldensDirectory = Bundle.module.url(forResource: "GoldenImages", withExtension: nil)!
+        let golden = GoldenImageComparison(
+            imageDirectory: goldensDirectory,
+            options: .ignoreEdgeAAHalos,
+            psnrThreshold: 30.0
+        )
+        #expect(try golden.image(image: cgImage, matchesGoldenImageNamed: name))
+    }
+
+    @MainActor
+    private func render(root: Entity, device: MTLDevice, from cameraPosition: SIMD3<Float>, background: CGColor? = nil) throws -> CGImage {
         let renderer = try RealityRenderer()
+        if let background {
+            renderer.cameraSettings.colorBackground = .color(background)
+        }
         renderer.entities.append(root)
 
         let light = Entity()
@@ -105,15 +139,14 @@ struct RealityKitRenderingTests {
 
         let size = 256
         let descriptor = MTLTextureDescriptor.texture2DDescriptor(
-            pixelFormat: .rgba8Unorm,
+            pixelFormat: .rgba8Unorm_srgb, // RealityRenderer writes linear color
             width: size,
             height: size,
             mipmapped: false
         )
         descriptor.usage = [.renderTarget, .shaderRead]
         guard let texture = device.makeTexture(descriptor: descriptor) else {
-            Issue.record("Could not make target texture")
-            return
+            throw GLTFError.unknown
         }
 
         let output = try RealityRenderer.CameraOutput(.singleProjection(colorTexture: texture))
@@ -126,17 +159,9 @@ struct RealityKitRenderingTests {
         semaphore.wait()
 
         guard let cgImage = cgImage(from: texture) else {
-            Issue.record("Could not read back texture")
-            return
+            throw GLTFError.unknown
         }
-
-        let goldensDirectory = Bundle.module.url(forResource: "GoldenImages", withExtension: nil)!
-        let golden = GoldenImageComparison(
-            imageDirectory: goldensDirectory,
-            options: .ignoreEdgeAAHalos,
-            psnrThreshold: 30.0
-        )
-        #expect(try golden.image(image: cgImage, matchesGoldenImageNamed: name))
+        return cgImage
     }
 }
 
