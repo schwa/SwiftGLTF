@@ -200,17 +200,20 @@ Acceptance: a PBR model (DamagedHelmet) renders with normal/metallic-roughness/e
 ## 11: Decode animation data (channels, samplers, keyframes)
 
 +++
-status: open
+status: closed
 priority: medium
 kind: feature
 labels: area:parsing, effort:l
 created: 2026-10-05T13:57:24Z
-updated: 2026-10-05T14:39:32Z
+updated: 2026-10-05T15:10:00Z
+closed: 2026-10-05T15:10:00Z
 +++
 
 Animation is an empty stub. Decode the glTF animation model into renderer-agnostic types on Document: animations -> channels (target node + path: translation/rotation/scale/weights) and samplers (input/output accessors, interpolation LINEAR/STEP/CUBICSPLINE). Provide a way to sample a channel at time t. No SceneKit/RealityKit here.
 
 Acceptance: AnimatedCube/BoxAnimated decode into typed channels/samplers; a unit test samples a known keyframe value at a given time. Rendering is tracked separately (depends-on).
+
+- `2026-10-05T15:10:01Z`: Animation is now fully decoded (channels with target node/path, samplers with input/output/interpolation, extensions/extras); Path is an open type. AnimationKeyframes + Container.keyframes(for:) / sample(_:of:at:) evaluate LINEAR (slerp for rotation), STEP and CUBICSPLINE (Hermite, glTF tangent layout) with clamping. Renderer-agnostic; playback is #28. Tests: AnimationTests (exact values on inline data + BoxAnimated sample).
 
 ---
 

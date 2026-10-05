@@ -389,10 +389,6 @@ public struct Accessor: Decodable, Hashable, Sendable, Resolver {
     }
 }
 
-public struct Animation: Decodable, Hashable, Sendable {
-    public static let documentKeyPath = \Document.animations
-}
-
 public struct Asset: Decodable, Hashable, Sendable {
     public let copyright: String?
     public let generator: String?
