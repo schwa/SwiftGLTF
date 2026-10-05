@@ -172,6 +172,10 @@ public class RealityKitGLTFGenerator {
         semantic: TextureResource.Semantic,
         channel: TextureChannel? = nil
     ) throws -> MaterialParameters.Texture {
+        if info.textureTransform != nil {
+            // PhysicallyBasedMaterial has no public per-texture UV transform.
+            warning("KHR_texture_transform is not supported by the RealityKit generator")
+        }
         let texture = try info.index.resolve(in: document)
         let source = try texture.source!.resolve(in: document)
         let data = try requireContainer().data(for: source)

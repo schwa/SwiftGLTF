@@ -300,18 +300,21 @@ Acceptance: a model using KHR_lights_punctual lights renders with those lights i
 ## 16: KHR_texture_transform (UV transform)
 
 +++
-status: open
+status: closed
 priority: medium
 kind: feature
 labels: effort:s, area:rendering
 depends: 14
 created: 2026-10-05T13:58:08Z
-updated: 2026-10-05T13:58:26Z
+updated: 2026-10-05T14:22:37Z
+closed: 2026-10-05T14:22:37Z
 +++
 
 Decode KHR_texture_transform (offset/rotation/scale, optional texCoord) on TextureInfo and apply it to material texture coordinates in both generators.
 
 Acceptance: a model using KHR_texture_transform samples textures with the correct UV transform.
+
+- `2026-10-05T14:22:37Z`: Added KHRTextureTransform decoding on TextureInfo (offset/rotation/scale/texCoord). SceneKit applies it via SCNMaterialProperty.contentsTransform per textured property. RealityKit's PhysicallyBasedMaterial has no public per-texture UV transform, so it warns (documented limitation). Test: TextureTransformTests (decode + SceneKit matrix).
 
 ---
 
