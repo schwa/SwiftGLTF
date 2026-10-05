@@ -334,8 +334,13 @@ public class SceneKitGenerator {
         }
 
         if let emissiveTexture = material.emissiveTexture {
-            try configureSCNMaterialProperty(property: scnMaterial.emission, from: emissiveTexture)
-            warning(material.emissiveFactor == nil || material.emissiveFactor == [1, 1, 1])
+            // glTF emissive = emissiveFactor * emissiveTexture; bake a non-white factor in.
+            let factor = material.emissiveFactor ?? [1, 1, 1]
+            try configureSCNMaterialProperty(
+                property: scnMaterial.emission,
+                from: emissiveTexture,
+                tint: factor == [1, 1, 1] ? nil : factor
+            )
         }
         else if let emissiveFactor = material.emissiveFactor {
             scnMaterial.emission.contents = SIMD4<Float>(emissiveFactor.x, emissiveFactor.y, emissiveFactor.z, 1).cgColor
@@ -375,11 +380,16 @@ public class SceneKitGenerator {
         case blue
     }
 
-    func configureSCNMaterialProperty(property: SCNMaterialProperty, channel: Channel? = nil, from textureInfo: TextureInfo) throws {
+    func configureSCNMaterialProperty(
+        property: SCNMaterialProperty,
+        channel: Channel? = nil,
+        from textureInfo: TextureInfo,
+        tint: SIMD3<Float>? = nil
+    ) throws {
         let texture = try textureInfo.index.resolve(in: document)
         let sampler = try texture.sampler?.resolve(in: document) ?? Sampler()
         let source = try texture.source!.resolve(in: document)
-        let cgImage: CGImage = try {
+        let baseImage: CGImage = try {
             let cgImage = try CGImage.load(data: imageData(for: source))
             switch channel {
             case .none:
@@ -392,6 +402,7 @@ public class SceneKitGenerator {
                 return cgImage.blueChannel
             }
         }()
+        let cgImage = try tint.map { try baseImage.multiplied(by: $0) } ?? baseImage
 
         property.contents = cgImage
         property.mappingChannel = textureInfo.texCoord // 0 = TEXCOORD_0, 1 = TEXCOORD_1

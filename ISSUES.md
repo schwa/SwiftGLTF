@@ -765,11 +765,13 @@ Acceptance: xcb build --target SwiftGLTFDemo succeeds for macOS and generic iOS.
 ## 38: SceneKit ignores emissiveFactor when an emissive texture is present
 
 +++
-status: open
+status: closed
 priority: medium
 kind: bug
 labels: effort:s, area:rendering
 created: 2026-10-05T15:54:49Z
+updated: 2026-10-05T16:01:21Z
+closed: 2026-10-05T16:01:21Z
 +++
 
 glTF emissive = emissiveFactor * emissiveTexture. SceneKitGenerator sets emission.contents to the texture and only logs a warning about the factor, so a non-white factor is dropped. Same class of bug fixed for RealityKit in #27.
@@ -777,6 +779,8 @@ glTF emissive = emissiveFactor * emissiveTexture. SceneKitGenerator sets emissio
 Fix: multiply the factor into the texture (CIColorMatrix, as RealityKit does) or otherwise apply it.
 
 Acceptance: a material with emissiveFactor [1, 0, 0] and an emissive texture renders red-tinted emission in SceneKit.
+
+- `2026-10-05T16:01:21Z`: SceneKit now multiplies a non-white emissiveFactor into the emissive texture (configureSCNMaterialProperty gained a tint parameter). Moved the CGImage color-matrix helpers out of the RealityKit file into shared CGImage+ColorMatrix.swift. Test: SceneKitEmissiveFactorTests - white texture with factor [1,0,0] must become red; failed before (green/blue kept), passes after.
 
 ---
 
