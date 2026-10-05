@@ -845,11 +845,13 @@ Acceptance: a GLB can be converted to self-contained glTF and back from the comm
 ## 42: Validator gaps: min/max, index range, texture-info fields
 
 +++
-status: open
+status: closed
 priority: low
 kind: enhancement
 labels: effort:s, area:api
 created: 2026-10-05T15:54:49Z
+updated: 2026-10-05T16:07:33Z
+closed: 2026-10-05T16:07:33Z
 +++
 
 Document.validate() (#26) does not yet check:
@@ -858,6 +860,8 @@ Document.validate() (#26) does not yet check:
 - scale on non-normal textures / strength on non-occlusion textures (TextureInfo models both as optional fields since #35).
 
 Acceptance: each case has a test with one targeted defect; sample corpus still has no false-positive errors.
+
+- `2026-10-05T16:07:33Z`: Added Container.validate() = Document.validate() + data checks: accessor min/max vs actual values (data outside bounds = error, looser-than-actual = warning since spec requires exact; tolerance 1e-5 relative), and index values < POSITION count (error). Data checks are skipped when the structural pass has errors. Normalized accessors are skipped for min/max (normalized-vs-raw units ambiguous; avoids false positives). Document.validate() now warns about scale on non-normal / strength on non-occlusion texture infos. CLI validate/convert/render --validate use Container.validate(). Tests: DataValidationTests incl. whole sample corpus with no false-positive errors.
 
 ---
 

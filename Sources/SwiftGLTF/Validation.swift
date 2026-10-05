@@ -200,6 +200,13 @@ private struct Validator {
             ]
             for (name, info) in infos {
                 check(info?.index, "\(path)/\(name)/index")
+                // scale belongs to normalTextureInfo, strength to occlusionTextureInfo.
+                if info?.scale != nil, name != "normalTexture" {
+                    warning("\(path)/\(name)/scale", "scale is only defined for normalTexture")
+                }
+                if info?.strength != nil, name != "occlusionTexture" {
+                    warning("\(path)/\(name)/strength", "strength is only defined for occlusionTexture")
+                }
             }
         }
     }

@@ -28,7 +28,7 @@ struct Convert: AsyncParsableCommand {
     func run() async throws {
         let container = try Container(url: URL(fileURLWithPath: input))
         if validate {
-            let errors = container.document.validate().filter { $0.severity == .error }
+            let errors = try container.validate().filter { $0.severity == .error }
             if !errors.isEmpty {
                 errors.forEach { print($0) }
                 throw ValidationError("Input has \(errors.count) validation error(s); not converting")
@@ -53,7 +53,7 @@ struct Validate: AsyncParsableCommand {
 
     func run() async throws {
         let container = try Container(url: URL(fileURLWithPath: model))
-        try report(container.document.validate(), warningsAsErrors: warningsAsErrors)
+        try report(container.validate(), warningsAsErrors: warningsAsErrors)
     }
 }
 

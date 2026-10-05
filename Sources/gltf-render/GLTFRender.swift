@@ -55,7 +55,7 @@ struct Render: AsyncParsableCommand {
         let container = try Container(url: modelURL)
 
         if validate {
-            try report(container.document.validate(), warningsAsErrors: false)
+            try report(container.validate(), warningsAsErrors: false)
             return
         }
         let environmentImage = try environment.map { try loadImage(at: URL(fileURLWithPath: $0)) }
