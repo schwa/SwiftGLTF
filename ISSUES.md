@@ -1127,3 +1127,56 @@ Acceptance: both jobs green on the first push after these changes.
 - `2026-10-05T17:02:12Z`: Confirmed by CI run 37344444730 (all green): Khronos validator step runs on macos-26 (Node/npm present, no setup-node needed), 240/240 writer outputs pass; SwiftLint job passes with Tests/ included. Also: render golden tests run for real on the runner (~18.7s each, not skipped), so the runner has a Metal device and the goldens match within PSNR 30. The earlier failing run (37343209441) was a test compile error under SDK 26.5 (Blending not Equatable), fixed in dd889154.
 
 ---
+
+## 54: Remove deprecated CGImage channel() helper (Scratch.swift warnings)
+
++++
+status: open
+priority: low
+kind: task
+labels: effort:s, area:rendering
+created: 2026-10-05T17:12:51Z
++++
+
+Scratch.swift's CGImage.channel(_:) is marked deprecated ('Inefficient') by the project itself, and redChannel/greenChannel/blueChannel call it, giving 3 compiler warnings (Scratch.swift:25/29/33). It builds a fresh CIContext per call and is still used for metallic/roughness/occlusion channel extraction in both generators.
+
+Fix: implement channel extraction with the existing non-color-managed colorMatrix helper in CGImage+ColorMatrix.swift (data textures must skip color management), switch callers, delete the deprecated function.
+
+Acceptance: no 'channel is deprecated' warnings; channel-extraction tests (e.g. a known RGB pixel -> per-channel gray) pass; goldens unchanged.
+
+---
+
+## 55: Replace deprecated TextureResource.generate(from:) in RealityKit generator
+
++++
+status: open
+priority: low
+kind: task
+labels: effort:xs, area:rendering
+created: 2026-10-05T17:12:51Z
++++
+
+gltf+RealityKit.swift:218 uses TextureResource.generate(from:withName:options:), deprecated in macOS 15 (warning). Replacement: TextureResource(image:withName:options:). The package requires macOS 15 / iOS 18, so no availability guard is needed.
+
+Acceptance: no deprecation warning; RealityKit material/golden tests still pass.
+
+---
+
+## 56: gltf-render: blocking semaphore in async context (Swift 6 error)
+
++++
+status: open
+priority: low
+kind: bug
+labels: effort:xs, area:api
+created: 2026-10-05T17:12:51Z
+updated: 2026-10-05T17:12:51Z
++++
+
+Sources/gltf-render/GLTFRender.swift:209 calls DispatchSemaphore.wait() inside an async function (the RealityKit render path). The compiler warns: 'instance method wait is unavailable from asynchronous contexts ... this is an error in the Swift 6 language mode'. It blocks a cooperative thread today and will fail to compile under Swift 6.
+
+Fix: wrap RealityRenderer.updateAndRender's completion in withCheckedThrowingContinuation and await it.
+
+Acceptance: no warning; gltf-render -b realitykit still renders (e.g. DamagedHelmet).
+
+---
