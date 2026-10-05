@@ -980,11 +980,13 @@ Acceptance: a sampler with CLAMP_TO_EDGE produces SCNMaterialProperty.wrapS/wrap
 ## 48: RealityKit reads non-float vertex attributes incorrectly
 
 +++
-status: open
+status: closed
 priority: medium
 kind: bug
 labels: effort:s, area:rendering
 created: 2026-10-05T16:29:20Z
+updated: 2026-10-05T16:32:52Z
+closed: 2026-10-05T16:32:52Z
 +++
 
 Mesh.Primitive.value(semantic:type:in:) in the RealityKit generator:
@@ -994,5 +996,7 @@ Mesh.Primitive.value(semantic:type:in:) in the RealityKit generator:
 Fix: read all attributes through Container.floatComponents(for:), which handles every component type and the normalized flag.
 
 Acceptance: UNSIGNED_SHORT VEC3 positions and normalized UNSIGNED_BYTE VEC2 texcoords produce correct values.
+
+- `2026-10-05T16:32:52Z`: RealityKit attribute readers now go through Container.floatComponents(for:) (strides + normalized flag) via one shared helper; mismatched component counts throw instead of misreading. Removed the FLOAT-only and min/max debug asserts (bounds checking lives in the validator) and the now-dead within()/SIMD3.map helpers. Test: RealityKitAttributeReadingTests - UNSIGNED_SHORT VEC3 positions and normalized UNSIGNED_BYTE VEC2 texcoords; crashed before (assert), pass after. RealityKit goldens unchanged.
 
 ---

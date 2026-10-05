@@ -43,21 +43,6 @@ extension Array {
     }
 }
 
-extension SIMD where Scalar == Float {
-    func within(min: Self, max: Self) -> Bool {
-        for n in 0 ..< scalarCount where (min[n] ... max[n]).contains(self[n]) == false {
-            return false
-        }
-        return true
-    }
-}
-
-internal extension SIMD3<Float> {
-    func map(_ f: (Float) -> Float) -> Self {
-        [f(x), f(y), f(z)]
-    }
-}
-
 internal extension SIMD4<Float> {
     var xyz: SIMD3<Float> {
         [x, y, z]

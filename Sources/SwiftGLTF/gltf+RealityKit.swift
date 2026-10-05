@@ -321,53 +321,35 @@ extension CGImage {
 
 extension Mesh.Primitive {
     func value(semantic: Mesh.Primitive.Semantic, type: SIMD2<Float>.Type, in container: Container) throws -> [SIMD2<Float>]? {
-        guard let accessor = try attributes[semantic]?.resolve(in: container.document) else {
-            return nil
-        }
-        assert(accessor.componentType == .FLOAT)
-        let values = [SIMD2<Float>](withUnsafeData: try container.data(for: accessor))
-        assert(values.count == accessor.count)
-        assert(accessor.min == nil || accessor.max == nil || values.allSatisfy({ $0.within(min: SIMD2<Float>(accessor.min!.map { Float($0) }), max: SIMD2<Float>(accessor.max!.map { Float($0) })) }))
-        return values
+        try vectors(semantic, componentCount: 2, in: container) { SIMD2($0[0], $0[1]) }
     }
 
     func value(semantic: Mesh.Primitive.Semantic, type: SIMD3<Float>.Type, in container: Container) throws -> [SIMD3<Float>]? {
-        guard let accessor = try attributes[semantic]?.resolve(in: container.document) else {
-            return nil
-        }
-
-        struct FauxVector3 {
-            var x: Float
-            var y: Float
-            var z: Float
-        }
-
-        let values: [SIMD3<Float>]
-        switch accessor.componentType {
-        case .FLOAT:
-            values = [FauxVector3](withUnsafeData: try container.data(for: accessor)).map {
-                SIMD3<Float>($0.x, $0.y, $0.z)
-            }
-        case .UNSIGNED_SHORT:
-            values = [SIMD3<Float>](withUnsafeData: try container.data(for: accessor)).map { SIMD3<Float>($0.map { Float($0) }) }
-        default:
-            throw GLTFError.unsupported("Unsupported SIMD3 component type \(accessor.componentType)")
-        }
-
-        assert(values.count == accessor.count)
-        // assert(accessor.min == nil || accessor.max == nil || values.allSatisfy({ $0.within(min: SIMD3<Float>(accessor.min!), max: SIMD3<Float>(accessor.max!)) }))
-        return values
+        try vectors(semantic, componentCount: 3, in: container) { SIMD3($0[0], $0[1], $0[2]) }
     }
 
     func value(semantic: Mesh.Primitive.Semantic, type: SIMD4<Float>.Type, in container: Container) throws -> [SIMD4<Float>]? {
+        try vectors(semantic, componentCount: 4, in: container) { SIMD4($0[0], $0[1], $0[2], $0[3]) }
+    }
+
+    // Reads any component type through floatComponents, which handles byte
+    // strides and the normalized flag (e.g. normalized UNSIGNED_BYTE texcoords).
+    private func vectors<V>(
+        _ semantic: Semantic,
+        componentCount: Int,
+        in container: Container,
+        make: ([Float]) -> V
+    ) throws -> [V]? {
         guard let accessor = try attributes[semantic]?.resolve(in: container.document) else {
             return nil
         }
-        assert(accessor.componentType == .FLOAT)
-        let values = [SIMD4<Float>](withUnsafeData: try container.data(for: accessor))
-        assert(values.count == accessor.count)
-        assert(accessor.min == nil || accessor.max == nil || values.allSatisfy({ $0.within(min: SIMD4<Float>(accessor.min!.map { Float($0) }), max: SIMD4<Float>(accessor.max!.map { Float($0) })) }))
-        return values
+        guard accessor.type.componentCount == componentCount else {
+            throw GLTFError.unsupported("\(semantic.rawValue) is \(accessor.type), expected \(componentCount) components")
+        }
+        let floats = try container.floatComponents(for: accessor)
+        return stride(from: 0, to: floats.count, by: componentCount).map { start in
+            make(Array(floats[start ..< start + componentCount]))
+        }
     }
 
     func indices(type: UInt32.Type, in container: Container) throws -> [UInt32]? {
