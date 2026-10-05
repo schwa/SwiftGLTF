@@ -161,16 +161,6 @@ extension CollectionScanner where Element: Equatable {
             return nil
         }
     }
-
-    // TODO: This operates on a COPY of the Scanner
-    func iterator(forComponentsSeparatedBy separator: [Element]) -> AnyIterator<SubSequence> {
-        iterator { scanner in
-            if let result = scanner.scanUpTo(value: separator, consuming: true) {
-                return result
-            }
-            return nil
-        }
-    }
 }
 
 // TODO: This operates on a COPY of the Scanner
