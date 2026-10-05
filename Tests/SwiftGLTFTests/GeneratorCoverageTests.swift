@@ -163,7 +163,12 @@ struct GeneratorCoverageTests {
         { "asset": { "version": "2.0" }, "materials": [ { "alphaMode": "BLEND" } ] }
         """#.utf8))
         let material = try RealityKitGLTFGenerator(document: document).makeMaterial(from: document.materials[0])
-        #expect((material as? PhysicallyBasedMaterial)?.blending != .opaque)
+        // Pattern-match: Blending is only Equatable in newer SDKs (CI builds with SDK 26.5).
+        let blending = try #require((material as? PhysicallyBasedMaterial)?.blending)
+        guard case .transparent = blending else {
+            Issue.record("expected transparent blending, got \(blending)")
+            return
+        }
     }
 
     // Real models exercising TANGENT, COLOR_0 and TEXCOORD_1 through RealityKit.
