@@ -6,9 +6,9 @@ import PackageDescription
 let package = Package(
     name: "SwiftGLTF",
     platforms: [
-        .iOS("17.0"),
-        .macOS("14.0"),
-        .macCatalyst("17.0")
+        .iOS("18.0"),
+        .macOS("15.0"),
+        .macCatalyst("18.0")
     ],
     products: [
         .library(
@@ -17,6 +17,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(url: "https://github.com/schwa/GoldenImage.git", branch: "main"),
     ],
     targets: [
         .target(
@@ -24,10 +25,11 @@ let package = Package(
         ),
         .testTarget(
             name: "SwiftGLTFTests",
-            dependencies: ["SwiftGLTF"],
+            dependencies: ["SwiftGLTF", "GoldenImage"],
             resources: [
                 .copy("Box.gltf"),
                 .copy("Box-byteStride.glb"),
+                .copy("GoldenImages"),
             ]
         ),
     ]

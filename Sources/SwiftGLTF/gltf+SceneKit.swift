@@ -118,7 +118,10 @@ public class SceneKitGenerator {
             fatalError()
         }
 
-        let scnSource = SCNGeometrySource(data: bufferData, semantic: semantic, vectorCount: accessor.count, usesFloatComponents: usesFloatComponents, componentsPerVector: componentsPerVector, bytesPerComponent: bytesPerComponent, dataOffset: 0, dataStride: bufferView.byteStride ?? 0)
+        // `bufferData` starts at the buffer view; the accessor's byteOffset is
+        // relative to that, and matters for interleaved buffer views.
+        let dataStride = bufferView.byteStride ?? (componentsPerVector * bytesPerComponent)
+        let scnSource = SCNGeometrySource(data: bufferData, semantic: semantic, vectorCount: accessor.count, usesFloatComponents: usesFloatComponents, componentsPerVector: componentsPerVector, bytesPerComponent: bytesPerComponent, dataOffset: accessor.byteOffset, dataStride: dataStride)
         return scnSource
     }
 
@@ -181,7 +184,8 @@ public class SceneKitGenerator {
                     fatalError()
                 }
 
-                let indicesSubData = indicesData.subdata(in: indicesBufferView.byteOffset ..< (indicesBufferView.byteOffset + indicesBufferView.byteLength))
+                let indicesStart = indicesBufferView.byteOffset + indicesAccessor.byteOffset
+                let indicesSubData = indicesData.subdata(in: indicesStart ..< (indicesStart + indicesAccessor.count * bytesPerIndex))
 
                 scnElement = SCNGeometryElement(data: indicesSubData, primitiveType: primitiveType, primitiveCount: primitiveCount, bytesPerIndex: bytesPerIndex)
             }
