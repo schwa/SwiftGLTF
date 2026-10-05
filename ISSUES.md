@@ -354,17 +354,20 @@ Acceptance: emissive strength multiplies emissive factor/texture in render outpu
 ## 19: Sparse accessor support
 
 +++
-status: open
+status: closed
 priority: medium
 kind: bug
 labels: effort:m, area:parsing
 created: 2026-10-05T13:58:08Z
-updated: 2026-10-05T13:58:26Z
+updated: 2026-10-05T14:19:21Z
+closed: 2026-10-05T14:19:21Z
 +++
 
 Sparse accessors are not handled; Container.data(for:) ignores accessor.sparse, so sparse-encoded data is read wrong or throws. Parse accessor.sparse (count, indices, values) and apply the overrides when building data.
 
 Acceptance: a model using sparse accessors (e.g. SimpleSparseAccessor) loads with correct values.
+
+- `2026-10-05T14:19:21Z`: Added Accessor.Sparse decoding and applied sparse overrides in Container.data(for:) (base data, then replace count elements at given indices with given values). Also made data-URI decoding accept any ';base64' media type (was a hardcoded whitelist that rejected application/gltf-buffer). Test: SparseAccessorTests on SimpleSparseAccessor (overridden verts 8/10/12 differ from base).
 
 ---
 

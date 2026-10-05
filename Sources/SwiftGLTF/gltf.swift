@@ -71,15 +71,17 @@ public struct Container {
         case "data":
             // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs
             let components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
-            let parts = components.path.split(separator: ",")
-            switch parts[0] {
-            case "application/octet-stream;base64", "image/jpeg;base64", "image/png;base64":
-                let data = Data(base64Encoded: String(parts[1]))!
-                cache.cache[uri] = data
-                return data
-            default:
-                throw GLTFError.unknown
+            let path = components.path
+            guard let commaIndex = path.firstIndex(of: ",") else {
+                throw GLTFError.unsupported("Malformed data URI")
             }
+            let metadata = path[..<commaIndex]
+            let payload = String(path[path.index(after: commaIndex)...])
+            guard metadata.hasSuffix(";base64"), let data = Data(base64Encoded: payload) else {
+                throw GLTFError.unsupported("Unsupported data URI '\(metadata)'")
+            }
+            cache.cache[uri] = data
+            return data
         case .none:
             let url = self.url.deletingLastPathComponent().appendingPathComponent(uri.string)
             return try Data(contentsOf: url)
@@ -164,8 +166,57 @@ public struct Container {
         }
 
         assert(subdata.count == elementsSize)
-        return subdata
+
+        // Apply sparse overrides, if any.
+        guard let sparse = accessor.sparse else {
+            return subdata
+        }
+        var result = subdata
+
+        let indexComponentSize: Int
+        switch sparse.indices.componentType {
+        case .UNSIGNED_BYTE: indexComponentSize = 1
+        case .UNSIGNED_SHORT: indexComponentSize = 2
+        case .UNSIGNED_INT: indexComponentSize = 4
+        default:
+            throw GLTFError.unsupported("Unsupported sparse index component type \(sparse.indices.componentType)")
+        }
+
+        let indicesBufferView = try sparse.indices.bufferView.resolve(in: document)
+        let indicesData = try data(for: indicesBufferView.buffer)
+        let indicesStart = indicesBufferView.byteOffset + sparse.indices.byteOffset
+
+        let valuesBufferView = try sparse.values.bufferView.resolve(in: document)
+        let valuesData = try data(for: valuesBufferView.buffer)
+        let valuesStart = valuesBufferView.byteOffset + sparse.values.byteOffset
+
+        for sparseIndex in 0 ..< sparse.count {
+            let elementIndex = Int(readLittleEndianUInt(
+                indicesData,
+                offset: indicesStart + sparseIndex * indexComponentSize,
+                size: indexComponentSize
+            ))
+            let sourceStart = valuesStart + sparseIndex * elementSize
+            let destinationStart = elementIndex * elementSize
+            guard sourceStart + elementSize <= valuesData.count,
+                  destinationStart + elementSize <= result.count else {
+                throw GLTFError.accessorOutOfBounds
+            }
+            result.replaceSubrange(
+                destinationStart ..< (destinationStart + elementSize),
+                with: valuesData.subdata(in: sourceStart ..< (sourceStart + elementSize))
+            )
+        }
+        return result
     }
+}
+
+private func readLittleEndianUInt(_ data: Data, offset: Int, size: Int) -> UInt32 {
+    var value: UInt32 = 0
+    for byte in 0 ..< size {
+        value |= UInt32(data[data.startIndex + offset + byte]) << (8 * byte)
+    }
+    return value
 }
 
 // MARK: -
@@ -269,10 +320,51 @@ public struct Accessor: Decodable, Hashable, Sendable, Resolver {
     public let type: AttributeType
     public let max: [Float]?
     public let min: [Float]?
-    // let sparse: Any
+    public let sparse: Sparse?
     public let name: String?
     // let extensions: [String: Any]
     // let extras: Any
+
+    public struct Sparse: Decodable, Hashable, Sendable {
+        public struct Indices: Decodable, Hashable, Sendable {
+            public let bufferView: Index<BufferView>
+            public let byteOffset: Int
+            public let componentType: ComponentType
+
+            public enum CodingKeys: CodingKey {
+                case bufferView
+                case byteOffset
+                case componentType
+            }
+
+            public init(from decoder: Decoder) throws {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                bufferView = try container.decode(Index<BufferView>.self, forKey: .bufferView)
+                byteOffset = try container.decodeIfPresent(Int.self, forKey: .byteOffset) ?? 0
+                componentType = try container.decode(ComponentType.self, forKey: .componentType)
+            }
+        }
+
+        public struct Values: Decodable, Hashable, Sendable {
+            public let bufferView: Index<BufferView>
+            public let byteOffset: Int
+
+            public enum CodingKeys: CodingKey {
+                case bufferView
+                case byteOffset
+            }
+
+            public init(from decoder: Decoder) throws {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                bufferView = try container.decode(Index<BufferView>.self, forKey: .bufferView)
+                byteOffset = try container.decodeIfPresent(Int.self, forKey: .byteOffset) ?? 0
+            }
+        }
+
+        public let count: Int
+        public let indices: Indices
+        public let values: Values
+    }
 
     public enum CodingKeys: CodingKey {
         case bufferView
@@ -299,7 +391,7 @@ public struct Accessor: Decodable, Hashable, Sendable, Resolver {
         type = try container.decode(AttributeType.self, forKey: .type)
         max = try container.decodeIfPresent([Float].self, forKey: .max)
         min = try container.decodeIfPresent([Float].self, forKey: .min)
-        // sparse
+        sparse = try container.decodeIfPresent(Sparse.self, forKey: .sparse)
         name = try container.decodeIfPresent(String.self, forKey: .name)
         // extension
         // extras
