@@ -864,3 +864,31 @@ Several features are unsupported by the RealityKit generator and only surface as
 Acceptance: README lists per-backend limitations.
 
 ---
+
+## 44: TextureInfo does not expose normal scale or occlusion strength
+
++++
+status: new
+priority: medium
+kind: bug
+labels: materials
+created: 2026-10-05T16:00:33Z
++++
+
+glTF `normalTexture` has an optional `scale` and `occlusionTexture` an optional `strength` (both default 1). Material.normalTexture and Material.occlusionTexture are decoded as plain TextureInfo, so these values are dropped and renderers cannot read them.
+
+---
+
+## 45: Relative URIs with percent-escapes are not decoded
+
++++
+status: new
+priority: low
+kind: bug
+labels: loading
+created: 2026-10-05T16:00:33Z
++++
+
+`Container.data(for: URI)` resolves relative URIs with `appendingPathComponent(uri.string)` without percent-decoding. glTF URIs are RFC 3986 encoded, so a file reference like `my%20texture.png` points at a file literally named `my%20texture.png` and fails to load.
+
+---
