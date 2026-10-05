@@ -276,18 +276,21 @@ Acceptance: loading a model that uses an unknown extension preserves its raw JSO
 ## 15: KHR_lights_punctual (punctual lights)
 
 +++
-status: open
+status: closed
 priority: high
 kind: feature
 labels: effort:m, area:rendering
 depends: 14
 created: 2026-10-05T13:58:08Z
-updated: 2026-10-05T13:58:26Z
+updated: 2026-10-05T14:10:11Z
+closed: 2026-10-05T14:10:11Z
 +++
 
 No light support at all: Document has no lights and KHR_lights_punctual is ignored. Add a Light type (directional/point/spot, color, intensity, range), decode the document-level and node-level extension, and emit SCNLight / RealityKit lights.
 
 Acceptance: a model using KHR_lights_punctual lights renders with those lights instead of hand-added test lights.
+
+- `2026-10-05T14:10:11Z`: Added Light type + KHR_lights_punctual decoding (document lights + node light ref) and emission of SCNLight (directional/omni/spot) and RealityKit Directional/Point/Spot light components. Tests: LightsPunctualTests. Photometric intensity units are passed through, not unit-converted (noted).
 
 ---
 

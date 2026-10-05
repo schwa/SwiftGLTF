@@ -8,14 +8,24 @@ import Foundation
 import RealityKit
 
 public class RealityKitGLTFGenerator {
-    let container: Container
+    let container: Container?
+    let document: Document
 
     public init(container: Container) {
         self.container = container
+        self.document = container.document
     }
 
-    var document: Document {
-        container.document
+    public init(document: Document) {
+        self.container = nil
+        self.document = document
+    }
+
+    private func requireContainer() throws -> Container {
+        guard let container else {
+            throw GLTFError.missingResource("This operation needs buffer data; construct the generator with a Container")
+        }
+        return container
     }
 
     public func generateRootEntity() throws -> Entity {
@@ -54,6 +64,9 @@ public class RealityKitGLTFGenerator {
                 warning("Orthographic cameras are not supported by the RealityKit generator")
             }
         }
+        if let light = node.punctualLight(in: document) {
+            applyLight(light, to: entity)
+        }
         if let matrix = node.matrix {
             entity.transform.matrix = matrix
         }
@@ -72,9 +85,43 @@ public class RealityKitGLTFGenerator {
         return entity
     }
 
+    func applyLight(_ light: Light, to entity: Entity) {
+        #if os(macOS)
+        let color = NSColor(
+            red: Double(light.color.x),
+            green: Double(light.color.y),
+            blue: Double(light.color.z),
+            alpha: 1
+        )
+        #else
+        let color = UIColor(
+            red: Double(light.color.x),
+            green: Double(light.color.y),
+            blue: Double(light.color.z),
+            alpha: 1
+        )
+        #endif
+        switch light.type {
+        case .directional:
+            entity.components.set(DirectionalLightComponent(color: color, intensity: light.intensity))
+        case .point:
+            entity.components.set(PointLightComponent(color: color, intensity: light.intensity))
+        case .spot:
+            let inner = (light.spot?.innerConeAngle ?? 0) * 180 / .pi
+            let outer = (light.spot?.outerConeAngle ?? .pi / 4) * 180 / .pi
+            entity.components.set(SpotLightComponent(
+                color: color,
+                intensity: light.intensity,
+                innerAngleInDegrees: inner,
+                outerAngleInDegrees: outer
+            ))
+        }
+    }
+
     func generateMeshResource(from mesh: Mesh) throws -> ModelComponent {
         // assert(mesh.primitives.count == 1)
         let primitive = mesh.primitives.first!
+        let container = try requireContainer()
 
         var meshDescriptor = MeshDescriptor()
         if let positions = try primitive.value(semantic: .POSITION, type: SIMD3<Float>.self, in: container) {
@@ -114,7 +161,7 @@ public class RealityKitGLTFGenerator {
             if let textureInfo = pbrMetallicRoughness.baseColorTexture {
                 let texture = try textureInfo.index.resolve(in: document)
                 let source = try texture.source!.resolve(in: document)
-                let data = try container.data(for: source)
+                let data = try requireContainer().data(for: source)
                 let image = try CGImage.image(with: data)
                 let textureResource = try TextureResource.generate(from: image, options: .init(semantic: .color))
                 reTexture = MaterialParameters.Texture(textureResource)

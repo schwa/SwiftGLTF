@@ -47,6 +47,10 @@ public class SceneKitGenerator {
             scnNode.camera = makeSCNCamera(from: try cameraIndex.resolve(in: document))
         }
 
+        if let light = node.punctualLight(in: document) {
+            scnNode.light = makeSCNLight(from: light)
+        }
+
         if let matrix = node.matrix {
             scnNode.simdTransform = matrix
         }
@@ -67,6 +71,30 @@ public class SceneKitGenerator {
             scnNode.addChildNode($0)
         }
         return scnNode
+    }
+
+    func makeSCNLight(from light: Light) -> SCNLight {
+        let scnLight = SCNLight()
+        switch light.type {
+        case .directional:
+            scnLight.type = .directional
+        case .point:
+            scnLight.type = .omni
+        case .spot:
+            scnLight.type = .spot
+            if let spot = light.spot {
+                scnLight.spotInnerAngle = Double(spot.innerConeAngle) * 180 / .pi
+                scnLight.spotOuterAngle = Double(spot.outerConeAngle) * 180 / .pi
+            }
+        }
+        scnLight.color = CGColor(
+            red: Double(light.color.x),
+            green: Double(light.color.y),
+            blue: Double(light.color.z),
+            alpha: 1
+        )
+        scnLight.intensity = CGFloat(light.intensity)
+        return scnLight
     }
 
     func makeSCNCamera(from camera: Camera) -> SCNCamera {
