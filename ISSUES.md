@@ -900,25 +900,30 @@ Acceptance: README lists per-backend limitations.
 ## 44: TextureInfo does not expose normal scale or occlusion strength
 
 +++
-status: new
+status: closed
 priority: medium
 kind: bug
 labels: materials
 created: 2026-10-05T16:00:33Z
+updated: 2026-10-05T16:23:20Z
+closed: 2026-10-05T16:23:20Z
 +++
 
 glTF `normalTexture` has an optional `scale` and `occlusionTexture` an optional `strength` (both default 1). Material.normalTexture and Material.occlusionTexture are decoded as plain TextureInfo, so these values are dropped and renderers cannot read them.
+
+- `2026-10-05T16:23:20Z`: Duplicate of #35 (fixed in 589aa9c2): TextureInfo now has scale/strength with normalScale/occlusionStrength (default 1); SceneKit applies them as normal/ambientOcclusion intensity and RealityKit bakes them into the texture. Covered by TextureInfoScaleTests.
 
 ---
 
 ## 45: Relative URIs with percent-escapes are not decoded
 
 +++
-status: new
+status: open
 priority: low
 kind: bug
-labels: loading
+labels: area:parsing, effort:s
 created: 2026-10-05T16:00:33Z
+updated: 2026-10-05T16:23:20Z
 +++
 
 `Container.data(for: URI)` resolves relative URIs with `appendingPathComponent(uri.string)` without percent-decoding. glTF URIs are RFC 3986 encoded, so a file reference like `my%20texture.png` points at a file literally named `my%20texture.png` and fails to load.
