@@ -461,7 +461,7 @@ extension SCNWrapMode {
     init(_ mode: Sampler.Wrap) {
         switch mode {
         case .CLAMP_TO_EDGE:
-            self = .clampToBorder
+            self = .clamp // .clampToBorder would sample the border color
         case .MIRRORED_REPEAT:
             self = .mirror
         case .REPEAT:

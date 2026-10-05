@@ -960,16 +960,20 @@ Acceptance: decoding then encoding min [0.6624999940395355] re-emits exactly tha
 ## 47: SceneKit maps CLAMP_TO_EDGE to clampToBorder
 
 +++
-status: open
+status: closed
 priority: medium
 kind: bug
 labels: effort:xs, area:rendering
 created: 2026-10-05T16:29:20Z
+updated: 2026-10-05T16:29:52Z
+closed: 2026-10-05T16:29:52Z
 +++
 
 SCNWrapMode(Sampler.Wrap) maps glTF CLAMP_TO_EDGE (33071) to .clampToBorder, which samples the border color outside [0,1]. Clamp-to-edge is SCNWrapMode.clamp. Textures using CLAMP_TO_EDGE get wrong colors near edges.
 
 Acceptance: a sampler with CLAMP_TO_EDGE produces SCNMaterialProperty.wrapS/wrapT == .clamp.
+
+- `2026-10-05T16:29:52Z`: CLAMP_TO_EDGE now maps to SCNWrapMode.clamp. Test: SamplerMappingTests (fails before, passes after; also covers filter mappings). Goldens unaffected.
 
 ---
 
@@ -981,7 +985,6 @@ priority: medium
 kind: bug
 labels: effort:s, area:rendering
 created: 2026-10-05T16:29:20Z
-updated: 2026-10-05T16:29:20Z
 +++
 
 Mesh.Primitive.value(semantic:type:in:) in the RealityKit generator:
