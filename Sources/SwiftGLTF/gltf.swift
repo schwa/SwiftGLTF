@@ -314,8 +314,8 @@ public struct Accessor: Decodable, Hashable, Sendable, Resolver {
     public let min: [Float]?
     public let sparse: Sparse?
     public let name: String?
-    // let extensions: [String: Any]
-    // let extras: Any
+    public let extensions: Extensions?
+    public let extras: JSONValue?
 
     public struct Sparse: Decodable, Hashable, Sendable {
         public struct Indices: Decodable, Hashable, Sendable {
@@ -369,7 +369,7 @@ public struct Accessor: Decodable, Hashable, Sendable, Resolver {
         case min
         case sparse
         case name
-        case `extension`
+        case extensions
         case extras
     }
 
@@ -385,8 +385,8 @@ public struct Accessor: Decodable, Hashable, Sendable, Resolver {
         min = try container.decodeIfPresent([Float].self, forKey: .min)
         sparse = try container.decodeIfPresent(Sparse.self, forKey: .sparse)
         name = try container.decodeIfPresent(String.self, forKey: .name)
-        // extension
-        // extras
+        extensions = try container.decodeIfPresent(Extensions.self, forKey: .extensions)
+        extras = try container.decodeIfPresent(JSONValue.self, forKey: .extras)
     }
 }
 
@@ -395,8 +395,8 @@ public struct Asset: Decodable, Hashable, Sendable {
     public let generator: String?
     public let version: Version
     public let minVersion: Version?
-    // let extensions: [String: Any]?
-    // let extras: Any?
+    public let extensions: Extensions?
+    public let extras: JSONValue?
 
     public struct Version: RawRepresentable, Decodable, Hashable, Sendable {
         public init?(rawValue: String) {
@@ -418,8 +418,8 @@ public struct Buffer: Decodable, Hashable, Sendable, Resolver {
     public let uri: URI?
     public let byteLength: Int
     public let name: String?
-    // let extensions: [String: Any]?
-    // let extras: Any?
+    public let extensions: Extensions?
+    public let extras: JSONValue?
 }
 
 public struct BufferView: Decodable, Hashable, Sendable, Resolver {
@@ -429,15 +429,15 @@ public struct BufferView: Decodable, Hashable, Sendable, Resolver {
     public let byteOffset: Int
     public let byteLength: Int
     public let byteStride: Int?
-    public enum Target: Int, Decodable {
+    public enum Target: Int, Decodable, Sendable {
         case ARRAY_BUFFER = 34962
         case ELEMENT_ARRAY_BUFFER = 34963
     }
 
     public let target: Target?
     public let name: String?
-    // let extensions: [String: Any]?
-    // let extras: Any?
+    public let extensions: Extensions?
+    public let extras: JSONValue?
 
     public enum CodingKeys: CodingKey {
         case buffer
@@ -446,8 +446,8 @@ public struct BufferView: Decodable, Hashable, Sendable, Resolver {
         case byteStride
         case target
         case name
-        // extension
-        // extras
+        case extensions
+        case extras
     }
 
     public init(from decoder: Decoder) throws {
@@ -458,6 +458,8 @@ public struct BufferView: Decodable, Hashable, Sendable, Resolver {
         byteStride = try container.decodeIfPresent(Int.self, forKey: .byteStride)
         target = try container.decodeIfPresent(Target.self, forKey: .target)
         name = try container.decodeIfPresent(String.self, forKey: .name)
+        extensions = try container.decodeIfPresent(Extensions.self, forKey: .extensions)
+        extras = try container.decodeIfPresent(JSONValue.self, forKey: .extras)
     }
 }
 
@@ -487,25 +489,19 @@ public struct Camera: Decodable, Hashable, Sendable, Resolver {
     public let perspective: Perspective?
     public let orthographic: Orthographic?
     public let name: String?
+    public let extensions: Extensions?
+    public let extras: JSONValue?
 }
-
-// TODO:
-// public struct Extension: Decodable {
-// }
-
-// TODO:
-// public struct Extras: Decodable {
-// }
 
 public struct Image: Decodable, Hashable, Sendable, Resolver {
     public static let documentKeyPath = \Document.images
 
     public let uri: URI?
-    public let mimetype: String?
+    public let mimeType: String? // spec key is "mimeType"
     public let bufferView: Index<BufferView>?
     public let name: String?
-    // let extensions: [String: Any]?
-    // let extras: Any?
+    public let extensions: Extensions?
+    public let extras: JSONValue?
 }
 
 public struct Material: Decodable, Hashable, Sendable, Resolver {
@@ -566,6 +562,15 @@ extension Material: Extensible {}
 extension Material.PBRMetallicRoughness: Extensible {}
 extension Mesh.Primitive: Extensible {}
 extension Node: Extensible {}
+extension Accessor: Extensible {}
+extension Asset: Extensible {}
+extension Buffer: Extensible {}
+extension BufferView: Extensible {}
+extension Camera: Extensible {}
+extension Image: Extensible {}
+extension Mesh: Extensible {}
+extension Sampler: Extensible {}
+extension Texture: Extensible {}
 
 public struct Mesh: Decodable, Hashable, Sendable, Resolver {
     public static let documentKeyPath = \Document.meshes
@@ -641,8 +646,8 @@ public struct Mesh: Decodable, Hashable, Sendable, Resolver {
     public let primitives: [Primitive]
     public let weights: [Float]
     public let name: String?
-    // let extensions: [String: Any]?
-    // let extras: Any?
+    public let extensions: Extensions?
+    public let extras: JSONValue?
 
     public enum CodingKeys: CodingKey {
         case primitives
@@ -657,6 +662,8 @@ public struct Mesh: Decodable, Hashable, Sendable, Resolver {
         primitives = try container.decode([Primitive].self, forKey: .primitives)
         weights = try container.decodeIfPresent([Float].self, forKey: .weights) ?? []
         name = try container.decodeIfPresent(String.self, forKey: .name)
+        extensions = try container.decodeIfPresent(Extensions.self, forKey: .extensions)
+        extras = try container.decodeIfPresent(JSONValue.self, forKey: .extras)
     }
 }
 
@@ -752,8 +759,8 @@ public struct Sampler: Decodable, Hashable, Sendable, Resolver {
     public let wrapS: Wrap
     public let wrapT: Wrap
     public let name: String??
-    // let extensions: [String: Any]?
-    // let extras: Any?
+    public let extensions: Extensions?
+    public let extras: JSONValue?
 
     public enum CodingKeys: CodingKey {
         case magFilter
@@ -771,6 +778,8 @@ public struct Sampler: Decodable, Hashable, Sendable, Resolver {
         wrapS = .REPEAT
         wrapT = .REPEAT
         name = nil
+        extensions = nil
+        extras = nil
     }
 
     public init(from decoder: Decoder) throws {
@@ -780,6 +789,8 @@ public struct Sampler: Decodable, Hashable, Sendable, Resolver {
         wrapS = try container.decodeIfPresent(Wrap.self, forKey: .wrapS) ?? .REPEAT
         wrapT = try container.decodeIfPresent(Wrap.self, forKey: .wrapT) ?? .REPEAT
         name = try container.decodeIfPresent(String.self, forKey: .name)
+        extensions = try container.decodeIfPresent(Extensions.self, forKey: .extensions)
+        extras = try container.decodeIfPresent(JSONValue.self, forKey: .extras)
     }
 }
 
@@ -815,8 +826,8 @@ public struct Texture: Decodable, Hashable, Sendable, Resolver {
     public let sampler: Index<Sampler>?
     public let source: Index<Image>?
     public let name: String?
-    // let extensions: [String: Any]
-    // let extras: Any
+    public let extensions: Extensions?
+    public let extras: JSONValue?
 }
 
 public struct TextureInfo: Decodable, Hashable, Sendable, Extensible {

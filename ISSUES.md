@@ -658,12 +658,13 @@ Acceptance: a primitive with TEXCOORD_3 and a _CUSTOM attribute loads without cr
 ## 33: Make the model lossless: extensions/extras on all types (25a)
 
 +++
-status: open
+status: closed
 priority: low
 kind: enhancement
 labels: effort:m, area:parsing
 created: 2026-10-05T15:07:23Z
-updated: 2026-10-05T15:07:25Z
+updated: 2026-10-05T15:16:08Z
+closed: 2026-10-05T15:16:08Z
 +++
 
 Prerequisite for the writer (#25). Today extensions/extras are preserved only on Document, Node, Scene, Material, PBRMetallicRoughness, Mesh.Primitive and TextureInfo. They are silently dropped on Accessor, Buffer, BufferView, Image, Texture, Sampler, Camera, Asset, and Mesh.
@@ -671,5 +672,7 @@ Prerequisite for the writer (#25). Today extensions/extras are preserved only on
 Add extensions: Extensions? and extras: JSONValue? (and Extensible conformance) to the remaining types.
 
 Acceptance: an unknown extension and extras on each of these types survive decode (test per type). Unknown attribute names are covered by the Semantic crash bug.
+
+- `2026-10-05T15:16:08Z`: extensions/extras now decoded + Extensible on Accessor, Asset, Buffer, BufferView, Camera, Image, Mesh, Sampler, Texture. Also fixed two spec typos: Accessor CodingKeys used 'extension' (singular), and Image.mimetype never decoded (spec key mimeType). Test: LosslessModelTests (one doc, every type). Remaining lossy spots (not in scope): normalTexture.scale / occlusionTexture.strength are unmodeled; sub-objects (sparse, perspective/orthographic) don't keep extensions.
 
 ---
