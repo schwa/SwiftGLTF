@@ -1000,3 +1000,22 @@ Acceptance: UNSIGNED_SHORT VEC3 positions and normalized UNSIGNED_BYTE VEC2 texc
 - `2026-10-05T16:32:52Z`: RealityKit attribute readers now go through Container.floatComponents(for:) (strides + normalized flag) via one shared helper; mismatched component counts throw instead of misreading. Removed the FLOAT-only and min/max debug asserts (bounds checking lives in the validator) and the now-dead within()/SIMD3.map helpers. Test: RealityKitAttributeReadingTests - UNSIGNED_SHORT VEC3 positions and normalized UNSIGNED_BYTE VEC2 texcoords; crashed before (assert), pass after. RealityKit goldens unchanged.
 
 ---
+
+## 49: Non-indexed primitives are not rendered
+
++++
+status: open
+priority: medium
+kind: bug
+labels: effort:s, area:rendering
+created: 2026-10-05T16:37:39Z
+updated: 2026-10-05T16:37:39Z
++++
+
+glTF allows primitives without an 'indices' accessor (vertices drawn in order). The RealityKit generator throws missingResource('Primitive has no indices'), and the SceneKit generator builds a geometry with no elements, so nothing is drawn. Repro: KhronosGroup sample TriangleWithoutIndices.
+
+Fix: for TRIANGLES without indices, use sequential indices 0..<POSITION.count in both generators.
+
+Acceptance: TriangleWithoutIndices produces a geometry element (SceneKit) and a mesh (RealityKit).
+
+---
