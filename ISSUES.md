@@ -1053,11 +1053,13 @@ Acceptance: a test per case loads/generates without crashing (throwing where app
 ## 51: SceneKit: read vertex attributes through floatComponents
 
 +++
-status: open
+status: closed
 priority: medium
 kind: enhancement
 labels: effort:s, area:rendering
 created: 2026-10-05T16:46:33Z
+updated: 2026-10-05T17:09:01Z
+closed: 2026-10-05T17:09:01Z
 +++
 
 The SceneKit generator builds SCNGeometrySource directly from raw bytes and only supports FLOAT and BYTE components (documented limitation). UNSIGNED_SHORT/UNSIGNED_BYTE/SHORT attributes throw, and the normalized flag is ignored. Example: Box-byteStride.glb (an original test fixture) fails in SceneKit.
@@ -1065,6 +1067,8 @@ The SceneKit generator builds SCNGeometrySource directly from raw bytes and only
 Fix (same approach as #48 for RealityKit): read attributes via Container.floatComponents(for:) and build float sources; remove the limitation from the README.
 
 Acceptance: UNSIGNED_SHORT VEC3 positions and normalized UNSIGNED_BYTE texcoords produce correct SceneKit sources; Box-byteStride.glb generates in SceneKit.
+
+- `2026-10-05T17:09:01Z`: SceneKit now builds every vertex source as packed floats via a shared AccessorReader (byte strides, sparse overrides, all component types, normalized flag). Refactor: accessor decoding moved out of Container into internal AccessorReader(document:bufferData:) so SceneKitGenerator can use it with its own buffer loading; Container.data(for:)/floatComponents delegate (behavior unchanged, full suite green after the refactor alone). Bonus fix: SceneKit previously ignored sparse accessors entirely. README limitation removed. Tests: SceneKitAttributeReadingTests (UNSIGNED_SHORT positions + normalized UBYTE texcoords, sparse positions, Box-byteStride.glb) - all failed before; SceneKit goldens unchanged.
 
 ---
 

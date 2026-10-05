@@ -176,20 +176,15 @@ public class SceneKitGenerator {
         }
     }
 
-    func generateSCNGeometrySource(semantic: SCNGeometrySource.Semantic, from accessor: Accessor) throws -> SCNGeometrySource {
-        let usesFloatComponents: Bool
-        let bytesPerComponent: Int
-        switch accessor.componentType {
-        case .FLOAT:
-            usesFloatComponents = true
-            bytesPerComponent = MemoryLayout<Float>.size
-        case .BYTE:
-            usesFloatComponents = false
-            bytesPerComponent = MemoryLayout<UInt8>.size
-        default:
-            throw GLTFError.unsupported("Unsupported accessor component type \(accessor.componentType)")
-        }
+    // Accessor decoding (strides, sparse, component types, normalized) backed by
+    // this generator's buffer loading.
+    private var accessorReader: AccessorReader {
+        AccessorReader(document: document) { try self.data(for: $0) }
+    }
 
+    // Every attribute becomes packed floats, so any component type works and the
+    // normalized flag and sparse overrides are applied.
+    func generateSCNGeometrySource(semantic: SCNGeometrySource.Semantic, from accessor: Accessor) throws -> SCNGeometrySource {
         let componentsPerVector: Int
         switch accessor.type {
         case .VEC2:
@@ -202,33 +197,17 @@ public class SceneKitGenerator {
             throw GLTFError.unsupported("Unsupported accessor type \(accessor.type)")
         }
 
-        let elementSize = componentsPerVector * bytesPerComponent
-        let bufferData: Data
-        let dataOffset: Int
-        let dataStride: Int
-        if let bufferView = try accessor.bufferView?.resolve(in: document) {
-            // `bufferData` starts at the buffer view; the accessor's byteOffset is
-            // relative to that, and matters for interleaved buffer views.
-            bufferData = try data(for: bufferView.buffer)
-                .subdata(in: bufferView.byteOffset ..< (bufferView.byteOffset + bufferView.byteLength))
-            dataOffset = accessor.byteOffset
-            dataStride = bufferView.byteStride ?? elementSize
-        }
-        else {
-            // No bufferView: the accessor is all zeros.
-            bufferData = Data(count: accessor.count * elementSize)
-            dataOffset = 0
-            dataStride = elementSize
-        }
+        let floats = try accessorReader.floatComponents(for: accessor)
+        let bytesPerComponent = MemoryLayout<Float>.size
         return SCNGeometrySource(
-            data: bufferData,
+            data: floats.withUnsafeBufferPointer { Data(buffer: $0) },
             semantic: semantic,
             vectorCount: accessor.count,
-            usesFloatComponents: usesFloatComponents,
+            usesFloatComponents: true,
             componentsPerVector: componentsPerVector,
             bytesPerComponent: bytesPerComponent,
-            dataOffset: dataOffset,
-            dataStride: dataStride
+            dataOffset: 0,
+            dataStride: componentsPerVector * bytesPerComponent
         )
     }
 

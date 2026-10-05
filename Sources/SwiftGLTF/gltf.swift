@@ -117,101 +117,14 @@ public struct Container {
         }
     }
 
+    // Tightly packed element bytes, with sparse overrides applied.
     public func data(for accessor: Accessor) throws -> Data {
-        let componentSize: Int
-        switch accessor.componentType {
-        case .BYTE, .UNSIGNED_BYTE:
-            componentSize = 1
-        case .SHORT, .UNSIGNED_SHORT:
-            componentSize = 2
-        case .UNSIGNED_INT, .FLOAT:
-            componentSize = 4
-        }
-        let elementSize = componentSize * accessor.type.componentCount
-
-        let elementsSize = accessor.count * elementSize
-
-        let subdata: Data
-        if let bufferView = try accessor.bufferView?.resolve(in: document) {
-            let start = accessor.byteOffset + bufferView.byteOffset
-            let data = try data(for: bufferView.buffer)
-            if let byteStride = bufferView.byteStride, byteStride != elementSize {
-                // Interleaved buffer view: elements are spaced `byteStride` apart.
-                // Copy each element out into a tightly packed result.
-                var packed = Data(capacity: elementsSize)
-                for index in 0 ..< accessor.count {
-                    let elementStart = start + index * byteStride
-                    let elementEnd = elementStart + elementSize
-                    guard elementEnd <= data.count else {
-                        throw GLTFError.accessorOutOfBounds
-                    }
-                    packed.append(data.subdata(in: elementStart ..< elementEnd))
-                }
-                subdata = packed
-            }
-            else {
-                guard start + elementsSize <= data.count else {
-                    throw GLTFError.accessorOutOfBounds
-                }
-                subdata = data.subdata(in: start ..< (start + elementsSize))
-            }
-        }
-        else {
-            subdata = Data(count: elementsSize)
-        }
-
-        assert(subdata.count == elementsSize)
-
-        // Apply sparse overrides, if any.
-        guard let sparse = accessor.sparse else {
-            return subdata
-        }
-        var result = subdata
-
-        let indexComponentSize: Int
-        switch sparse.indices.componentType {
-        case .UNSIGNED_BYTE: indexComponentSize = 1
-        case .UNSIGNED_SHORT: indexComponentSize = 2
-        case .UNSIGNED_INT: indexComponentSize = 4
-        default:
-            throw GLTFError.unsupported("Unsupported sparse index component type \(sparse.indices.componentType)")
-        }
-
-        let indicesBufferView = try sparse.indices.bufferView.resolve(in: document)
-        let indicesData = try data(for: indicesBufferView.buffer)
-        let indicesStart = indicesBufferView.byteOffset + sparse.indices.byteOffset
-
-        let valuesBufferView = try sparse.values.bufferView.resolve(in: document)
-        let valuesData = try data(for: valuesBufferView.buffer)
-        let valuesStart = valuesBufferView.byteOffset + sparse.values.byteOffset
-
-        for sparseIndex in 0 ..< sparse.count {
-            let elementIndex = Int(readLittleEndianUInt(
-                indicesData,
-                offset: indicesStart + sparseIndex * indexComponentSize,
-                size: indexComponentSize
-            ))
-            let sourceStart = valuesStart + sparseIndex * elementSize
-            let destinationStart = elementIndex * elementSize
-            guard sourceStart + elementSize <= valuesData.count,
-                  destinationStart + elementSize <= result.count else {
-                throw GLTFError.accessorOutOfBounds
-            }
-            result.replaceSubrange(
-                destinationStart ..< (destinationStart + elementSize),
-                with: valuesData.subdata(in: sourceStart ..< (sourceStart + elementSize))
-            )
-        }
-        return result
+        try accessorReader.data(for: accessor)
     }
-}
 
-private func readLittleEndianUInt(_ data: Data, offset: Int, size: Int) -> UInt32 {
-    var value: UInt32 = 0
-    for byte in 0 ..< size {
-        value |= UInt32(data[data.startIndex + offset + byte]) << (8 * byte)
+    var accessorReader: AccessorReader {
+        AccessorReader(document: document) { try self.data(for: $0) }
     }
-    return value
 }
 
 // MARK: -

@@ -32,7 +32,6 @@ The loader decodes more of the spec than the generators render. Unsupported feat
 
 ### SceneKit
 
-* Vertex attributes must use `FLOAT` or `BYTE` components. Other component types (for example `UNSIGNED_SHORT` positions) throw.
 * `alphaMode` `MASK` uses a shader modifier that discards fragments below `alphaCutoff`. It is an approximation, because SceneKit has no alpha-cutoff setting.
 
 ### RealityKit

@@ -65,8 +65,11 @@ struct GeneratorCoverageTests {
 
     @Test
     func sceneKitHandlesByteVerticesAndUIntIndices() throws {
+        // BYTE positions are converted to packed floats (#51).
         let bytes = try SceneKitGenerator(container: triangle(positionComponentType: 5120)).generateSCNScene()
-        #expect(bytes.rootNode.childNodes[0].geometry?.sources(for: .vertex).first?.usesFloatComponents == false)
+        let source = try #require(bytes.rootNode.childNodes[0].geometry?.sources(for: .vertex).first)
+        #expect(source.usesFloatComponents)
+        #expect(source.data.withUnsafeBytes { Array($0.bindMemory(to: Float.self)) } == [0, 0, 0, 1, 0, 0, 0, 1, 0])
         let uints = try SceneKitGenerator(container: triangle(indexComponentType: 5125)).generateSCNScene()
         #expect(uints.rootNode.childNodes[0].geometry?.elements.first?.bytesPerIndex == 4)
     }
