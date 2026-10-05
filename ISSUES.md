@@ -880,16 +880,20 @@ Acceptance: each case has a test with one targeted defect; sample corpus still h
 ## 43: Document known RealityKit generator limitations
 
 +++
-status: open
+status: closed
 priority: low
 kind: documentation
 labels: effort:xs, area:rendering
 created: 2026-10-05T15:54:49Z
+updated: 2026-10-05T16:22:27Z
+closed: 2026-10-05T16:22:27Z
 +++
 
 Several features are unsupported by the RealityKit generator and only surface as runtime warnings: KHR_texture_transform, COLOR_0 vertex colors, TEXCOORD_1, orthographic cameras. Add a 'Known limitations' section to the README (per backend), and note that tangent generation is expected above this library (#24).
 
 Acceptance: README lists per-backend limitations.
+
+- `2026-10-05T16:22:27Z`: Added a 'Known limitations' section to the README, split into Both / SceneKit / RealityKit, derived from the generators' actual warning/throw sites: animation/skin/morph decoded but not rendered (#28-#30), TRIANGLES only, supported extension list, no tangent generation (by design, #24), SceneKit FLOAT/BYTE attributes only and MASK approximation, RealityKit texture-transform/COLOR_0/TEXCOORD_1/orthographic gaps and baked scale/strength/emissive factor. Also fixed stale README facts: CAVEATS.md -> CAVEAT.md, LICENSE -> LICENSE.md, SwiftGLTFViewer -> Demo/SwiftGLTFDemo, KronosGroup typo, and listed gltf-render. Docs only: no build/tests run.
 
 ---
 
