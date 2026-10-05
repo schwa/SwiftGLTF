@@ -34,34 +34,6 @@ extension CGImage {
     }
 }
 
-extension Accessor.ComponentType {
-    var size: Int {
-        switch self {
-        case .FLOAT:
-            return 4
-        case .UNSIGNED_SHORT:
-            return 2
-        default:
-            // TODO:
-            fatalError()
-        }
-    }
-}
-
-extension Accessor.AttributeType {
-    var elementCount: Int {
-        switch self {
-        case .VEC3:
-            return 3
-        case .SCALAR:
-            return 1
-        default:
-            // TODO:
-            fatalError()
-        }
-    }
-}
-
 extension Array {
     init(withUnsafeData data: Data) {
         self = data.withUnsafeBytes { buffer in

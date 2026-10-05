@@ -120,14 +120,17 @@ GH#5 (originally CLOSED). Animations embedded in glb/gltf are not implemented fo
 ## 7: Rendering of Khronos group model doesnt work
 
 +++
-status: open
+status: closed
 priority: high
 kind: bug
 labels: effort:m, area:rendering
 created: 2026-04-04T02:59:03Z
-updated: 2026-10-05T12:47:50Z
+updated: 2026-10-05T13:42:23Z
+closed: 2026-10-05T13:42:23Z
 +++
 
 GH#11. DamagedHelmet model fails to render. Various debug log errors about material resolution and file status. macOS 14.1.1, Xcode 15.0.1, iOS 17.0.2.
+
+- `2026-10-05T13:42:23Z`: Fixed by the SceneKit interleaved-accessor fix (accessor.byteOffset was ignored). DamagedHelmet.glb now builds a RealityKit entity successfully; covered by RealityKitRenderingTests.generatesDamagedHelmet.
 
 ---
