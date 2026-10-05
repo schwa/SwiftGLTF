@@ -12,12 +12,14 @@ public struct Animation: Codable, Hashable, Sendable, Resolver, Extensible {
             public let node: Index<Node>?
             public let path: Path
             public let extensions: Extensions?
+            public let extras: JSONValue?
         }
 
         // Index into the owning animation's `samplers`.
         public let sampler: Int
         public let target: Target
         public let extensions: Extensions?
+        public let extras: JSONValue?
     }
 
     // Open set so extension paths (e.g. "pointer") don't fail decoding.
@@ -49,12 +51,14 @@ public struct Animation: Codable, Hashable, Sendable, Resolver, Extensible {
         public let output: Index<Accessor> // keyframe values
         public let interpolation: Interpolation
         public let extensions: Extensions?
+        public let extras: JSONValue?
 
         public enum CodingKeys: CodingKey {
             case input
             case output
             case interpolation
             case extensions
+            case extras
         }
 
         public init(from decoder: Decoder) throws {
@@ -63,6 +67,7 @@ public struct Animation: Codable, Hashable, Sendable, Resolver, Extensible {
             output = try container.decode(Index<Accessor>.self, forKey: .output)
             interpolation = try container.decodeIfPresent(Interpolation.self, forKey: .interpolation) ?? .LINEAR
             extensions = try container.decodeIfPresent(Extensions.self, forKey: .extensions)
+            extras = try container.decodeIfPresent(JSONValue.self, forKey: .extras)
         }
     }
 

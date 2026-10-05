@@ -322,11 +322,15 @@ public struct Accessor: Codable, Hashable, Sendable, Resolver {
             public let bufferView: Index<BufferView>
             public let byteOffset: Int
             public let componentType: ComponentType
+            public let extensions: Extensions?
+            public let extras: JSONValue?
 
             public enum CodingKeys: CodingKey {
                 case bufferView
                 case byteOffset
                 case componentType
+                case extensions
+                case extras
             }
 
             public init(from decoder: Decoder) throws {
@@ -334,28 +338,38 @@ public struct Accessor: Codable, Hashable, Sendable, Resolver {
                 bufferView = try container.decode(Index<BufferView>.self, forKey: .bufferView)
                 byteOffset = try container.decodeIfPresent(Int.self, forKey: .byteOffset) ?? 0
                 componentType = try container.decode(ComponentType.self, forKey: .componentType)
+                extensions = try container.decodeIfPresent(Extensions.self, forKey: .extensions)
+                extras = try container.decodeIfPresent(JSONValue.self, forKey: .extras)
             }
         }
 
         public struct Values: Codable, Hashable, Sendable {
             public let bufferView: Index<BufferView>
             public let byteOffset: Int
+            public let extensions: Extensions?
+            public let extras: JSONValue?
 
             public enum CodingKeys: CodingKey {
                 case bufferView
                 case byteOffset
+                case extensions
+                case extras
             }
 
             public init(from decoder: Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
                 bufferView = try container.decode(Index<BufferView>.self, forKey: .bufferView)
                 byteOffset = try container.decodeIfPresent(Int.self, forKey: .byteOffset) ?? 0
+                extensions = try container.decodeIfPresent(Extensions.self, forKey: .extensions)
+                extras = try container.decodeIfPresent(JSONValue.self, forKey: .extras)
             }
         }
 
         public let count: Int
         public let indices: Indices
         public let values: Values
+        public let extensions: Extensions?
+        public let extras: JSONValue?
     }
 
     public enum CodingKeys: CodingKey {
@@ -476,6 +490,8 @@ public struct Camera: Codable, Hashable, Sendable, Resolver {
         public let yfov: Float
         public let zfar: Float?
         public let znear: Float
+        public let extensions: Extensions?
+        public let extras: JSONValue?
     }
 
     public struct Orthographic: Codable, Hashable, Sendable {
@@ -483,6 +499,8 @@ public struct Camera: Codable, Hashable, Sendable, Resolver {
         public let ymag: Float
         public let zfar: Float
         public let znear: Float
+        public let extensions: Extensions?
+        public let extras: JSONValue?
     }
 
     public let type: Projection

@@ -805,16 +805,20 @@ Acceptance: test render background 0.12 gray reads back as ~31/255, matching the
 ## 40: Preserve extensions on sub-objects (sparse, perspective, orthographic)
 
 +++
-status: open
+status: closed
 priority: low
 kind: enhancement
 labels: effort:s, area:parsing
 created: 2026-10-05T15:54:49Z
+updated: 2026-10-05T16:02:35Z
+closed: 2026-10-05T16:02:35Z
 +++
 
 #33 made every top-level object keep extensions/extras, but some nested objects still drop them: Accessor.Sparse (and its indices/values), Camera.Perspective, Camera.Orthographic. They are therefore lost on write (#25). Related to #34 (lossless round trip).
 
 Acceptance: extensions/extras on each of these sub-objects survive decode and the writer round trip.
+
+- `2026-10-05T16:02:35Z`: extensions/extras now preserved on Accessor.Sparse, Sparse.Indices, Sparse.Values, Camera.Perspective, Camera.Orthographic; also added the missing extras on Animation.Channel, Channel.Target and Animation.Sampler (they already kept extensions). Test: SubObjectExtensionsTests (decode + writer round trip); failed to compile before (fields absent).
 
 ---
 
