@@ -37,10 +37,24 @@ struct GLTFRender: AsyncParsableCommand {
     @Option(help: "RealityKit IBL intensity exponent (intensity is multiplied by 2^exposure).")
     var exposure: Float = 0
 
+    @Flag(help: "Validate the model, print issues, and exit without rendering.")
+    var validate = false
+
     func run() async throws {
         let modelURL = URL(fileURLWithPath: model)
         let outputURL = URL(fileURLWithPath: output)
         let container = try Container(url: modelURL)
+
+        if validate {
+            let issues = container.document.validate()
+            issues.forEach { print($0) }
+            let errorCount = issues.filter { $0.severity == .error }.count
+            print("\(errorCount) error(s), \(issues.count - errorCount) warning(s)")
+            if errorCount > 0 {
+                throw ExitCode.failure
+            }
+            return
+        }
         let environmentImage = try environment.map { try loadImage(at: URL(fileURLWithPath: $0)) }
 
         let image: CGImage

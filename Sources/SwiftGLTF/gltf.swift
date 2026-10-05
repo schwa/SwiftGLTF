@@ -884,6 +884,13 @@ public struct Index<R>: Decodable, Hashable, Sendable where R: Resolver {
 
     public func resolve(in document: Document) throws -> C.Element {
         let value = document[keyPath: R.documentKeyPath]
+        guard value.indices.contains(index) else {
+            throw GLTFError.missingResource("Index \(index) out of range for \(R.self) (count \(value.count))")
+        }
         return value[index]
+    }
+
+    func isValid(in document: Document) -> Bool {
+        document[keyPath: R.documentKeyPath].indices.contains(index)
     }
 }

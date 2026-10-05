@@ -501,17 +501,20 @@ Acceptance: load then save reproduces an equivalent file; round-trip test passes
 ## 26: glTF validation mode
 
 +++
-status: open
+status: closed
 priority: low
 kind: feature
 labels: effort:m, area:api
 created: 2026-10-05T13:58:21Z
-updated: 2026-10-05T13:58:26Z
+updated: 2026-10-05T15:04:35Z
+closed: 2026-10-05T15:04:35Z
 +++
 
 Add a validation pass that surfaces spec violations with clear messages (index bounds, required fields, accessor/bufferView consistency, unsupported required extensions) instead of failing deep in parsing/rendering.
 
 Acceptance: invalid models report actionable diagnostics; a validate() API or test exists.
+
+- `2026-10-05T15:04:35Z`: Added Document.validate() -> [ValidationIssue] (severity, JSON-pointer path, message): index bounds everywhere, bufferView-in-buffer and accessor-in-bufferView ranges, byteStride rules, sparse bounds, POSITION presence, matching attribute counts, unsupported required/used extensions, multiple parents and cycles in the node graph. Index.resolve now throws on out-of-range instead of crashing. gltf-render --validate prints issues and exits non-zero on errors. Tests: ValidationTests (one defect per case + whole sample corpus has no false-positive errors).
 
 ---
 
