@@ -1,3 +1,5 @@
+// swiftlint:disable file_length type_body_length
+
 import CoreImage
 // import Everything
 import Foundation
@@ -299,7 +301,7 @@ public class SceneKitGenerator {
         let scnMaterial = SCNMaterial()
 
         if let pbrMetallicRoughness = material.pbrMetallicRoughness {
-            scnMaterial.lightingModel = .physicallyBased
+            scnMaterial.lightingModel = material.isUnlit ? .constant : .physicallyBased
             if let texture = pbrMetallicRoughness.baseColorTexture {
                 try configureSCNMaterialProperty(property: scnMaterial.diffuse, from: texture)
             }
@@ -399,23 +401,6 @@ public class SceneKitGenerator {
         if let transform = textureInfo.textureTransform {
             property.contentsTransform = SCNMatrix4(textureTransform: transform)
         }
-    }
-}
-
-extension SCNMatrix4 {
-    // KHR_texture_transform -> SceneKit texture-coordinate transform.
-    // Treats UV as a row vector: uv' = [u, v, 0, 1] * matrix.
-    init(textureTransform transform: KHRTextureTransform) {
-        let cosR = SCNFloat(cos(transform.rotation))
-        let sinR = SCNFloat(sin(transform.rotation))
-        let scaleX = SCNFloat(transform.scale.x)
-        let scaleY = SCNFloat(transform.scale.y)
-        self = SCNMatrix4(
-            m11: scaleX * cosR, m12: scaleX * sinR, m13: 0, m14: 0,
-            m21: -scaleY * sinR, m22: scaleY * cosR, m23: 0, m24: 0,
-            m31: 0, m32: 0, m33: 1, m34: 0,
-            m41: SCNFloat(transform.offset.x), m42: SCNFloat(transform.offset.y), m43: 0, m44: 1
-        )
     }
 }
 

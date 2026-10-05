@@ -191,6 +191,18 @@ public class RealityKitGLTFGenerator {
     }
 
     func makeMaterial(from material: Material) throws -> RealityKit.Material {
+        if material.isUnlit {
+            var unlit = UnlitMaterial()
+            if let pbrMetallicRoughness = material.pbrMetallicRoughness {
+                var baseColorTexture: MaterialParameters.Texture?
+                if let textureInfo = pbrMetallicRoughness.baseColorTexture {
+                    baseColorTexture = try texture(from: textureInfo, semantic: .color)
+                }
+                unlit.color = .init(tint: color(pbrMetallicRoughness.baseColorFactor), texture: baseColorTexture)
+            }
+            return unlit
+        }
+
         var reMaterial = PhysicallyBasedMaterial()
         if let pbrMetallicRoughness = material.pbrMetallicRoughness {
             let rgba = pbrMetallicRoughness.baseColorFactor

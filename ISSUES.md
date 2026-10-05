@@ -321,18 +321,21 @@ Acceptance: a model using KHR_texture_transform samples textures with the correc
 ## 17: KHR_materials_unlit
 
 +++
-status: open
+status: closed
 priority: medium
 kind: feature
 labels: effort:s, area:rendering
 depends: 14
 created: 2026-10-05T13:58:08Z
-updated: 2026-10-05T13:58:26Z
+updated: 2026-10-05T14:24:26Z
+closed: 2026-10-05T14:24:26Z
 +++
 
 Decode KHR_materials_unlit and render affected materials as constant/unlit (SceneKit .constant, RealityKit UnlitMaterial).
 
 Acceptance: an unlit model renders without lighting response.
+
+- `2026-10-05T14:24:26Z`: Added KHR_materials_unlit decoding (Material.isUnlit). SceneKit uses lightingModel .constant; RealityKit returns an UnlitMaterial with baseColor tint+texture. Test: MaterialsUnlitTests (decode + both generators).
 
 ---
 

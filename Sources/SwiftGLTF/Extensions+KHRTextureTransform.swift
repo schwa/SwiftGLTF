@@ -1,5 +1,8 @@
 import Foundation
 import simd
+#if canImport(SceneKit)
+import SceneKit
+#endif
 
 // KHR_texture_transform: an affine transform (offset/rotation/scale) applied to
 // a texture's UV coordinates.
@@ -33,3 +36,26 @@ public extension TextureInfo {
         try? extensionValue(KHRTextureTransform.self)
     }
 }
+
+#if canImport(SceneKit)
+extension SCNMatrix4 {
+    // KHR_texture_transform -> SceneKit texture-coordinate transform.
+    // Treats UV as a row vector: uv' = [u, v, 0, 1] * matrix.
+    init(textureTransform transform: KHRTextureTransform) {
+        let cosR = SCNFloat(cos(transform.rotation))
+        let sinR = SCNFloat(sin(transform.rotation))
+        let scaleX = SCNFloat(transform.scale.x)
+        let scaleY = SCNFloat(transform.scale.y)
+        let offsetX = SCNFloat(transform.offset.x)
+        let offsetY = SCNFloat(transform.offset.y)
+        var matrix = SCNMatrix4Identity
+        matrix.m11 = scaleX * cosR
+        matrix.m12 = scaleX * sinR
+        matrix.m21 = -scaleY * sinR
+        matrix.m22 = scaleY * cosR
+        matrix.m41 = offsetX
+        matrix.m42 = offsetY
+        self = matrix
+    }
+}
+#endif
