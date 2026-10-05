@@ -683,11 +683,13 @@ Acceptance: an unknown extension and extras on each of these types survive decod
 ## 34: Writer: preserve explicit vs default values (closer to byte-identical output)
 
 +++
-status: open
+status: closed
 priority: low
 kind: enhancement
 labels: effort:m, area:api
 created: 2026-10-05T15:47:27Z
+updated: 2026-10-05T16:11:03Z
+closed: 2026-10-05T16:11:03Z
 +++
 
 The writer (#25) produces output that is equivalent to the input, not byte-identical. Two causes:
@@ -697,6 +699,8 @@ The writer (#25) produces output that is equivalent to the input, not byte-ident
 Options: track presence for defaulted fields (e.g. store Optionals and expose computed defaults), and/or preserve the original key order. Exact byte identity is probably not a goal; aim for 'only re-emits what was in the source'.
 
 Acceptance: for the sample corpus, a load -> save round trip re-emits a field only if it was present in the source (test compares JSON key sets per object).
+
+- `2026-10-05T16:11:03Z`: Writer now aligns the encoded JSON with the source JSON by path: keys absent from the source (defaults filled in by decoding) are dropped, source keys the encoder omitted (explicit defaults like byteOffset 0 / identity matrix / mode 4, or unmodeled fields) are restored, values come from the model. Writer-specific rewrites (repacked buffers, rebased bufferViews, embedded URIs) happen afterwards. Valid because Document is immutable (documented; revisit if an editing API lands). Key order/whitespace/number formatting still differ (not a goal). Tests: WriterFidelityTests - explicit vs implicit defaults, and every sample GLB <5MB has identical per-object key sets after GLB->GLB (failed before: e.g. encoder added texCoord/interpolation/factor defaults and dropped explicit byteOffset 0). WriterTests still green.
 
 ---
 

@@ -59,11 +59,51 @@ public extension Container {
     }
 
     private func jsonObject() throws -> [String: JSONValue] {
-        let value = try JSONDecoder().decode(JSONValue.self, from: document.jsonData())
-        guard case let .object(object) = value else {
+        let encoded = try JSONDecoder().decode(JSONValue.self, from: document.jsonData())
+        let aligned = try sourceJSON().map { Self.align(encoded, to: $0) } ?? encoded
+        guard case let .object(object) = aligned else {
             throw GLTFError.invalidDocument("Document did not encode to a JSON object")
         }
         return object
+    }
+
+    // The JSON this container was loaded from.
+    private func sourceJSON() throws -> JSONValue? {
+        let data: Data
+        switch kind {
+        case .binary(let glb):
+            guard let chunk = glb.chunks.first(where: { $0.chunkType == .json }) else {
+                return nil
+            }
+            data = chunk.content
+        case .json:
+            data = try Data(contentsOf: url)
+        }
+        return try JSONDecoder().decode(JSONValue.self, from: data)
+    }
+
+    // Makes the encoded JSON re-emit exactly the source's keys, object by object:
+    // keys the source didn't have (defaults filled in by decoding) are dropped,
+    // and source keys the encoder omitted (explicit defaults, or fields the model
+    // does not represent) are restored from the source. Values come from the model
+    // where it has them.
+    //
+    // Matching is by JSON path, which is valid because Document is immutable: a
+    // loaded model is always written back with the same structure. Revisit if an
+    // editing API is added.
+    static func align(_ encoded: JSONValue, to source: JSONValue) -> JSONValue {
+        switch (encoded, source) {
+        case let (.object(output), .object(original)):
+            var result: [String: JSONValue] = [:]
+            for (key, sourceValue) in original {
+                result[key] = output[key].map { align($0, to: sourceValue) } ?? sourceValue
+            }
+            return .object(result)
+        case let (.array(output), .array(original)) where output.count == original.count:
+            return .array(zip(output, original).map { align($0, to: $1) })
+        default:
+            return encoded
+        }
     }
 
     private func encoded(_ object: [String: JSONValue], prettyPrinted: Bool) throws -> Data {
