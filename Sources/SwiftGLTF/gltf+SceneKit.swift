@@ -406,11 +406,11 @@ public class SceneKitGenerator {
             case .none:
                 return cgImage
             case .red:
-                return cgImage.redChannel
+                return try cgImage.extracting(.red)
             case .green:
-                return cgImage.greenChannel
+                return try cgImage.extracting(.green)
             case .blue:
-                return cgImage.blueChannel
+                return try cgImage.extracting(.blue)
             }
         }()
         let cgImage = try tint.map { try baseImage.multiplied(by: $0) } ?? baseImage

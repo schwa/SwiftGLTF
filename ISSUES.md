@@ -1131,11 +1131,13 @@ Acceptance: both jobs green on the first push after these changes.
 ## 54: Remove deprecated CGImage channel() helper (Scratch.swift warnings)
 
 +++
-status: open
+status: closed
 priority: low
 kind: task
 labels: effort:s, area:rendering
 created: 2026-10-05T17:12:51Z
+updated: 2026-10-05T18:11:45Z
+closed: 2026-10-05T18:11:45Z
 +++
 
 Scratch.swift's CGImage.channel(_:) is marked deprecated ('Inefficient') by the project itself, and redChannel/greenChannel/blueChannel call it, giving 3 compiler warnings (Scratch.swift:25/29/33). It builds a fresh CIContext per call and is still used for metallic/roughness/occlusion channel extraction in both generators.
@@ -1143,6 +1145,8 @@ Scratch.swift's CGImage.channel(_:) is marked deprecated ('Inefficient') by the 
 Fix: implement channel extraction with the existing non-color-managed colorMatrix helper in CGImage+ColorMatrix.swift (data textures must skip color management), switch callers, delete the deprecated function.
 
 Acceptance: no 'channel is deprecated' warnings; channel-extraction tests (e.g. a known RGB pixel -> per-channel gray) pass; goldens unchanged.
+
+- `2026-10-05T18:11:45Z`: Removed the deprecated CGImage.channel() and redChannel/greenChannel/blueChannel from Scratch.swift. Channel extraction is now CGImage.extracting(_:) in CGImage+ColorMatrix.swift (non-color-managed CIColorMatrix via the shared helper, now taking full row vectors, and throwing instead of force-unwrapping). Callers in both generators updated. Test: ChannelExtractionTests (raw 200/100/50 pixel -> exact gray per channel, opaque). Note: I briefly suspected the old color-managed version shifted values (212/121/64), but that was my test image: filling a device-RGB context with an sRGB CGColor converts it. With raw bytes the old and new outputs agree; goldens unchanged. Package build now has zero warnings.
 
 ---
 

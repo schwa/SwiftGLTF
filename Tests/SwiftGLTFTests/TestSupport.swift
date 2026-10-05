@@ -48,6 +48,24 @@ enum TestSupport {
         return context.makeImage()!
     }
 
+    // A 1x1 device-RGB image with exactly these RGBA bytes (no color conversion,
+    // unlike filling with a CGColor, which converts from sRGB).
+    static func image(rgba: [UInt8]) -> CGImage {
+        CGImage(
+            width: 1,
+            height: 1,
+            bitsPerComponent: 8,
+            bitsPerPixel: 32,
+            bytesPerRow: 4,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue),
+            provider: CGDataProvider(data: Data(rgba) as CFData)!,
+            decode: nil,
+            shouldInterpolate: false,
+            intent: .defaultIntent
+        )!
+    }
+
     // A 1x1 opaque PNG of the given color.
     static func png(red: CGFloat = 1, green: CGFloat = 1, blue: CGFloat = 1) -> Data {
         let data = NSMutableData()

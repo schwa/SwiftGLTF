@@ -206,9 +206,9 @@ public class RealityKitGLTFGenerator {
         let data = try requireContainer().data(for: source)
         var image = try CGImage.image(with: data)
         switch channel {
-        case .red: image = image.redChannel
-        case .green: image = image.greenChannel
-        case .blue: image = image.blueChannel
+        case .red: image = try image.extracting(.red)
+        case .green: image = try image.extracting(.green)
+        case .blue: image = try image.extracting(.blue)
         case .none: break
         }
         if let tint {
