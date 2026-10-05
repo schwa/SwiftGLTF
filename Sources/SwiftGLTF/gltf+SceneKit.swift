@@ -62,7 +62,8 @@ public class SceneKitGenerator {
         }
 
         if let rotation = node.rotation {
-            scnNode.simdRotation = rotation
+            // glTF rotation is a quaternion [x, y, z, w], not axis-angle.
+            scnNode.simdOrientation = simd_quatf(vector: rotation)
         }
 
         if let scale = node.scale {
