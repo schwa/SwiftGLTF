@@ -3,7 +3,7 @@ import simd
 
 // glTF skin data. Renderer-agnostic: generators build SCNSkinner / RealityKit
 // skeletons separately.
-public struct Skin: Decodable, Hashable, Sendable, Resolver, Extensible {
+public struct Skin: Codable, Hashable, Sendable, Resolver, Extensible {
     public static let documentKeyPath = \Document.skins
 
     // MAT4 accessor, one matrix per joint. Absent means identity matrices.

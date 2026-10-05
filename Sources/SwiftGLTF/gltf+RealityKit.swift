@@ -1,4 +1,4 @@
-// swiftlint:disable file_length type_body_length
+// swiftlint:disable type_body_length
 
 #if os(macOS)
 import AppKit
@@ -294,20 +294,6 @@ public class RealityKitGLTFGenerator {
         UIColor(red: Double(rgba[0]), green: Double(rgba[1]), blue: Double(rgba[2]), alpha: Double(rgba[3]))
     }
     #endif
-}
-
-extension Container {
-    func data(for image: Image) throws -> Data {
-        if let uri = image.uri {
-            return try data(for: uri)
-        }
-        else if let bufferView = try image.bufferView?.resolve(in: document) {
-            return try data(for: bufferView)
-        }
-        else {
-            throw GLTFError.missingResource("Image has neither uri nor bufferView")
-        }
-    }
 }
 
 extension CGImage {

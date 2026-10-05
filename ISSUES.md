@@ -493,13 +493,14 @@ Acceptance: a normal-mapped model without TANGENT renders correct normal mapping
 ## 25: glTF/GLB writer: Encodable model + container writing (25b)
 
 +++
-status: open
+status: closed
 priority: low
 kind: feature
 labels: area:api, effort:m
 depends: 33, 32
 created: 2026-10-05T13:58:21Z
-updated: 2026-10-05T15:07:29Z
+updated: 2026-10-05T15:19:40Z
+closed: 2026-10-05T15:19:40Z
 +++
 
 Write a Document back to .gltf (external .bin or data URIs) and .glb (JSON + BIN chunks, 4-byte padding, header).
@@ -511,6 +512,8 @@ Write a Document back to .gltf (external .bin or data URIs) and .glb (JSON + BIN
 Output will be equivalent, not byte-identical (decoded defaults are indistinguishable from explicit values).
 
 Depends on the model-completeness issue so export doesn't silently drop data. Full fidelity for animations/skins/morphs follows #11-#13.
+
+- `2026-10-05T15:19:40Z`: Writer done. Model is Codable (mechanical Decodable->Codable on declarations; hand-written encoders where synthesis would be invalid glTF: Index/URI as scalars, no empty arrays, no byteOffset without bufferView, no identity matrix alongside TRS, Semantic-keyed attributes/targets). Container.write(to:embedResources:) writes .glb (all buffers repacked into one 4-byte-aligned BIN chunk, bufferViews rebased) or .gltf (embedded data URIs, or keep URIs + copy relative files + BIN sidecar). Moved Container.data(for: Image) into core. Tests: WriterTests - every sample GLB <5MB round-trips GLB->GLB and GLB->glTF with identical model and identical accessor/image bytes; FlightHelmet external-file glTF; JSON shape; GLB framing. Output is equivalent, not byte-identical. Not covered: unmodeled fields noted in #33 (normalTexture.scale, occlusionTexture.strength).
 
 ---
 

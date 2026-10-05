@@ -4,14 +4,14 @@ import simd
 // KHR_lights_punctual: punctual (directional/point/spot) lights.
 // https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_lights_punctual
 
-public struct Light: Decodable, Hashable, Sendable {
-    public enum LightType: String, Decodable, Hashable, Sendable {
+public struct Light: Codable, Hashable, Sendable {
+    public enum LightType: String, Codable, Hashable, Sendable {
         case directional
         case point
         case spot
     }
 
-    public struct Spot: Decodable, Hashable, Sendable {
+    public struct Spot: Codable, Hashable, Sendable {
         public let innerConeAngle: Float
         public let outerConeAngle: Float
 

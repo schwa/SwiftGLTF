@@ -3,11 +3,11 @@ import simd
 
 // glTF animation data. Renderer-agnostic: generators turn this into
 // SCNAnimation / RealityKit animations separately.
-public struct Animation: Decodable, Hashable, Sendable, Resolver, Extensible {
+public struct Animation: Codable, Hashable, Sendable, Resolver, Extensible {
     public static let documentKeyPath = \Document.animations
 
-    public struct Channel: Decodable, Hashable, Sendable {
-        public struct Target: Decodable, Hashable, Sendable {
+    public struct Channel: Codable, Hashable, Sendable {
+        public struct Target: Codable, Hashable, Sendable {
             // Absent when the target is supplied by an extension (e.g. KHR_animation_pointer).
             public let node: Index<Node>?
             public let path: Path
@@ -21,7 +21,7 @@ public struct Animation: Decodable, Hashable, Sendable, Resolver, Extensible {
     }
 
     // Open set so extension paths (e.g. "pointer") don't fail decoding.
-    public struct Path: RawRepresentable, Hashable, Sendable, Decodable {
+    public struct Path: RawRepresentable, Hashable, Sendable, Codable {
         public let rawValue: String
 
         public init(rawValue: String) {
@@ -38,13 +38,13 @@ public struct Animation: Decodable, Hashable, Sendable, Resolver, Extensible {
         public static let weights = Self(rawValue: "weights")
     }
 
-    public enum Interpolation: String, Decodable, Hashable, Sendable {
+    public enum Interpolation: String, Codable, Hashable, Sendable {
         case LINEAR
         case STEP
         case CUBICSPLINE
     }
 
-    public struct Sampler: Decodable, Hashable, Sendable {
+    public struct Sampler: Codable, Hashable, Sendable {
         public let input: Index<Accessor> // keyframe times (seconds)
         public let output: Index<Accessor> // keyframe values
         public let interpolation: Interpolation
