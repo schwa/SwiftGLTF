@@ -564,51 +564,63 @@ Acceptance: DamagedHelmet via 'gltf-render -b realitykit' shows its base-color t
 ## 28: Play glTF animations in SceneKit/RealityKit
 
 +++
-status: open
+status: closed
 priority: medium
 kind: feature
 labels: effort:l, area:rendering
 depends: 11
 created: 2026-10-05T14:39:43Z
+updated: 2026-10-05T17:10:59Z
+closed: 2026-10-05T17:10:59Z
 +++
 
 Using the decoded animation model (#11), drive playback in the generators: build SCNAnimation / CAAnimationGroup keyed to nodes for SceneKit, and RealityKit AnimationResource / BlendTree for TRS (and morph weights once #13 lands). Map interpolation modes.
 
 Acceptance: AnimatedCube/BoxAnimated plays in at least one backend; gltf-render could optionally render a frame at time t.
 
+- `2026-10-05T17:10:59Z`: Won't fix (decision). The renderer-agnostic data is decoded and tested (#11 animation, #12 skins, #13 morph targets); applying it in SceneKit/RealityKit is out of scope for now.
+
 ---
 
 ## 29: Render skinned meshes in SceneKit/RealityKit
 
 +++
-status: open
+status: closed
 priority: low
 kind: feature
 labels: effort:l, area:rendering
 depends: 12
 created: 2026-10-05T14:39:43Z
+updated: 2026-10-05T17:10:59Z
+closed: 2026-10-05T17:10:59Z
 +++
 
 Using the decoded skin model (#12), build skinned geometry: SCNSkinner (bones, boneInverseBindTransforms, boneWeights/boneIndices) for SceneKit; RealityKit skinning via MeshResource joints/skeleton. Bind to the node hierarchy.
 
 Acceptance: RiggedSimple/RiggedFigure deforms correctly in at least one backend.
 
+- `2026-10-05T17:10:59Z`: Won't fix (decision). The renderer-agnostic data is decoded and tested (#11 animation, #12 skins, #13 morph targets); applying it in SceneKit/RealityKit is out of scope for now.
+
 ---
 
 ## 30: Apply morph targets in SceneKit/RealityKit
 
 +++
-status: open
+status: closed
 priority: low
 kind: feature
 labels: effort:m, area:rendering
 depends: 13
 created: 2026-10-05T14:39:43Z
+updated: 2026-10-05T17:10:59Z
+closed: 2026-10-05T17:10:59Z
 +++
 
 Using the decoded morph model (#13), apply targets: SCNMorpher (targets + weights) for SceneKit; RealityKit blend-shape equivalent. Respect default and animated weights.
 
 Acceptance: AnimatedMorphCube morphs correctly (static weights minimum; animated once #11/the animation render issue lands).
+
+- `2026-10-05T17:10:59Z`: Won't fix (decision). The renderer-agnostic data is decoded and tested (#11 animation, #12 skins, #13 morph targets); applying it in SceneKit/RealityKit is out of scope for now.
 
 ---
 
