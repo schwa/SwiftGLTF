@@ -235,6 +235,19 @@ public class RealityKitGLTFGenerator {
             reMaterial.emissiveIntensity = 1
         }
 
+        if material.doubleSided ?? false {
+            reMaterial.faceCulling = .none
+        }
+
+        switch material.alphaMode ?? .OPAQUE {
+        case .OPAQUE:
+            reMaterial.blending = .opaque
+        case .MASK:
+            reMaterial.opacityThreshold = material.alphaCutoff ?? 0.5
+        case .BLEND:
+            reMaterial.blending = .transparent(opacity: .init(floatLiteral: 1))
+        }
+
         return reMaterial
     }
 

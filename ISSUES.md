@@ -394,17 +394,20 @@ Acceptance: a multi-primitive mesh renders all primitives with their materials.
 ## 21: Apply alphaMode/alphaCutoff/doubleSided (and make alphaMode an enum)
 
 +++
-status: open
+status: closed
 priority: medium
 kind: enhancement
 labels: effort:s, area:rendering
 created: 2026-10-05T13:58:21Z
-updated: 2026-10-05T13:58:26Z
+updated: 2026-10-05T14:21:00Z
+closed: 2026-10-05T14:21:00Z
 +++
 
 Material.alphaMode is a raw String and none of alphaMode/alphaCutoff/doubleSided are applied in the generators (SceneKit only logs). Make alphaMode an enum (OPAQUE/MASK/BLEND) and apply blending, alpha masking (cutoff), and double-sided/cull mode.
 
 Acceptance: AlphaBlendModeTest renders with correct opaque/mask/blend behavior.
+
+- `2026-10-05T14:21:00Z`: alphaMode is now a Material.AlphaMode enum (OPAQUE/MASK/BLEND). Applied in both generators: SceneKit sets blendMode/writesToDepthBuffer, isDoubleSided, and a fragment discard shader modifier for MASK (SceneKit has no native alpha cutoff); RealityKit sets blending, opacityThreshold (MASK), and faceCulling (.none for doubleSided). Test: AlphaModeTests.
 
 ---
 

@@ -336,9 +336,24 @@ public class SceneKitGenerator {
             scnMaterial.emission.contents = SIMD4<Float>(emissiveFactor.x, emissiveFactor.y, emissiveFactor.z, 1).cgColor
         }
 
-        warning(material.alphaMode == nil, "alphaMode == nil")
-        warning(material.alphaCutoff == nil)
-        warning(material.doubleSided == nil)
+        scnMaterial.isDoubleSided = material.doubleSided ?? false
+
+        switch material.alphaMode ?? .OPAQUE {
+        case .OPAQUE:
+            scnMaterial.blendMode = .replace
+            scnMaterial.writesToDepthBuffer = true
+        case .MASK:
+            // SceneKit has no alpha cutoff; approximate by clipping in a shader modifier.
+            let cutoff = material.alphaCutoff ?? 0.5
+            scnMaterial.blendMode = .replace
+            scnMaterial.writesToDepthBuffer = true
+            scnMaterial.shaderModifiers = [
+                .fragment: "if (_output.color.a < \(cutoff)) { discard_fragment(); }"
+            ]
+        case .BLEND:
+            scnMaterial.blendMode = .alpha
+            scnMaterial.writesToDepthBuffer = false
+        }
 
 //        scnMaterial.roughness.contents = roughnessTextureImage
 //        scnMaterial.metalness.contents = material.pbrMetallicRoughness.metallicFactor!

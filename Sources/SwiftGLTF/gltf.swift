@@ -561,7 +561,12 @@ public struct Material: Decodable, Hashable, Sendable, Resolver {
     public let occlusionTexture: TextureInfo?
     public let emissiveTexture: TextureInfo?
     public let emissiveFactor: SIMD3<Float>? // [0,0,0]
-    public let alphaMode: String?
+    public enum AlphaMode: String, Decodable, Hashable, Sendable {
+        case OPAQUE
+        case MASK
+        case BLEND
+    }
+    public let alphaMode: AlphaMode?
     public let alphaCutoff: Float? // 0.5
     // swiftlint:disable:next discouraged_optional_boolean
     public let doubleSided: Bool? // false
