@@ -1022,3 +1022,81 @@ Acceptance: TriangleWithoutIndices produces a geometry element (SceneKit) and a 
 - `2026-10-05T16:38:41Z`: Non-indexed TRIANGLES primitives now use sequential indices 0..<POSITION.count in both generators. RealityKit's indices() returns nil instead of throwing, and a non-TRIANGLES mode now throws unsupported instead of a debug assert. Test: NonIndexedPrimitiveTests - SceneKit had 0 elements and RealityKit threw missingResource before; pass after. TriangleWithoutIndices sample renders via both backends.
 
 ---
+
+## 50: Remaining crash paths on valid or unusual input (force-unwraps)
+
++++
+status: open
+priority: high
+kind: bug
+labels: effort:s, area:rendering
+created: 2026-10-05T16:46:33Z
++++
+
+Several force-unwraps still crash on spec-valid or merely unusual files:
+- document.scenes.first! (SceneKitGenerator.generateSCNScene, RealityKitGLTFGenerator.generateRootEntity): 'scenes' is optional in glTF (asset libraries often omit it).
+- texture.source! (both generators): a texture without 'source' is valid when an extension supplies the image (KHR_texture_basisu, EXT_texture_webp).
+- accessor.bufferView! (SceneKit generateSCNGeometrySource, indices): accessors without bufferView are valid (zeros / sparse-only).
+- CGImageSourceCreateWithData(...)! and image! in RealityKit CGImage.image(with:): undecodable data (KTX2, corrupt) crashes; SceneKit's loader throws.
+- Container.resolve(chunkIndex:): out-of-range index crashes (public API).
+
+Fix: throw GLTFError instead (or handle: empty scene when there are no scenes; skip/warn for extension-provided textures; zero data for bufferView-less accessors via Container.floatComponents).
+
+Acceptance: a test per case loads/generates without crashing (throwing where appropriate).
+
+---
+
+## 51: SceneKit: read vertex attributes through floatComponents
+
++++
+status: open
+priority: medium
+kind: enhancement
+labels: effort:s, area:rendering
+created: 2026-10-05T16:46:33Z
++++
+
+The SceneKit generator builds SCNGeometrySource directly from raw bytes and only supports FLOAT and BYTE components (documented limitation). UNSIGNED_SHORT/UNSIGNED_BYTE/SHORT attributes throw, and the normalized flag is ignored. Example: Box-byteStride.glb (an original test fixture) fails in SceneKit.
+
+Fix (same approach as #48 for RealityKit): read attributes via Container.floatComponents(for:) and build float sources; remove the limitation from the README.
+
+Acceptance: UNSIGNED_SHORT VEC3 positions and normalized UNSIGNED_BYTE texcoords produce correct SceneKit sources; Box-byteStride.glb generates in SceneKit.
+
+---
+
+## 52: Replace remaining GLTFError.unknown with specific errors
+
++++
+status: open
+priority: low
+kind: task
+labels: effort:xs, area:parsing
+created: 2026-10-05T16:46:33Z
++++
+
+7 throw sites still use GLTFError.unknown (gltf.swift x5, gltf+SceneKit.swift, CGImage+ColorMatrix.swift), which gives callers no information. Example: a URI containing an unencoded space fails URL(string:) and throws only .unknown.
+
+Replace each with a descriptive case (invalidDocument / unsupported / missingResource with a message).
+
+Acceptance: no 'GLTFError.unknown' throws remain; the unencoded-URI case reports which URI failed.
+
+---
+
+## 53: Confirm first CI run (Khronos validator step, Tests lint)
+
++++
+status: open
+priority: low
+kind: task
+labels: effort:xs, area:api
+created: 2026-10-05T16:46:33Z
+updated: 2026-10-05T16:46:33Z
++++
+
+Two CI changes could not be verified locally:
+- #36 Khronos validator step assumes the macos-26 runner image has Node/npm. If it fails on npm, add a pinned actions/setup-node step.
+- .swiftlint.yml now lints Tests/ as well; confirm the CI SwiftLint job passes.
+
+Acceptance: both jobs green on the first push after these changes.
+
+---
