@@ -9,12 +9,22 @@ import SceneKit
 public class SceneKitGenerator {
     let rootURL: URL?
     let document: Document
+    let binaryBuffer: Data?
 
     var cachedData: [Index<Buffer>: Data] = [:]
 
-    public init(rootURL: URL? = nil, document: Document) {
+    public init(rootURL: URL? = nil, document: Document, binaryBuffer: Data? = nil) {
         self.rootURL = rootURL
         self.document = document
+        self.binaryBuffer = binaryBuffer
+    }
+
+    public convenience init(container: Container) {
+        var binary: Data?
+        if case let .binary(glb) = container.kind {
+            binary = glb.chunks.first(where: { $0.chunkType == .bin })?.content
+        }
+        self.init(rootURL: container.url, document: container.document, binaryBuffer: binary)
     }
 
     public func generateSCNScene() throws -> SCNScene {
@@ -68,6 +78,20 @@ public class SceneKitGenerator {
         }
     }
 
+    // Loads an image's bytes whether it is referenced by uri (file/data URL) or
+    // stored in a buffer view (e.g. inside a GLB binary chunk).
+    private func imageData(for image: Image) throws -> Data {
+        if let uri = image.uri {
+            return try Data(contentsOf: resolve(uri: uri))
+        }
+        if let bufferViewIndex = image.bufferView {
+            let bufferView = try bufferViewIndex.resolve(in: document)
+            let bufferData = try data(for: bufferView.buffer)
+            return bufferData.subdata(in: bufferView.byteOffset ..< (bufferView.byteOffset + bufferView.byteLength))
+        }
+        throw GLTFError.missingResource("Image has neither uri nor bufferView")
+    }
+
     private func data(for bufferIndex: Index<Buffer>) throws -> Data {
         if let data = cachedData[bufferIndex] {
             return data
@@ -75,7 +99,12 @@ public class SceneKitGenerator {
         else {
             let buffer = try bufferIndex.resolve(in: document)
             guard let uri = buffer.uri else {
-                throw GLTFError.missingResource("Buffer has no uri (GLB binary chunk is unsupported by the SceneKit generator)")
+                // A GLB's binary buffer has no uri; it lives in the BIN chunk.
+                guard let binaryBuffer else {
+                    throw GLTFError.missingResource("Buffer has no uri and no GLB binary buffer is available")
+                }
+                cachedData[bufferIndex] = binaryBuffer
+                return binaryBuffer
             }
 
             let url = try resolve(uri: uri)
@@ -274,12 +303,8 @@ public class SceneKitGenerator {
         let texture = try textureInfo.index.resolve(in: document)
         let sampler = try texture.sampler?.resolve(in: document) ?? Sampler()
         let source = try texture.source!.resolve(in: document)
-        guard let sourceURI = source.uri else {
-            throw GLTFError.missingResource("Texture image has no uri")
-        }
-        let url = try resolve(uri: sourceURI)
         let cgImage: CGImage = try {
-            let cgImage = try CGImage.load(contentsOf: url)
+            let cgImage = try CGImage.load(data: imageData(for: source))
             switch channel {
             case .none:
                 return cgImage
@@ -306,7 +331,10 @@ public class SceneKitGenerator {
 
 extension CGImage {
     static func load(contentsOf url: URL) throws -> CGImage {
-        let data = try Data(contentsOf: url)
+        try load(data: Data(contentsOf: url))
+    }
+
+    static func load(data: Data) throws -> CGImage {
         guard let source = CGImageSourceCreateWithData(data as CFData, nil),
               let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
             throw GLTFError.unknown

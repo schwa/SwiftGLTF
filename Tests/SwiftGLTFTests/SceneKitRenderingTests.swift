@@ -18,6 +18,21 @@ struct SceneKitRenderingTests {
         #expect(scene.rootNode.childNodes.isEmpty == false)
     }
 
+    // GLB buffers have no uri; the generator must read the binary chunk.
+    @Test
+    func generatesSCNSceneFromGLB() throws {
+        let url = sampleAssetsModels
+            .appendingPathComponent("DamagedHelmet")
+            .appendingPathComponent("glTF-Binary")
+            .appendingPathComponent("DamagedHelmet.glb")
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            return // run `just download-sample-assets`
+        }
+        let container = try Container(url: url)
+        let scene = try SceneKitGenerator(container: container).generateSCNScene()
+        #expect(scene.rootNode.childNodes.isEmpty == false)
+    }
+
     // Renders the generated scene and compares it against a committed golden.
     @Test
     func rendersBoxMatchingGolden() throws {

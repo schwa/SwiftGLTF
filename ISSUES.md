@@ -157,17 +157,20 @@ Acceptance: a model with a camera renders from that camera; generators expose th
 ## 9: SceneKit generator cannot load GLB buffers
 
 +++
-status: open
+status: closed
 priority: high
 kind: enhancement
 labels: effort:s, area:rendering
 created: 2026-10-05T13:57:24Z
-updated: 2026-10-05T13:58:26Z
+updated: 2026-10-05T14:03:14Z
+closed: 2026-10-05T14:03:14Z
 +++
 
 SceneKitGenerator.data(for:) throws GLTFError.missingResource for GLB because buffers have no uri. RealityKit and Container already read the binary chunk. Make SceneKit resolve the GLB binary buffer the same way.
 
 Acceptance: generateSCNScene() works on a .glb (e.g. DamagedHelmet.glb); add a render test.
+
+- `2026-10-05T14:03:14Z`: SceneKitGenerator now resolves GLB binary buffers (new init(container:)) and loads bufferView-backed images; generateSCNScene() works on DamagedHelmet.glb. Test: generatesSCNSceneFromGLB (test fails before fix with missingResource, passes after).
 
 ---
 
