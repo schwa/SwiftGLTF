@@ -481,20 +481,27 @@ Acceptance: a normal-mapped model without TANGENT renders correct normal mapping
 
 ---
 
-## 25: glTF/GLB writer (export)
+## 25: glTF/GLB writer: Encodable model + container writing (25b)
 
 +++
 status: open
 priority: low
 kind: feature
-labels: effort:l, area:api
+labels: area:api, effort:m
+depends: 33, 32
 created: 2026-10-05T13:58:21Z
-updated: 2026-10-05T13:58:26Z
+updated: 2026-10-05T15:07:29Z
 +++
 
-Library is read-only. Add encoding of Document back to .gltf and .glb (including buffers/chunks), round-tripping preserved extensions/extras (see #14).
+Write a Document back to .gltf (external .bin or data URIs) and .glb (JSON + BIN chunks, 4-byte padding, header).
 
-Acceptance: load then save reproduces an equivalent file; round-trip test passes.
+- Add Encodable to all model types (matching the custom init(from:) defaults).
+- Container writing for both formats.
+- Round-trip tests: load -> save -> load and compare models, plus a pass over the sample corpus.
+
+Output will be equivalent, not byte-identical (decoded defaults are indistinguishable from explicit values).
+
+Depends on the model-completeness issue so export doesn't silently drop data. Full fidelity for animations/skins/morphs follows #11-#13.
 
 ---
 
@@ -614,5 +621,43 @@ Fix: use scnNode.simdOrientation = simd_quatf(vector: rotation). Add a test asse
 Acceptance: SceneKit and RealityKit render DamagedHelmet in the same orientation.
 
 - `2026-10-05T15:03:24Z`: SceneKit now uses simdOrientation = simd_quatf(vector: rotation). Test: NodeRotationTests (fails before fix, passes after). Regenerated DamagedHelmet-scenekit golden; SceneKit now matches RealityKit orientation.
+
+---
+
+## 32: Crash on unknown primitive attribute names (closed Semantic enum)
+
++++
+status: open
+priority: high
+kind: bug
+labels: effort:s, area:parsing
+created: 2026-10-05T15:07:22Z
+updated: 2026-10-05T15:07:25Z
++++
+
+Mesh.Primitive decodes attributes with Semantic(rawValue: $0)!, and Semantic is a closed enum (POSITION, NORMAL, TANGENT, TEXCOORD_0-2, COLOR_0, JOINTS_0, WEIGHTS_0). Any other valid attribute name crashes on load: TEXCOORD_3+, COLOR_1, JOINTS_1/WEIGHTS_1, or application-specific attributes (leading underscore, e.g. _CUSTOM), which the spec allows.
+
+Fix: make Semantic an open type (e.g. a RawRepresentable struct with static known values), or keep unknown names as raw strings; never force-unwrap.
+
+Acceptance: a primitive with TEXCOORD_3 and a _CUSTOM attribute loads without crashing and both attributes are accessible.
+
+---
+
+## 33: Make the model lossless: extensions/extras on all types (25a)
+
++++
+status: open
+priority: low
+kind: enhancement
+labels: effort:m, area:parsing
+created: 2026-10-05T15:07:23Z
+updated: 2026-10-05T15:07:25Z
++++
+
+Prerequisite for the writer (#25). Today extensions/extras are preserved only on Document, Node, Scene, Material, PBRMetallicRoughness, Mesh.Primitive and TextureInfo. They are silently dropped on Accessor, Buffer, BufferView, Image, Texture, Sampler, Camera, Asset, and Mesh.
+
+Add extensions: Extensions? and extras: JSONValue? (and Extensible conformance) to the remaining types.
+
+Acceptance: an unknown extension and extras on each of these types survive decode (test per type). Unknown attribute names are covered by the Semantic crash bug.
 
 ---
