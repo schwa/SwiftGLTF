@@ -60,7 +60,7 @@ struct RealityKitRenderingTests {
     }
 
     @Test @MainActor
-    func rendersBoxMatchingGolden() throws {
+    func rendersBoxMatchingGolden() async throws {
         guard let device = MTLCreateSystemDefaultDevice() else {
             return // no Metal device (headless CI)
         }
@@ -68,12 +68,12 @@ struct RealityKitRenderingTests {
         let url = Bundle.module.url(forResource: "Box", withExtension: "gltf")!
         let container = try Container(url: url)
         let root = try RealityKitGLTFGenerator(container: container).generateRootEntity()
-        try renderAndCompare(root: root, device: device, from: [4, 4, 4], goldenNamed: "Box-realitykit")
+        try await renderAndCompare(root: root, device: device, from: [4, 4, 4], goldenNamed: "Box-realitykit")
     }
 
     // Renders a full-PBR GLB (normal/metallic-roughness/occlusion/emissive maps).
     @Test @MainActor
-    func rendersDamagedHelmetMatchingGolden() throws {
+    func rendersDamagedHelmetMatchingGolden() async throws {
         guard let device = MTLCreateSystemDefaultDevice() else {
             return
         }
@@ -84,7 +84,7 @@ struct RealityKitRenderingTests {
         }
         let container = try Container(url: url)
         let root = try RealityKitGLTFGenerator(container: container).generateRootEntity()
-        try renderAndCompare(root: root, device: device, from: [0, 0, 4], goldenNamed: "DamagedHelmet-realitykit")
+        try await renderAndCompare(root: root, device: device, from: [0, 0, 4], goldenNamed: "DamagedHelmet-realitykit")
     }
 
     // RealityRenderer writes linear color; the readback must encode it as sRGB.
@@ -92,18 +92,18 @@ struct RealityKitRenderingTests {
     // target. With sRGB encoding it is ~41 (not exactly 31; RealityKit appears to
     // tone-map its output), so assert the encoded range rather than an exact value.
     @Test @MainActor
-    func readbackIsSRGBEncoded() throws {
+    func readbackIsSRGBEncoded() async throws {
         guard let device = MTLCreateSystemDefaultDevice() else {
             return
         }
-        let image = try render(root: Entity(), device: device, from: [0, 0, 4], background: CGColor(gray: 0.12, alpha: 1))
+        let image = try await render(root: Entity(), device: device, from: [0, 0, 4], background: CGColor(gray: 0.12, alpha: 1))
         let pixel = TestSupport.firstPixel(of: image, space: CGColorSpace(name: CGColorSpace.sRGB)!)
         #expect((25 ... 55).contains(Int(pixel[0])), "background red channel \(pixel[0]); ~3-7 means linear readback")
     }
 
     @MainActor
-    private func renderAndCompare(root: Entity, device: MTLDevice, from cameraPosition: SIMD3<Float>, goldenNamed name: String) throws {
-        let cgImage = try render(root: root, device: device, from: cameraPosition)
+    private func renderAndCompare(root: Entity, device: MTLDevice, from cameraPosition: SIMD3<Float>, goldenNamed name: String) async throws {
+        let cgImage = try await render(root: root, device: device, from: cameraPosition)
         let goldensDirectory = Bundle.module.url(forResource: "GoldenImages", withExtension: nil)!
         let golden = GoldenImageComparison(
             imageDirectory: goldensDirectory,
@@ -114,7 +114,7 @@ struct RealityKitRenderingTests {
     }
 
     @MainActor
-    private func render(root: Entity, device: MTLDevice, from cameraPosition: SIMD3<Float>, background: CGColor? = nil) throws -> CGImage {
+    private func render(root: Entity, device: MTLDevice, from cameraPosition: SIMD3<Float>, background: CGColor? = nil) async throws -> CGImage {
         let renderer = try RealityRenderer()
         if let background {
             renderer.cameraSettings.colorBackground = .color(background)
@@ -145,13 +145,17 @@ struct RealityKitRenderingTests {
         }
 
         let output = try RealityRenderer.CameraOutput(.singleProjection(colorTexture: texture))
-        let semaphore = DispatchSemaphore(value: 0)
-        try renderer.updateAndRender(
-            deltaTime: 0,
-            cameraOutput: output,
-            onComplete: { _ in semaphore.signal() }
-        )
-        semaphore.wait()
+        // Await the GPU completion instead of blocking the main actor (same as #56).
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            do {
+                try renderer.updateAndRender(deltaTime: 0, cameraOutput: output) { @Sendable _ in
+                    continuation.resume()
+                }
+            }
+            catch {
+                continuation.resume(throwing: error) // nothing scheduled; onComplete won't fire
+            }
+        }
 
         guard let cgImage = cgImage(from: texture) else {
             throw GLTFError.unsupported("Could not read back the render target")

@@ -1298,16 +1298,19 @@ Demo/SwiftGLTFDemo/ContentView.swift line 72: 'class Model: ObservableObject' mu
 ## 62: RealityKit render test helper blocks the main actor on a semaphore
 
 +++
-status: open
+status: closed
 priority: low
 kind: task
 labels: effort:xs, area:rendering
 created: 2026-10-05T17:49:04Z
-updated: 2026-10-05T17:49:58Z
+updated: 2026-10-05T18:06:36Z
+closed: 2026-10-05T18:06:36Z
 +++
 
 Tests/SwiftGLTFTests/RealityKitRenderingTests.swift: the synchronous @MainActor render(...) helper waits on a DispatchSemaphore for RealityRenderer's completion, blocking the main actor for the whole render (serializing other @MainActor tests) with the same deadlock risk as #56. No diagnostic today because the function is synchronous.
 
 Fix: make render(...) async using the same exactly-once checked continuation with a @Sendable completion as #56; make the calling tests async.
+
+- `2026-10-05T18:06:36Z`: render(...) is now async and awaits RealityRenderer.updateAndRender via an exactly-once checked continuation with a @Sendable completion (same pattern as #56); renderAndCompare and the three calling tests are async. Verification: the golden render tests and readbackIsSRGBEncoded still pass - they would fail with a blank image if the await resumed before the GPU finished. No DispatchSemaphore remains in Sources or Tests.
 
 ---
