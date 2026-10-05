@@ -228,7 +228,7 @@ public struct Document: Decodable, Hashable, Sendable {
     public let samplers: [Sampler]
     public let scene: Index<Scene>?
     public let scenes: [Scene]
-    public let skins: [Skin]?
+    public let skins: [Skin]
     public let textures: [Texture]
     public let extensions: Extensions?
     public let extras: JSONValue?
@@ -661,13 +661,14 @@ public struct Node: Decodable, Hashable, Sendable, Resolver {
 
     public let camera: Index<Camera>?
     public let children: [Index<Node>]
-//    let skin: Int?
+    public let skin: Index<Skin>?
     public let matrix: simd_float4x4?
     public let mesh: Index<Mesh>?
     public let rotation: SIMD4<Float>?
     public let scale: SIMD3<Float>?
     public let translation: SIMD3<Float>?
-//    let weights: [Int]?
+    // Morph target weights for this node's mesh (overrides Mesh.weights).
+    public let weights: [Float]?
     public let name: String?
     public let extensions: Extensions?
     public let extras: JSONValue?
@@ -691,13 +692,13 @@ public struct Node: Decodable, Hashable, Sendable, Resolver {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         camera = try container.decodeIfPresent(Index<Camera>.self, forKey: .camera)
         children = try container.decodeIfPresent([Index<Node>].self, forKey: .children) ?? []
-//        skin = try container.decodeIfPresent(XXXX, forKey: .skin)
+        skin = try container.decodeIfPresent(Index<Skin>.self, forKey: .skin)
         matrix = try container.decodeIfPresent(MatrixDecoder.self, forKey: .matrix).map(\.matrix) ?? .identity
         mesh = try container.decodeIfPresent(Index<Mesh>.self, forKey: .mesh)
         rotation = try container.decodeIfPresent(SIMD4<Float>.self, forKey: .rotation)
         scale = try container.decodeIfPresent(SIMD3<Float>.self, forKey: .scale)
         translation = try container.decodeIfPresent(SIMD3<Float>.self, forKey: .translation)
-//        weights = try container.decodeIfPresent(XXXX, forKey: .weights)
+        weights = try container.decodeIfPresent([Float].self, forKey: .weights)
         name = try container.decodeIfPresent(String.self, forKey: .name)
         extensions = try container.decodeIfPresent(Extensions.self, forKey: .extensions)
         extras = try container.decodeIfPresent(JSONValue.self, forKey: .extras)
@@ -706,13 +707,13 @@ public struct Node: Decodable, Hashable, Sendable, Resolver {
     public func hash(into hasher: inout Hasher) {
         camera?.hash(into: &hasher)
         children.hash(into: &hasher)
-        //    let skin: Int?
+        skin.hash(into: &hasher)
         matrix?.scalars.hash(into: &hasher)
         mesh.hash(into: &hasher)
         rotation.hash(into: &hasher)
         scale.hash(into: &hasher)
         translation.hash(into: &hasher)
-        //    let weights: [Int]?
+        weights.hash(into: &hasher)
         name.hash(into: &hasher)
         extensions.hash(into: &hasher)
         extras.hash(into: &hasher)
@@ -803,10 +804,6 @@ public struct Scene: Decodable, Hashable, Sendable, Resolver {
 }
 
 extension Scene: Extensible {}
-
-public struct Skin: Decodable, Hashable, Sendable {
-    public static let documentKeyPath = \Document.skins
-}
 
 public struct Texture: Decodable, Hashable, Sendable, Resolver {
     public static let documentKeyPath = \Document.textures

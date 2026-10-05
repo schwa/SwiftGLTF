@@ -105,6 +105,26 @@ struct ValidationTests {
     }
 
     @Test
+    func badSkinAndAnimationReferencesAreReported() throws {
+        let json = """
+        {
+          "asset": { "version": "2.0" },
+          "nodes": [ { "skin": 3 } ],
+          "skins": [ { "joints": [9] } ],
+          "animations": [ {
+            "channels": [ { "sampler": 2, "target": { "node": 7, "path": "translation" } } ],
+            "samplers": []
+          } ]
+        }
+        """
+        let paths = Set(try errors(json).map(\.path))
+        #expect(paths.contains("/nodes/0/skin"))
+        #expect(paths.contains("/skins/0/joints/0"))
+        #expect(paths.contains("/animations/0/channels/0/target/node"))
+        #expect(paths.contains("/animations/0/channels/0/sampler"))
+    }
+
+    @Test
     func resolveThrowsInsteadOfCrashing() throws {
         let json = #"{ "asset": { "version": "2.0" }, "nodes": [ { "mesh": 5 } ] }"#
         let document = try JSONDecoder().decode(Document.self, from: Data(json.utf8))

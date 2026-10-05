@@ -220,17 +220,20 @@ Acceptance: AnimatedCube/BoxAnimated decode into typed channels/samplers; a unit
 ## 12: Decode skin data (joints, inverseBindMatrices, weights)
 
 +++
-status: open
+status: closed
 priority: low
 kind: feature
 labels: effort:m, area:parsing
 created: 2026-10-05T13:57:24Z
-updated: 2026-10-05T14:39:53Z
+updated: 2026-10-05T15:11:15Z
+closed: 2026-10-05T15:11:15Z
 +++
 
 Skin is a stub; Node.skin and Node.weights are commented out. Decode the skinning model: Skin (joints, inverseBindMatrices accessor, optional skeleton), Node.skin, and expose JOINTS_0/WEIGHTS_0 vertex data via the accessor layer. Renderer-agnostic.
 
 Acceptance: RiggedSimple/RiggedFigure decode joints + inverse bind matrices + joint/weight attributes; unit test checks counts and a sample bind matrix. Rendering tracked separately (depends-on).
+
+- `2026-10-05T15:11:15Z`: Skin decoded (inverseBindMatrices, skeleton, joints, extensions/extras) and made a Resolver; Document.skins non-optional. Node.skin and Node.weights decoded (were commented out). Container.inverseBindMatrices(for:) returns column-major simd matrices (identity when absent). JOINTS_n/WEIGHTS_n readable via floatComponents. Validator now checks skin/animation references. Rendering is #29. Tests: SkinTests (RiggedSimple) + validation case.
 
 ---
 

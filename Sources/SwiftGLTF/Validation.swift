@@ -62,6 +62,35 @@ private struct Validator {
         checkMeshes()
         checkTexturesAndMaterials()
         checkNodesAndScenes()
+        checkSkinsAndAnimations()
+    }
+
+    mutating func checkSkinsAndAnimations() {
+        for (index, skin) in document.skins.enumerated() {
+            let path = "/skins/\(index)"
+            check(skin.inverseBindMatrices, "\(path)/inverseBindMatrices")
+            check(skin.skeleton, "\(path)/skeleton")
+            for (offset, joint) in skin.joints.enumerated() {
+                check(joint, "\(path)/joints/\(offset)")
+            }
+            if let matrices = skin.inverseBindMatrices, matrices.isValid(in: document),
+               document.accessors[matrices.index].count < skin.joints.count {
+                error("\(path)/inverseBindMatrices", "fewer matrices than joints")
+            }
+        }
+        for (animationIndex, animation) in document.animations.enumerated() {
+            let path = "/animations/\(animationIndex)"
+            for (offset, sampler) in animation.samplers.enumerated() {
+                check(sampler.input, "\(path)/samplers/\(offset)/input")
+                check(sampler.output, "\(path)/samplers/\(offset)/output")
+            }
+            for (offset, channel) in animation.channels.enumerated() {
+                check(channel.target.node, "\(path)/channels/\(offset)/target/node")
+                if !animation.samplers.indices.contains(channel.sampler) {
+                    error("\(path)/channels/\(offset)/sampler", "sampler \(channel.sampler) is out of range")
+                }
+            }
+        }
     }
 
     mutating func checkExtensions() {
@@ -168,6 +197,7 @@ private struct Validator {
             let path = "/nodes/\(index)"
             check(node.mesh, "\(path)/mesh")
             check(node.camera, "\(path)/camera")
+            check(node.skin, "\(path)/skin")
             for (childOffset, child) in node.children.enumerated() {
                 check(child, "\(path)/children/\(childOffset)")
                 if child.isValid(in: document) {
