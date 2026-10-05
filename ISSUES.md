@@ -1149,16 +1149,20 @@ Acceptance: no 'channel is deprecated' warnings; channel-extraction tests (e.g. 
 ## 55: Replace deprecated TextureResource.generate(from:) in RealityKit generator
 
 +++
-status: open
+status: closed
 priority: low
 kind: task
 labels: effort:xs, area:rendering
 created: 2026-10-05T17:12:51Z
+updated: 2026-10-05T18:03:48Z
+closed: 2026-10-05T18:03:48Z
 +++
 
 gltf+RealityKit.swift:218 uses TextureResource.generate(from:withName:options:), deprecated in macOS 15 (warning). Replacement: TextureResource(image:withName:options:). The package requires macOS 15 / iOS 18, so no availability guard is needed.
 
 Acceptance: no deprecation warning; RealityKit material/golden tests still pass.
+
+- `2026-10-05T18:03:48Z`: Replaced TextureResource.generate(from:options:) with the synchronous @MainActor TextureResource(image:options:) (callable directly now that the generator is @MainActor, #57). Deprecation warning gone. No new test: API rename with identical inputs; covered by existing RealityKit material and golden render tests, which pass unchanged.
 
 ---
 

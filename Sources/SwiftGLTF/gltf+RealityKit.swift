@@ -217,7 +217,7 @@ public class RealityKitGLTFGenerator {
         if let adjust {
             image = try adjust(image)
         }
-        let resource = try TextureResource.generate(from: image, options: .init(semantic: semantic))
+        let resource = try TextureResource(image: image, options: .init(semantic: semantic))
         return MaterialParameters.Texture(resource)
     }
 
