@@ -741,11 +741,13 @@ Acceptance: CI job runs the validator over writer output for the sample assets; 
 ## 37: Demo app fails to build: deployment target below package minimum
 
 +++
-status: open
+status: closed
 priority: high
 kind: bug
 labels: effort:xs, area:api
 created: 2026-10-05T15:54:49Z
+updated: 2026-10-05T15:55:49Z
+closed: 2026-10-05T15:55:49Z
 +++
 
 Demo/SwiftGLTFDemo targets macOS 14 (and likely iOS 17), but the SwiftGLTF package was raised to macOS 15 / iOS 18 for the GoldenImage test dependency. Every Demo file fails with: 'compiling for macOS 14, but module SwiftGLTF has a minimum deployment target of macOS 15.0'. The xcode.yml CI workflow builds the Demo, so CI is red.
@@ -755,6 +757,8 @@ Regression from the platform bump; an earlier 'Demo builds fine' check was wrong
 Fix: raise the Demo project's deployment targets to macOS 15 / iOS 18.
 
 Acceptance: xcb build --target SwiftGLTFDemo succeeds for macOS and generic iOS.
+
+- `2026-10-05T15:55:49Z`: Raised Demo deployment targets to macOS 15.0 / iOS 18.0 (Debug + Release), matching the package minimum. Verified with a clean macOS build and an iOS build with CODE_SIGNING_ALLOWED=NO (as CI does). No test: project-settings change, verified by building.
 
 ---
 
@@ -853,7 +857,6 @@ priority: low
 kind: documentation
 labels: effort:xs, area:rendering
 created: 2026-10-05T15:54:49Z
-updated: 2026-10-05T15:54:49Z
 +++
 
 Several features are unsupported by the RealityKit generator and only surface as runtime warnings: KHR_texture_transform, COLOR_0 vertex colors, TEXCOORD_1, orthographic cameras. Add a 'Known limitations' section to the README (per backend), and note that tangent generation is expected above this library (#24).
