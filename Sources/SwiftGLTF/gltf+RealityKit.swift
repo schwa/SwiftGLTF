@@ -36,6 +36,24 @@ public class RealityKitGLTFGenerator {
         if let mesh = try node.mesh?.resolve(in: document) {
             entity.components[ModelComponent.self] = try generateMeshResource(from: mesh)
         }
+        if let cameraIndex = node.camera {
+            let camera = try cameraIndex.resolve(in: document)
+            switch camera.type {
+            case .perspective:
+                var component = PerspectiveCameraComponent()
+                if let perspective = camera.perspective {
+                    component.fieldOfViewInDegrees = perspective.yfov * 180 / .pi
+                    component.near = perspective.znear
+                    if let zfar = perspective.zfar {
+                        component.far = zfar
+                    }
+                }
+                entity.components.set(component)
+            case .orthographic:
+                // RealityKit has no public orthographic camera component.
+                warning("Orthographic cameras are not supported by the RealityKit generator")
+            }
+        }
         if let matrix = node.matrix {
             entity.transform.matrix = matrix
         }
@@ -77,10 +95,14 @@ public class RealityKitGLTFGenerator {
         }
         let meshResource = try MeshResource.generate(from: [meshDescriptor])
 
-        guard let material = try primitive.material?.resolve(in: document) else {
-            throw GLTFError.missingResource("Primitive has no material")
+        // glTF: a primitive with no material uses the default material.
+        let reMaterial: RealityKit.Material
+        if let material = try primitive.material?.resolve(in: document) {
+            reMaterial = try makeMaterial(from: material)
         }
-        let reMaterial = try makeMaterial(from: material)
+        else {
+            reMaterial = PhysicallyBasedMaterial()
+        }
         return ModelComponent(mesh: meshResource, materials: [reMaterial])
     }
 

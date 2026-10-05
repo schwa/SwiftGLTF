@@ -43,6 +43,10 @@ public class SceneKitGenerator {
         let geometry = try node.mesh.map { try generateSCNGeometry(from: $0.resolve(in: document)) }
         let scnNode = SCNNode(geometry: geometry)
 
+        if let cameraIndex = node.camera {
+            scnNode.camera = makeSCNCamera(from: try cameraIndex.resolve(in: document))
+        }
+
         if let matrix = node.matrix {
             scnNode.simdTransform = matrix
         }
@@ -63,6 +67,29 @@ public class SceneKitGenerator {
             scnNode.addChildNode($0)
         }
         return scnNode
+    }
+
+    func makeSCNCamera(from camera: Camera) -> SCNCamera {
+        let scnCamera = SCNCamera()
+        switch camera.type {
+        case .perspective:
+            if let perspective = camera.perspective {
+                scnCamera.projectionDirection = .vertical
+                scnCamera.fieldOfView = CGFloat(perspective.yfov) * 180 / .pi
+                scnCamera.zNear = Double(perspective.znear)
+                if let zfar = perspective.zfar {
+                    scnCamera.zFar = Double(zfar)
+                }
+            }
+        case .orthographic:
+            if let orthographic = camera.orthographic {
+                scnCamera.usesOrthographicProjection = true
+                scnCamera.orthographicScale = Double(orthographic.ymag)
+                scnCamera.zNear = Double(orthographic.znear)
+                scnCamera.zFar = Double(orthographic.zfar)
+            }
+        }
+        return scnCamera
     }
 
     func resolve(uri: URI) throws -> URL {

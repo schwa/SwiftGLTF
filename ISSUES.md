@@ -140,17 +140,20 @@ GH#11. DamagedHelmet model fails to render. Various debug log errors about mater
 ## 8: Use glTF node cameras in SceneKit/RealityKit generators
 
 +++
-status: open
+status: closed
 priority: high
 kind: feature
 labels: effort:s, area:rendering
 created: 2026-10-05T13:57:24Z
-updated: 2026-10-05T13:58:26Z
+updated: 2026-10-05T14:05:02Z
+closed: 2026-10-05T14:05:02Z
 +++
 
 Camera is parsed but neither generator applies node cameras. Both render tests must hand-build a camera. Apply perspective/orthographic cameras from the glTF node graph.
 
 Acceptance: a model with a camera renders from that camera; generators expose the active camera node/entity.
+
+- `2026-10-05T14:05:02Z`: Implemented Camera decoding (perspective/orthographic) and applied node cameras in both generators (SCNCamera / PerspectiveCameraComponent). Also default-material fallback for material-less primitives (needed to generate the Cameras model). Tests: CameraTests (fail before fix: Camera was an empty stub). RealityKit orthographic cameras are unsupported (warned).
 
 ---
 

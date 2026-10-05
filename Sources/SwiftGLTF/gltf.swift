@@ -381,6 +381,30 @@ public struct BufferView: Decodable, Hashable, Sendable, Resolver {
 
 public struct Camera: Decodable, Hashable, Sendable, Resolver {
     public static let documentKeyPath = \Document.cameras
+
+    public enum Projection: String, Decodable, Hashable, Sendable {
+        case perspective
+        case orthographic
+    }
+
+    public struct Perspective: Decodable, Hashable, Sendable {
+        public let aspectRatio: Float?
+        public let yfov: Float
+        public let zfar: Float?
+        public let znear: Float
+    }
+
+    public struct Orthographic: Decodable, Hashable, Sendable {
+        public let xmag: Float
+        public let ymag: Float
+        public let zfar: Float
+        public let znear: Float
+    }
+
+    public let type: Projection
+    public let perspective: Perspective?
+    public let orthographic: Orthographic?
+    public let name: String?
 }
 
 // TODO:
