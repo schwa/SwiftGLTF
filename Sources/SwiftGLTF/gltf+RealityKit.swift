@@ -146,6 +146,12 @@ public class RealityKitGLTFGenerator {
         if let textureCoordinates = try primitive.value(semantic: .TEXCOORD_0, type: SIMD2<Float>.self, in: container) {
             meshDescriptor.textureCoordinates = MeshBuffers.TextureCoordinates(textureCoordinates)
         }
+        if primitive.attributes[.COLOR_0] != nil {
+            warning("Vertex colors (COLOR_0) are not supported by the RealityKit generator")
+        }
+        if primitive.attributes[.TEXCOORD_1] != nil {
+            warning("A second UV set (TEXCOORD_1) is not supported by the RealityKit generator")
+        }
         if let indices = try primitive.indices(type: UInt32.self, in: container) {
             assert(primitive.mode == .TRIANGLES)
             meshDescriptor.primitives = .triangles(indices)

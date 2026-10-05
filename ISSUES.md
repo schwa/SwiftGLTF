@@ -420,17 +420,20 @@ Acceptance: AlphaBlendModeTest renders with correct opaque/mask/blend behavior.
 ## 22: Vertex colors (COLOR_0) and second UV set (TEXCOORD_1)
 
 +++
-status: open
+status: closed
 priority: low
 kind: enhancement
 labels: effort:s, area:rendering
 created: 2026-10-05T13:58:21Z
-updated: 2026-10-05T13:58:26Z
+updated: 2026-10-05T14:45:21Z
+closed: 2026-10-05T14:45:21Z
 +++
 
 COLOR_0 is mapped in SceneKit sources but not used by RealityKit; TEXCOORD_1 is dropped in both. Wire vertex colors into materials and support the second UV set where referenced by texCoord.
 
 Acceptance: a vertex-colored model shows colors; a model using texCoord=1 samples the right UVs.
+
+- `2026-10-05T14:45:21Z`: SceneKit: TEXCOORD_1 now builds a second .texcoord source and material properties route via mappingChannel = textureInfo.texCoord. COLOR_0 vertex colors already render (float path; normalized reading available via floatComponents from #23). RealityKit: COLOR_0 and TEXCOORD_1 are unsupported (warned) - MeshDescriptor has no vertex-color/2nd-UV channel. Tests: VertexColorUVTests (BoxVertexColors color source; MultiUVTest two texcoord sources).
 
 ---
 

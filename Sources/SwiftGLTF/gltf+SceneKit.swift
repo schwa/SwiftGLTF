@@ -230,7 +230,7 @@ public class SceneKitGenerator {
                 (.NORMAL, .normal),
                 (.TANGENT, .tangent),
                 (.TEXCOORD_0, .texcoord),
-                (.TEXCOORD_1, nil),
+                (.TEXCOORD_1, .texcoord),
                 (.COLOR_0, .color),
                 (.JOINTS_0, nil),
                 (.WEIGHTS_0, nil)
@@ -371,7 +371,6 @@ public class SceneKitGenerator {
     }
 
     func configureSCNMaterialProperty(property: SCNMaterialProperty, channel: Channel? = nil, from textureInfo: TextureInfo) throws {
-        warning(textureInfo.texCoord == 0)
         let texture = try textureInfo.index.resolve(in: document)
         let sampler = try texture.sampler?.resolve(in: document) ?? Sampler()
         let source = try texture.source!.resolve(in: document)
@@ -390,6 +389,7 @@ public class SceneKitGenerator {
         }()
 
         property.contents = cgImage
+        property.mappingChannel = textureInfo.texCoord // 0 = TEXCOORD_0, 1 = TEXCOORD_1
         property.wrapS = SCNWrapMode(sampler.wrapS)
         property.wrapT = SCNWrapMode(sampler.wrapT)
         if let magfilter = sampler.magFilter.map(SCNFilterMode.init) {
