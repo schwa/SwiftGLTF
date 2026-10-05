@@ -32,7 +32,10 @@ public class RealityKitGLTFGenerator {
 
     public func generateRootEntity() throws -> Entity {
         let rootEntity = Entity()
-        let scene = try document.scene.map { try $0.resolve(in: document) } ?? document.scenes.first!
+        // 'scenes' is optional in glTF; with none there is nothing to show.
+        guard let scene = try document.scene.map({ try $0.resolve(in: document) }) ?? document.scenes.first else {
+            return rootEntity
+        }
         try scene.nodes
             .map { try $0.resolve(in: document) }
             .map { try generateEntity(from: $0) }
@@ -187,13 +190,17 @@ public class RealityKitGLTFGenerator {
         channel: TextureChannel? = nil,
         tint: SIMD3<Float>? = nil,
         adjust: ((CGImage) throws -> CGImage)? = nil
-    ) throws -> MaterialParameters.Texture {
+    ) throws -> MaterialParameters.Texture? {
         if info.textureTransform != nil {
             // PhysicallyBasedMaterial has no public per-texture UV transform.
             warning("KHR_texture_transform is not supported by the RealityKit generator")
         }
         let texture = try info.index.resolve(in: document)
-        let source = try texture.source!.resolve(in: document)
+        guard let source = try texture.source?.resolve(in: document) else {
+            // The image comes from an extension (e.g. KHR_texture_basisu) we don't support.
+            warning("Texture \(info.index.index) has no source image; skipping")
+            return nil
+        }
         let data = try requireContainer().data(for: source)
         var image = try CGImage.image(with: data)
         switch channel {
@@ -236,15 +243,11 @@ public class RealityKitGLTFGenerator {
             reMaterial.baseColor = .init(tint: tint, texture: baseColorTexture)
 
             // glTF packs roughness in G and metallic in B of one texture.
-            if let mrTexture = pbrMetallicRoughness.metallicRoughnessTexture {
-                reMaterial.roughness = .init(
-                    scale: pbrMetallicRoughness.roughnessFactor,
-                    texture: try texture(from: mrTexture, semantic: .raw, channel: .green)
-                )
-                reMaterial.metallic = .init(
-                    scale: pbrMetallicRoughness.metallicFactor,
-                    texture: try texture(from: mrTexture, semantic: .raw, channel: .blue)
-                )
+            if let mrTexture = pbrMetallicRoughness.metallicRoughnessTexture,
+               let roughness = try texture(from: mrTexture, semantic: .raw, channel: .green),
+               let metallic = try texture(from: mrTexture, semantic: .raw, channel: .blue) {
+                reMaterial.roughness = .init(scale: pbrMetallicRoughness.roughnessFactor, texture: roughness)
+                reMaterial.metallic = .init(scale: pbrMetallicRoughness.metallicFactor, texture: metallic)
             }
             else {
                 reMaterial.roughness = .init(floatLiteral: pbrMetallicRoughness.roughnessFactor)
@@ -256,31 +259,35 @@ public class RealityKitGLTFGenerator {
         // them into the texture when they differ from the default 1.
         if let normalInfo = material.normalTexture {
             let scale = normalInfo.normalScale
-            reMaterial.normal = .init(texture: try texture(
+            if let normal = try texture(
                 from: normalInfo,
                 semantic: .normal,
                 adjust: scale == 1 ? nil : { try $0.normalScaled(by: scale) }
-            ))
+            ) {
+                reMaterial.normal = .init(texture: normal)
+            }
         }
 
         if let occlusionInfo = material.occlusionTexture {
             let strength = occlusionInfo.occlusionStrength
-            reMaterial.ambientOcclusion = .init(texture: try texture(
+            if let occlusion = try texture(
                 from: occlusionInfo,
                 semantic: .raw,
                 channel: .red,
                 adjust: strength == 1 ? nil : { try $0.occlusionAdjusted(strength: strength) }
-            ))
+            ) {
+                reMaterial.ambientOcclusion = .init(texture: occlusion)
+            }
         }
 
         let emissiveFactor = material.emissiveFactor ?? [0, 0, 0]
-        if let emissiveInfo = material.emissiveTexture {
-            // glTF emissive = emissiveFactor * emissiveTexture. RealityKit's
-            // EmissiveColor(color:texture:) does not multiply this way (a white
-            // color makes the whole surface glow), so pass the texture alone and
-            // bake a non-white factor into it.
-            let tint: SIMD3<Float>? = emissiveFactor == [1, 1, 1] ? nil : emissiveFactor
-            let emissive = try texture(from: emissiveInfo, semantic: .color, tint: tint)
+        // glTF emissive = emissiveFactor * emissiveTexture. RealityKit's
+        // EmissiveColor(color:texture:) does not multiply this way (a white
+        // color makes the whole surface glow), so pass the texture alone and
+        // bake a non-white factor into it.
+        let emissiveTint: SIMD3<Float>? = emissiveFactor == [1, 1, 1] ? nil : emissiveFactor
+        if let emissiveInfo = material.emissiveTexture,
+           let emissive = try texture(from: emissiveInfo, semantic: .color, tint: emissiveTint) {
             reMaterial.emissiveColor = .init(texture: emissive)
             reMaterial.emissiveIntensity = material.emissiveStrength // KHR_materials_emissive_strength
         }
@@ -319,9 +326,11 @@ public class RealityKitGLTFGenerator {
 
 extension CGImage {
     static func image(with data: Data) throws -> CGImage {
-        let source = CGImageSourceCreateWithData(data as CFData, nil)!
-        let image = CGImageSourceCreateImageAtIndex(source, 0, nil)
-        return image!
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
+            throw GLTFError.unsupported("Image data could not be decoded (\(data.count) bytes)")
+        }
+        return image
     }
 }
 

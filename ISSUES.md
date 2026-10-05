@@ -1026,11 +1026,13 @@ Acceptance: TriangleWithoutIndices produces a geometry element (SceneKit) and a 
 ## 50: Remaining crash paths on valid or unusual input (force-unwraps)
 
 +++
-status: open
+status: closed
 priority: high
 kind: bug
 labels: effort:s, area:rendering
 created: 2026-10-05T16:46:33Z
+updated: 2026-10-05T16:49:49Z
+closed: 2026-10-05T16:49:49Z
 +++
 
 Several force-unwraps still crash on spec-valid or merely unusual files:
@@ -1043,6 +1045,8 @@ Several force-unwraps still crash on spec-valid or merely unusual files:
 Fix: throw GLTFError instead (or handle: empty scene when there are no scenes; skip/warn for extension-provided textures; zero data for bufferView-less accessors via Container.floatComponents).
 
 Acceptance: a test per case loads/generates without crashing (throwing where appropriate).
+
+- `2026-10-05T16:49:49Z`: Fixed every listed crash path. No scenes -> empty scene/root entity (valid file, nothing to show). Texture without source (extension-provided image) -> skipped with a warning; SceneKit falls back to baseColorFactor, RealityKit texture(from:) returns nil and callers fall back. Accessor/indices without bufferView in SceneKit -> zeros (spec). RealityKit CGImage.image(with:) throws on undecodable data. resolve(chunkIndex:) throws on out-of-range and on non-GLB (was .unknown). Tests: CrashPathTests - crashed before (gltf+SceneKit.swift:34 and :399 fatal errors), pass after.
 
 ---
 
@@ -1090,7 +1094,6 @@ priority: low
 kind: task
 labels: effort:xs, area:api
 created: 2026-10-05T16:46:33Z
-updated: 2026-10-05T16:46:33Z
 +++
 
 Two CI changes could not be verified locally:

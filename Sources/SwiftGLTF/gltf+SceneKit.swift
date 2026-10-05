@@ -31,7 +31,10 @@ public class SceneKitGenerator {
 
     public func generateSCNScene() throws -> SCNScene {
         let scnScene = SCNScene()
-        let scene = try document.scene.map { try $0.resolve(in: document) } ?? document.scenes.first!
+        // 'scenes' is optional in glTF; with none there is nothing to show.
+        guard let scene = try document.scene.map({ try $0.resolve(in: document) }) ?? document.scenes.first else {
+            return scnScene
+        }
         try scene.nodes
             .map { try $0.resolve(in: document) }
             .map { try generateSCNNode(from: $0) }
@@ -174,10 +177,6 @@ public class SceneKitGenerator {
     }
 
     func generateSCNGeometrySource(semantic: SCNGeometrySource.Semantic, from accessor: Accessor) throws -> SCNGeometrySource {
-        let bufferView = try accessor.bufferView!.resolve(in: document)
-        let bufferData = try data(for: bufferView.buffer)
-            .subdata(in: bufferView.byteOffset ..< (bufferView.byteOffset + bufferView.byteLength))
-
         let usesFloatComponents: Bool
         let bytesPerComponent: Int
         switch accessor.componentType {
@@ -203,9 +202,24 @@ public class SceneKitGenerator {
             throw GLTFError.unsupported("Unsupported accessor type \(accessor.type)")
         }
 
-        // `bufferData` starts at the buffer view; the accessor's byteOffset is
-        // relative to that, and matters for interleaved buffer views.
-        let dataStride = bufferView.byteStride ?? (componentsPerVector * bytesPerComponent)
+        let elementSize = componentsPerVector * bytesPerComponent
+        let bufferData: Data
+        let dataOffset: Int
+        let dataStride: Int
+        if let bufferView = try accessor.bufferView?.resolve(in: document) {
+            // `bufferData` starts at the buffer view; the accessor's byteOffset is
+            // relative to that, and matters for interleaved buffer views.
+            bufferData = try data(for: bufferView.buffer)
+                .subdata(in: bufferView.byteOffset ..< (bufferView.byteOffset + bufferView.byteLength))
+            dataOffset = accessor.byteOffset
+            dataStride = bufferView.byteStride ?? elementSize
+        }
+        else {
+            // No bufferView: the accessor is all zeros.
+            bufferData = Data(count: accessor.count * elementSize)
+            dataOffset = 0
+            dataStride = elementSize
+        }
         return SCNGeometrySource(
             data: bufferData,
             semantic: semantic,
@@ -213,7 +227,7 @@ public class SceneKitGenerator {
             usesFloatComponents: usesFloatComponents,
             componentsPerVector: componentsPerVector,
             bytesPerComponent: bytesPerComponent,
-            dataOffset: accessor.byteOffset,
+            dataOffset: dataOffset,
             dataStride: dataStride
         )
     }
@@ -251,9 +265,6 @@ public class SceneKitGenerator {
 
             var scnElement: SCNGeometryElement?
             if let indicesAccessor = try primitive.indices?.resolve(in: document) {
-                let indicesBufferView = try indicesAccessor.bufferView!.resolve(in: document)
-                let indicesData = try data(for: indicesBufferView.buffer)
-
                 let primitiveType: SCNGeometryPrimitiveType
                 let primitiveCount: Int
 
@@ -277,8 +288,15 @@ public class SceneKitGenerator {
                     throw GLTFError.unsupported("Unsupported index type \(indicesAccessor.type)/\(indicesAccessor.componentType)")
                 }
 
-                let indicesStart = indicesBufferView.byteOffset + indicesAccessor.byteOffset
-                let indicesSubData = indicesData.subdata(in: indicesStart ..< (indicesStart + indicesAccessor.count * bytesPerIndex))
+                let indicesLength = indicesAccessor.count * bytesPerIndex
+                let indicesSubData: Data
+                if let indicesBufferView = try indicesAccessor.bufferView?.resolve(in: document) {
+                    let indicesStart = indicesBufferView.byteOffset + indicesAccessor.byteOffset
+                    indicesSubData = try data(for: indicesBufferView.buffer).subdata(in: indicesStart ..< (indicesStart + indicesLength))
+                }
+                else {
+                    indicesSubData = Data(count: indicesLength) // no bufferView: all zeros
+                }
 
                 scnElement = SCNGeometryElement(data: indicesSubData, primitiveType: primitiveType, primitiveCount: primitiveCount, bytesPerIndex: bytesPerIndex)
             }
@@ -311,10 +329,10 @@ public class SceneKitGenerator {
 
         if let pbrMetallicRoughness = material.pbrMetallicRoughness {
             scnMaterial.lightingModel = material.isUnlit ? .constant : .physicallyBased
-            if let texture = pbrMetallicRoughness.baseColorTexture {
-                try configureSCNMaterialProperty(property: scnMaterial.diffuse, from: texture)
-            }
-            else {
+            let textured = try pbrMetallicRoughness.baseColorTexture.map {
+                try configureSCNMaterialProperty(property: scnMaterial.diffuse, from: $0)
+            } ?? false
+            if !textured {
                 scnMaterial.diffuse.contents = pbrMetallicRoughness.baseColorFactor.cgColor
             }
 
@@ -388,15 +406,21 @@ public class SceneKitGenerator {
         case blue
     }
 
+    // Returns false when the texture has no image we can load (it is skipped).
+    @discardableResult
     func configureSCNMaterialProperty(
         property: SCNMaterialProperty,
         channel: Channel? = nil,
         from textureInfo: TextureInfo,
         tint: SIMD3<Float>? = nil
-    ) throws {
+    ) throws -> Bool {
         let texture = try textureInfo.index.resolve(in: document)
         let sampler = try texture.sampler?.resolve(in: document) ?? Sampler()
-        let source = try texture.source!.resolve(in: document)
+        guard let source = try texture.source?.resolve(in: document) else {
+            // The image comes from an extension (e.g. KHR_texture_basisu) we don't support.
+            warning("Texture \(textureInfo.index.index) has no source image; skipping")
+            return false
+        }
         let baseImage: CGImage = try {
             let cgImage = try CGImage.load(data: imageData(for: source))
             switch channel {
@@ -425,6 +449,7 @@ public class SceneKitGenerator {
         if let transform = textureInfo.textureTransform {
             property.contentsTransform = SCNMatrix4(textureTransform: transform)
         }
+        return true
     }
 }
 

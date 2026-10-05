@@ -49,9 +49,12 @@ public struct Container {
     public func resolve(chunkIndex: Int) throws -> Data {
         switch kind {
         case .binary(let glb):
+            guard glb.chunks.indices.contains(chunkIndex) else {
+                throw GLTFError.missingResource("GLB has no chunk \(chunkIndex) (\(glb.chunks.count) chunks)")
+            }
             return glb.chunks[chunkIndex].content
         default:
-            throw GLTFError.unknown
+            throw GLTFError.unsupported("resolve(chunkIndex:) needs a GLB container")
         }
     }
 
