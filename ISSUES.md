@@ -918,15 +918,18 @@ glTF `normalTexture` has an optional `scale` and `occlusionTexture` an optional 
 ## 45: Relative URIs with percent-escapes are not decoded
 
 +++
-status: open
+status: closed
 priority: low
 kind: bug
 labels: area:parsing, effort:s
 created: 2026-10-05T16:00:33Z
-updated: 2026-10-05T16:23:20Z
+updated: 2026-10-05T16:25:16Z
+closed: 2026-10-05T16:25:16Z
 +++
 
 `Container.data(for: URI)` resolves relative URIs with `appendingPathComponent(uri.string)` without percent-decoding. glTF URIs are RFC 3986 encoded, so a file reference like `my%20texture.png` points at a file literally named `my%20texture.png` and fails to load.
+
+- `2026-10-05T16:25:16Z`: Added URI.relativePath (percent-decoded) and used it at all three file-system resolution sites, not just the one reported: Container.data(for: URI), SceneKitGenerator.resolve(uri:), and the writer's relative-file copy (JSON keeps the encoded URI). Test: PercentEncodedURITests - buffer and image named with spaces and referenced as my%20buffer.bin / my%20texture.png load via Container and SceneKit, and are copied by the writer; all three failed before with 'my%20buffer.bin couldn't be opened'.
 
 ---
 

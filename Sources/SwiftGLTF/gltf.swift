@@ -84,7 +84,7 @@ public struct Container {
             cache.cache[uri] = data
             return data
         case .none:
-            let url = self.url.deletingLastPathComponent().appendingPathComponent(uri.string)
+            let url = self.url.deletingLastPathComponent().appendingPathComponent(uri.relativePath)
             return try Data(contentsOf: url)
         default:
             return try Data(contentsOf: url)
@@ -922,6 +922,16 @@ public struct URI: Codable, Hashable, Sendable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         string = try container.decode(String.self)
+    }
+
+    // glTF URIs are RFC 3986 encoded; a relative URI like "my%20file.bin" names
+    // the file "my file.bin". Use this when resolving against the file system.
+    public var relativePath: String {
+        URI.decodedPath(string)
+    }
+
+    static func decodedPath(_ string: String) -> String {
+        string.removingPercentEncoding ?? string
     }
 }
 

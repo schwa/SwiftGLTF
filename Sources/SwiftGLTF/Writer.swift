@@ -163,8 +163,10 @@ public extension Container {
                   directory.standardizedFileURL != sourceDirectory.standardizedFileURL else {
                 return
             }
-            let source = sourceDirectory.appendingPathComponent(uri)
-            let destination = directory.appendingPathComponent(uri)
+            // The JSON keeps the encoded URI; the file system needs the decoded path.
+            let path = URI.decodedPath(uri)
+            let source = sourceDirectory.appendingPathComponent(path)
+            let destination = directory.appendingPathComponent(path)
             try FileManager.default.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
             if FileManager.default.fileExists(atPath: destination.path) {
                 try FileManager.default.removeItem(at: destination)

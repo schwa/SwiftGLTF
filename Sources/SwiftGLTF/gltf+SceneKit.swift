@@ -132,7 +132,7 @@ public class SceneKitGenerator {
             guard let rootURL = rootURL else {
                 throw GLTFError.missingResource("Relative URI '\(uri.string)' needs a rootURL")
             }
-            return rootURL.deletingLastPathComponent().appendingPathComponent(uri.string)
+            return rootURL.deletingLastPathComponent().appendingPathComponent(uri.relativePath)
         }
     }
 
