@@ -4,7 +4,7 @@ import simd
 // glTF animation data. Renderer-agnostic: generators turn this into
 // SCNAnimation / RealityKit animations separately.
 public struct Animation: Codable, Hashable, Sendable, Resolver, Extensible {
-    public static let documentKeyPath = \Document.animations
+    public static var documentKeyPath: KeyPath<Document, [Self]> { \Document.animations }
 
     public struct Channel: Codable, Hashable, Sendable {
         public struct Target: Codable, Hashable, Sendable {

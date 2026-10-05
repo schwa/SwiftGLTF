@@ -210,7 +210,7 @@ public struct Document: Codable, Hashable, Sendable {
 extension Document: Extensible {}
 
 public struct Accessor: Codable, Hashable, Sendable, Resolver {
-    public static let documentKeyPath = \Document.accessors
+    public static var documentKeyPath: KeyPath<Document, [Self]> { \Document.accessors }
 
     public let bufferView: Index<BufferView>?
     public let byteOffset: Int
@@ -356,7 +356,7 @@ public struct Asset: Codable, Hashable, Sendable {
 }
 
 public struct Buffer: Codable, Hashable, Sendable, Resolver {
-    public static let documentKeyPath = \Document.buffers
+    public static var documentKeyPath: KeyPath<Document, [Self]> { \Document.buffers }
 
     public let uri: URI?
     public let byteLength: Int
@@ -366,7 +366,7 @@ public struct Buffer: Codable, Hashable, Sendable, Resolver {
 }
 
 public struct BufferView: Codable, Hashable, Sendable, Resolver {
-    public static let documentKeyPath = \Document.bufferViews
+    public static var documentKeyPath: KeyPath<Document, [Self]> { \Document.bufferViews }
 
     public let buffer: Index<Buffer>
     public let byteOffset: Int
@@ -407,7 +407,7 @@ public struct BufferView: Codable, Hashable, Sendable, Resolver {
 }
 
 public struct Camera: Codable, Hashable, Sendable, Resolver {
-    public static let documentKeyPath = \Document.cameras
+    public static var documentKeyPath: KeyPath<Document, [Self]> { \Document.cameras }
 
     public enum Projection: String, Codable, Hashable, Sendable {
         case perspective
@@ -441,7 +441,7 @@ public struct Camera: Codable, Hashable, Sendable, Resolver {
 }
 
 public struct Image: Codable, Hashable, Sendable, Resolver {
-    public static let documentKeyPath = \Document.images
+    public static var documentKeyPath: KeyPath<Document, [Self]> { \Document.images }
 
     public let uri: URI?
     public let mimeType: String? // spec key is "mimeType"
@@ -452,7 +452,7 @@ public struct Image: Codable, Hashable, Sendable, Resolver {
 }
 
 public struct Material: Codable, Hashable, Sendable, Resolver {
-    public static let documentKeyPath = \Document.materials
+    public static var documentKeyPath: KeyPath<Document, [Self]> { \Document.materials }
 
     public let name: String?
 
@@ -520,7 +520,7 @@ extension Sampler: Extensible {}
 extension Texture: Extensible {}
 
 public struct Mesh: Codable, Hashable, Sendable, Resolver {
-    public static let documentKeyPath = \Document.meshes
+    public static var documentKeyPath: KeyPath<Document, [Self]> { \Document.meshes }
 
     public struct Primitive: Codable, Hashable, Sendable {
         // Open set: the spec allows TEXCOORD_n, COLOR_n, JOINTS_n, WEIGHTS_n for
@@ -615,7 +615,7 @@ public struct Mesh: Codable, Hashable, Sendable, Resolver {
 }
 
 public struct Node: Codable, Hashable, Sendable, Resolver {
-    public static let documentKeyPath = \Document.nodes
+    public static var documentKeyPath: KeyPath<Document, [Self]> { \Document.nodes }
 
     public let camera: Index<Camera>?
     public let children: [Index<Node>]
@@ -679,7 +679,7 @@ public struct Node: Codable, Hashable, Sendable, Resolver {
 }
 
 public struct Sampler: Codable, Hashable, Sendable, Resolver {
-    public static let documentKeyPath = \Document.samplers
+    public static var documentKeyPath: KeyPath<Document, [Self]> { \Document.samplers }
 
     public enum MagFilter: Int, Codable, Hashable, Sendable {
         case NEAREST = 9728
@@ -742,7 +742,7 @@ public struct Sampler: Codable, Hashable, Sendable, Resolver {
 }
 
 public struct Scene: Codable, Hashable, Sendable, Resolver {
-    public static let documentKeyPath = \Document.scenes
+    public static var documentKeyPath: KeyPath<Document, [Self]> { \Document.scenes }
 
     public let nodes: [Index<Node>]
     public let name: String?
@@ -768,7 +768,7 @@ public struct Scene: Codable, Hashable, Sendable, Resolver {
 extension Scene: Extensible {}
 
 public struct Texture: Codable, Hashable, Sendable, Resolver {
-    public static let documentKeyPath = \Document.textures
+    public static var documentKeyPath: KeyPath<Document, [Self]> { \Document.textures }
 
     public let sampler: Index<Sampler>?
     public let source: Index<Image>?

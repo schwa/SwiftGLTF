@@ -1214,12 +1214,13 @@ Acceptance: no actor-isolation or sending diagnostics from gltf+RealityKit.swift
 ## 58: Resolver.documentKeyPath static lets are not concurrency-safe
 
 +++
-status: open
+status: closed
 priority: low
 kind: task
 labels: effort:xs, area:parsing
 created: 2026-10-05T17:49:03Z
-updated: 2026-10-05T17:49:58Z
+updated: 2026-10-05T18:05:15Z
+closed: 2026-10-05T18:05:15Z
 +++
 
 13 'public static let documentKeyPath = \\Document.x' (gltf.swift, Animation.swift, Skin.swift) warn under -strict-concurrency=complete: 'static property is not concurrency-safe because non-Sendable type KeyPath<Document, ...>'. Errors in Swift 6 mode.
@@ -1227,6 +1228,8 @@ updated: 2026-10-05T17:49:58Z
 Fix: make them computed, e.g. 'public static var documentKeyPath: KeyPath<Document, [Accessor]> { \\.accessors }' (satisfies the protocol's { get } requirement, stores no global state).
 
 Acceptance: no documentKeyPath diagnostics under -strict-concurrency=complete.
+
+- `2026-10-05T18:05:15Z`: All 13 'public static let documentKeyPath = \\Document.x' became computed 'public static var documentKeyPath: KeyPath<Document, [Self]> { \\Document.x }' (one anchored sed over gltf.swift, Animation.swift, Skin.swift; diff reviewed: exactly 13 lines). Strict-concurrency diagnostics 13 -> 0; with #57/#59/#56 done, Sources now has no strict-concurrency diagnostics at all. No new test: declaration change with identical behavior, covered by every resolve(in:) path in the suite.
 
 ---
 
