@@ -916,3 +916,24 @@ created: 2026-10-05T16:00:33Z
 `Container.data(for: URI)` resolves relative URIs with `appendingPathComponent(uri.string)` without percent-decoding. glTF URIs are RFC 3986 encoded, so a file reference like `my%20texture.png` points at a file literally named `my%20texture.png` and fails to load.
 
 ---
+
+## 46: Writer changes accessor min/max precision (stored as Float)
+
++++
+status: open
+priority: medium
+kind: bug
+labels: effort:s, area:parsing
+created: 2026-10-05T16:17:26Z
+updated: 2026-10-05T16:17:26Z
++++
+
+Found by the Khronos validator check (#36): AlphaBlendModeTest and TextureCoordinateTest pass the Khronos validator as originals, but fail after a SwiftGLTF round trip with ACCESSOR_MIN_MISMATCH / ACCESSOR_ELEMENT_OUT_OF_MIN_BOUND.
+
+Cause: Accessor.min/max are decoded as [Float]. A source value like 0.6624999940395355 rounds to a neighboring float32 (0.66249996) instead of the data's float32 (0.66250002), so the written bound no longer matches the data exactly (and can exclude real values).
+
+Fix: store min/max as [Double] (exact JSON numbers); convert to Float only where comparing with data.
+
+Acceptance: decoding then encoding min [0.6624999940395355] re-emits exactly that value; both sample models pass the Khronos validator after round trip.
+
+---
