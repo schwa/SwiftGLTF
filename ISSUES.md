@@ -248,12 +248,13 @@ Acceptance: AnimatedMorphCube morphs correctly.
 ## 14: Decode and preserve glTF extensions/extras (infrastructure)
 
 +++
-status: open
+status: closed
 priority: high
 kind: feature
 labels: effort:l, area:parsing
 created: 2026-10-05T13:57:45Z
-updated: 2026-10-05T13:58:26Z
+updated: 2026-10-05T14:07:51Z
+closed: 2026-10-05T14:07:51Z
 +++
 
 Today every 'extensions'/'extras' key is listed in CodingKeys but never decoded, so all extension and extras data is silently dropped on load (and would be lost on any future export).
@@ -267,6 +268,8 @@ Design:
 This is the enabler for all concrete KHR_* extension issues.
 
 Acceptance: loading a model that uses an unknown extension preserves its raw JSON; a registered extension decodes into its typed struct; extras is accessible.
+
+- `2026-10-05T14:07:51Z`: Added JSONValue (raw JSON), Extensions map, GLTFExtension protocol, and Extensible on Document/Node/Scene/Material/PBRMetallicRoughness/Mesh.Primitive/TextureInfo. Unknown extensions and extras are preserved as raw JSON; registered extensions decode via extensionValue(_:). Tests: ExtensionsTests (registered decode, unknown-preserved, extras, absent-nil).
 
 ---
 

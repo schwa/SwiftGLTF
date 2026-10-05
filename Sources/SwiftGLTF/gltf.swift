@@ -188,8 +188,8 @@ public struct Document: Decodable, Hashable, Sendable {
     public let scenes: [Scene]
     public let skins: [Skin]?
     public let textures: [Texture]
-    // let extensions: [String: Any]
-    // let extras: Any
+    public let extensions: Extensions?
+    public let extras: JSONValue?
 
     public enum CodingKeys: CodingKey {
         case extensionsUsed
@@ -232,10 +232,12 @@ public struct Document: Decodable, Hashable, Sendable {
         scenes = try container.decodeIfPresent([Scene].self, forKey: .scenes) ?? []
         skins = try container.decodeIfPresent([Skin].self, forKey: .skins) ?? []
         textures = try container.decodeIfPresent([Texture].self, forKey: .textures) ?? []
-//        extensions = try container.decodeIfPresent([String].self, forKey: .extensions) ?? []
-//        extras = try container.decodeIfPresent([String].self, forKey: .extras) ?? []
+        extensions = try container.decodeIfPresent(Extensions.self, forKey: .extensions)
+        extras = try container.decodeIfPresent(JSONValue.self, forKey: .extras)
     }
 }
+
+extension Document: Extensible {}
 
 public struct Accessor: Decodable, Hashable, Sendable, Resolver {
     public static let documentKeyPath = \Document.accessors
@@ -430,8 +432,6 @@ public struct Material: Decodable, Hashable, Sendable, Resolver {
     public static let documentKeyPath = \Document.materials
 
     public let name: String?
-    // let extensions: [String: Any]?
-    // let extras: Any?
 
     public struct PBRMetallicRoughness: Decodable, Hashable, Sendable {
         public let baseColorFactor: SIMD4<Float>
@@ -439,8 +439,8 @@ public struct Material: Decodable, Hashable, Sendable, Resolver {
         public let metallicFactor: Float
         public let roughnessFactor: Float
         public let metallicRoughnessTexture: TextureInfo?
-        // let extensions: [String: Any]?
-        // let extras: Any?
+        public let extensions: Extensions?
+        public let extras: JSONValue?
 
         public enum CodingKeys: CodingKey {
             case baseColorFactor
@@ -459,6 +459,8 @@ public struct Material: Decodable, Hashable, Sendable, Resolver {
             metallicFactor = try container.decodeIfPresent(Float.self, forKey: .metallicFactor) ?? 1
             roughnessFactor = try container.decodeIfPresent(Float.self, forKey: .roughnessFactor) ?? 1
             metallicRoughnessTexture = try container.decodeIfPresent(TextureInfo.self, forKey: .metallicRoughnessTexture)
+            extensions = try container.decodeIfPresent(Extensions.self, forKey: .extensions)
+            extras = try container.decodeIfPresent(JSONValue.self, forKey: .extras)
         }
     }
 
@@ -471,7 +473,14 @@ public struct Material: Decodable, Hashable, Sendable, Resolver {
     public let alphaCutoff: Float? // 0.5
     // swiftlint:disable:next discouraged_optional_boolean
     public let doubleSided: Bool? // false
+    public let extensions: Extensions?
+    public let extras: JSONValue?
 }
+
+extension Material: Extensible {}
+extension Material.PBRMetallicRoughness: Extensible {}
+extension Mesh.Primitive: Extensible {}
+extension Node: Extensible {}
 
 public struct Mesh: Decodable, Hashable, Sendable, Resolver {
     public static let documentKeyPath = \Document.meshes
@@ -504,8 +513,8 @@ public struct Mesh: Decodable, Hashable, Sendable, Resolver {
 
         public let mode: Mode
         public let targets: [[String: Int]]
-        // let extensions: [String: Any]?
-        // let extras: Any?
+        public let extensions: Extensions?
+        public let extras: JSONValue?
 
         public enum CodingKeys: CodingKey {
             case attributes
@@ -524,6 +533,8 @@ public struct Mesh: Decodable, Hashable, Sendable, Resolver {
             material = try container.decodeIfPresent(Index<Material>.self, forKey: .material)
             mode = try container.decodeIfPresent(Mode.self, forKey: .mode) ?? .TRIANGLES
             targets = try container.decodeIfPresent([[String: Int]].self, forKey: .targets) ?? []
+            extensions = try container.decodeIfPresent(Extensions.self, forKey: .extensions)
+            extras = try container.decodeIfPresent(JSONValue.self, forKey: .extras)
         }
     }
 
@@ -562,8 +573,8 @@ public struct Node: Decodable, Hashable, Sendable, Resolver {
     public let translation: SIMD3<Float>?
 //    let weights: [Int]?
     public let name: String?
-    // let extensions: [String: Any]?
-    // let extras: Any?
+    public let extensions: Extensions?
+    public let extras: JSONValue?
 
     public enum CodingKeys: CodingKey {
         case camera
@@ -592,8 +603,8 @@ public struct Node: Decodable, Hashable, Sendable, Resolver {
         translation = try container.decodeIfPresent(SIMD3<Float>.self, forKey: .translation)
 //        weights = try container.decodeIfPresent(XXXX, forKey: .weights)
         name = try container.decodeIfPresent(String.self, forKey: .name)
-//        extensions = try container.decodeIfPresent(XXXX, forKey: .XXXX)
-//        extras = try container.decodeIfPresent(XXXX, forKey: .XXXX)
+        extensions = try container.decodeIfPresent(Extensions.self, forKey: .extensions)
+        extras = try container.decodeIfPresent(JSONValue.self, forKey: .extras)
     }
 
     public func hash(into hasher: inout Hasher) {
@@ -607,8 +618,8 @@ public struct Node: Decodable, Hashable, Sendable, Resolver {
         translation.hash(into: &hasher)
         //    let weights: [Int]?
         name.hash(into: &hasher)
-        // let extensions: [String: Any]?
-        // let extras: Any?
+        extensions.hash(into: &hasher)
+        extras.hash(into: &hasher)
     }
 }
 
@@ -676,8 +687,8 @@ public struct Scene: Decodable, Hashable, Sendable, Resolver {
 
     public let nodes: [Index<Node>]
     public let name: String?
-    // let extensions: [String: Any]
-    // let extras: Any
+    public let extensions: Extensions?
+    public let extras: JSONValue?
 
     public enum CodingKeys: CodingKey {
         case nodes
@@ -690,8 +701,12 @@ public struct Scene: Decodable, Hashable, Sendable, Resolver {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         nodes = try container.decodeIfPresent([Index<Node>].self, forKey: .nodes) ?? []
         name = try container.decodeIfPresent(String.self, forKey: .name)
+        extensions = try container.decodeIfPresent(Extensions.self, forKey: .extensions)
+        extras = try container.decodeIfPresent(JSONValue.self, forKey: .extras)
     }
 }
+
+extension Scene: Extensible {}
 
 public struct Skin: Decodable, Hashable, Sendable {
     public static let documentKeyPath = \Document.skins
@@ -707,11 +722,11 @@ public struct Texture: Decodable, Hashable, Sendable, Resolver {
     // let extras: Any
 }
 
-public struct TextureInfo: Decodable, Hashable, Sendable {
+public struct TextureInfo: Decodable, Hashable, Sendable, Extensible {
     public let index: Index<Texture>
     public let texCoord: Int
-    // let extensions: [String: Any]
-    // let extras: Any
+    public let extensions: Extensions?
+    public let extras: JSONValue?
 
     public enum CodingKeys: CodingKey {
         case index
@@ -724,6 +739,8 @@ public struct TextureInfo: Decodable, Hashable, Sendable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         index = try container.decode(Index<Texture>.self, forKey: .index)
         texCoord = try container.decodeIfPresent(Int.self, forKey: .texCoord) ?? 0
+        extensions = try container.decodeIfPresent(Extensions.self, forKey: .extensions)
+        extras = try container.decodeIfPresent(JSONValue.self, forKey: .extras)
     }
 }
 
