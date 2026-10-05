@@ -679,3 +679,58 @@ Acceptance: an unknown extension and extras on each of these types survive decod
 - `2026-10-05T15:16:08Z`: extensions/extras now decoded + Extensible on Accessor, Asset, Buffer, BufferView, Camera, Image, Mesh, Sampler, Texture. Also fixed two spec typos: Accessor CodingKeys used 'extension' (singular), and Image.mimetype never decoded (spec key mimeType). Test: LosslessModelTests (one doc, every type). Remaining lossy spots (not in scope): normalTexture.scale / occlusionTexture.strength are unmodeled; sub-objects (sparse, perspective/orthographic) don't keep extensions.
 
 ---
+
+## 34: Writer: preserve explicit vs default values (closer to byte-identical output)
+
++++
+status: open
+priority: low
+kind: enhancement
+labels: effort:m, area:api
+created: 2026-10-05T15:47:27Z
++++
+
+The writer (#25) produces output that is equivalent to the input, not byte-identical. Two causes:
+1. Decoding collapses defaults: absent and explicit-default values become the same (e.g. byteOffset 0, mode TRIANGLES, normalized false, texCoord 0, wrapS/T REPEAT, baseColorFactor [1,1,1,1], node matrix identity). On write we cannot tell whether the original file spelled them out.
+2. JSON key order and number formatting differ (sortedKeys; Float printed in shortest form).
+
+Options: track presence for defaulted fields (e.g. store Optionals and expose computed defaults), and/or preserve the original key order. Exact byte identity is probably not a goal; aim for 'only re-emits what was in the source'.
+
+Acceptance: for the sample corpus, a load -> save round trip re-emits a field only if it was present in the source (test compares JSON key sets per object).
+
+---
+
+## 35: Model normalTexture.scale and occlusionTexture.strength
+
++++
+status: open
+priority: medium
+kind: bug
+labels: effort:s, area:parsing
+created: 2026-10-05T15:47:27Z
++++
+
+Material.normalTexture and occlusionTexture are decoded as TextureInfo, which only has index/texCoord. The spec's normalTextureInfo.scale (default 1) and occlusionTextureInfo.strength (default 1) are dropped on load and therefore lost on write (#25).
+
+Add NormalTextureInfo (scale) and OcclusionTextureInfo (strength) types (or optional fields), decode/encode them, and apply them in the generators where possible (SceneKit normal intensity / ambientOcclusion intensity; RealityKit normal/AO scale).
+
+Acceptance: a material with scale 0.5 / strength 0.3 decodes those values and round-trips through the writer.
+
+---
+
+## 36: CI: validate writer output with Khronos glTF-Validator
+
++++
+status: open
+priority: low
+kind: task
+labels: effort:s, area:api
+created: 2026-10-05T15:47:27Z
+updated: 2026-10-05T15:47:27Z
++++
+
+The writer is only checked by our own validator and round-trip tests. Add a CI step that writes the sample corpus (GLB and embedded glTF) and runs the official Khronos glTF-Validator (npx gltf-validator) on the output, failing on errors.
+
+Acceptance: CI job runs the validator over writer output for the sample assets; zero errors.
+
+---
