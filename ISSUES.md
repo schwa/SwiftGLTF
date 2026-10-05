@@ -1322,10 +1322,12 @@ Fix: make render(...) async using the same exactly-once checked continuation wit
 ## 63: Typed decoding for transmission, volume, IOR, specular and WebP extensions
 
 +++
-status: new
+status: closed
 priority: low
 kind: feature
 created: 2026-10-05T20:12:16Z
+updated: 2026-10-05T20:22:41Z
+closed: 2026-10-05T20:22:41Z
 +++
 
 SwiftGLTF decodes KHR_materials_unlit and KHR_materials_emissive_strength as typed extensions, but not these, so consumers parse the raw JSON themselves (MetalSprocketsGLTF currently defines its own structs for the first three):
