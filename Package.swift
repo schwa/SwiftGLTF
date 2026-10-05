@@ -22,6 +22,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/schwa/GoldenImage.git", branch: "main"),
+        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
     ],
     targets: [
         .target(
@@ -29,7 +30,10 @@ let package = Package(
         ),
         .executableTarget(
             name: "gltf-render",
-            dependencies: ["SwiftGLTF"]
+            dependencies: [
+                "SwiftGLTF",
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+            ]
         ),
         .testTarget(
             name: "SwiftGLTFTests",
