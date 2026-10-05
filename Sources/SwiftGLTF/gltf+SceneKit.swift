@@ -282,6 +282,14 @@ public class SceneKitGenerator {
 
                 scnElement = SCNGeometryElement(data: indicesSubData, primitiveType: primitiveType, primitiveCount: primitiveCount, bytesPerIndex: bytesPerIndex)
             }
+            else if let positions = try primitive.attributes[.POSITION]?.resolve(in: document) {
+                // Non-indexed: vertices are drawn in order.
+                guard primitive.mode == .TRIANGLES else {
+                    throw GLTFError.unsupported("Unsupported primitive mode \(primitive.mode)")
+                }
+                let indices = (0 ..< UInt32(positions.count)).map { $0 }
+                scnElement = SCNGeometryElement(indices: indices, primitiveType: .triangles)
+            }
 
             let material = try primitive.material?.resolve(in: document)
             let scnMaterial = try material.map { try generateSCNMaterial(from: $0) }

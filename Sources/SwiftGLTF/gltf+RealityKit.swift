@@ -154,9 +154,15 @@ public class RealityKitGLTFGenerator {
         if primitive.attributes[.TEXCOORD_1] != nil {
             warning("A second UV set (TEXCOORD_1) is not supported by the RealityKit generator")
         }
+        guard primitive.mode == .TRIANGLES else {
+            throw GLTFError.unsupported("Unsupported primitive mode \(primitive.mode)")
+        }
         if let indices = try primitive.indices(type: UInt32.self, in: container) {
-            assert(primitive.mode == .TRIANGLES)
             meshDescriptor.primitives = .triangles(indices)
+        }
+        else if let positions = try primitive.attributes[.POSITION]?.resolve(in: container.document) {
+            // Non-indexed: vertices are drawn in order.
+            meshDescriptor.primitives = .triangles((0 ..< UInt32(positions.count)).map { $0 })
         }
         return meshDescriptor
     }
@@ -354,7 +360,7 @@ extension Mesh.Primitive {
 
     func indices(type: UInt32.Type, in container: Container) throws -> [UInt32]? {
         guard let indicesAccessor = try indices?.resolve(in: container.document) else {
-            throw GLTFError.missingResource("Primitive has no indices")
+            return nil // non-indexed: the caller draws vertices in order
         }
         switch indicesAccessor.componentType {
         case .UNSIGNED_BYTE:

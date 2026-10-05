@@ -1004,12 +1004,13 @@ Acceptance: UNSIGNED_SHORT VEC3 positions and normalized UNSIGNED_BYTE VEC2 texc
 ## 49: Non-indexed primitives are not rendered
 
 +++
-status: open
+status: closed
 priority: medium
 kind: bug
 labels: effort:s, area:rendering
 created: 2026-10-05T16:37:39Z
-updated: 2026-10-05T16:37:39Z
+updated: 2026-10-05T16:38:41Z
+closed: 2026-10-05T16:38:41Z
 +++
 
 glTF allows primitives without an 'indices' accessor (vertices drawn in order). The RealityKit generator throws missingResource('Primitive has no indices'), and the SceneKit generator builds a geometry with no elements, so nothing is drawn. Repro: KhronosGroup sample TriangleWithoutIndices.
@@ -1017,5 +1018,7 @@ glTF allows primitives without an 'indices' accessor (vertices drawn in order). 
 Fix: for TRIANGLES without indices, use sequential indices 0..<POSITION.count in both generators.
 
 Acceptance: TriangleWithoutIndices produces a geometry element (SceneKit) and a mesh (RealityKit).
+
+- `2026-10-05T16:38:41Z`: Non-indexed TRIANGLES primitives now use sequential indices 0..<POSITION.count in both generators. RealityKit's indices() returns nil instead of throwing, and a non-TRIANGLES mode now throws unsupported instead of a debug assert. Test: NonIndexedPrimitiveTests - SceneKit had 0 elements and RealityKit threw missingResource before; pass after. TriangleWithoutIndices sample renders via both backends.
 
 ---
