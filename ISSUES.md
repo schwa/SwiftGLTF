@@ -825,16 +825,20 @@ Acceptance: extensions/extras on each of these sub-objects survive decode and th
 ## 41: CLI: expose writer (convert) and standalone validate
 
 +++
-status: open
+status: closed
 priority: low
 kind: enhancement
 labels: effort:s, area:api
 created: 2026-10-05T15:54:49Z
+updated: 2026-10-05T16:04:05Z
+closed: 2026-10-05T16:04:05Z
 +++
 
 The writer (#25) and validator (#26) are library-only, except validate as a gltf-render flag. Add CLI support, e.g. a convert mode (gltf-render in.gltf --convert out.glb [--embed]) or a separate gltf-tool with convert/validate/render subcommands.
 
 Acceptance: a GLB can be converted to self-contained glTF and back from the command line; validate works without rendering flags.
+
+- `2026-10-05T16:04:05Z`: gltf-render now has subcommands: render (default, so existing invocations work unchanged), convert <in> <out.glb|.gltf> [--external] [--validate], and validate <model> [--warnings-as-errors]. render --validate kept as an alias. Verified end to end: old invocation renders; GLB -> glTF -> GLB converts, both validate clean and render; FlightHelmet --external copies textures; invalid file exits 1. No unit test: thin CLI glue over Container.write / Document.validate, which are covered by WriterTests / ValidationTests.
 
 ---
 

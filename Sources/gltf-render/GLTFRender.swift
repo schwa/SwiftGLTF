@@ -13,9 +13,18 @@ enum Backend: String, ExpressibleByArgument {
 }
 
 @main
-struct GLTFRender: AsyncParsableCommand {
+struct GLTFTool: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "gltf-render",
+        abstract: "Render, convert, and validate glTF/GLB models.",
+        subcommands: [Render.self, Convert.self, Validate.self],
+        defaultSubcommand: Render.self
+    )
+}
+
+struct Render: AsyncParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "render",
         abstract: "Render a glTF/GLB model to a PNG using SceneKit or RealityKit."
     )
 
@@ -37,7 +46,7 @@ struct GLTFRender: AsyncParsableCommand {
     @Option(help: "RealityKit IBL intensity exponent (intensity is multiplied by 2^exposure).")
     var exposure: Float = 0
 
-    @Flag(help: "Validate the model, print issues, and exit without rendering.")
+    @Flag(help: "Validate the model, print issues, and exit without rendering (same as the validate subcommand).")
     var validate = false
 
     func run() async throws {
@@ -46,13 +55,7 @@ struct GLTFRender: AsyncParsableCommand {
         let container = try Container(url: modelURL)
 
         if validate {
-            let issues = container.document.validate()
-            issues.forEach { print($0) }
-            let errorCount = issues.filter { $0.severity == .error }.count
-            print("\(errorCount) error(s), \(issues.count - errorCount) warning(s)")
-            if errorCount > 0 {
-                throw ExitCode.failure
-            }
+            try report(container.document.validate(), warningsAsErrors: false)
             return
         }
         let environmentImage = try environment.map { try loadImage(at: URL(fileURLWithPath: $0)) }
