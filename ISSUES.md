@@ -468,8 +468,8 @@ priority: low
 kind: enhancement
 labels: effort:m, area:rendering
 created: 2026-10-05T13:58:21Z
-updated: 2026-10-05T14:51:13Z
-closed: 2026-10-05T14:51:13Z
+updated: 2026-10-05T15:05:29Z
+closed: 2026-10-05T15:05:29Z
 +++
 
 Normal mapping requires tangents; when a primitive has a normal map but no TANGENT attribute, tangents must be generated (MikkTSpace or equivalent). Currently absent tangents mean broken normal mapping.
@@ -477,7 +477,7 @@ Normal mapping requires tangents; when a primitive has a normal map but no TANGE
 Acceptance: a normal-mapped model without TANGENT renders correct normal mapping.
 
 - `2026-10-05T14:40:28Z`: Implementation note: a ready-to-vendor MikkTSpace C library lives at ~/Shared/Projects/Current/SwiftMesh/Sources/MikkTSpace (mikktspace.c + mikktspace.h; declared there as a C target with publicHeadersPath: "."). Plan: copy it into SwiftGLTF as a C target (e.g. Sources/MikkTSpace), add a small Swift wrapper that implements SMikkTSpaceInterface over a primitive's POSITION/NORMAL/TEXCOORD_0/indices, and compute TANGENT when a material has a normal map but the primitive lacks TANGENT. This sits in the parse/model layer (renderer-agnostic) so both generators benefit. Belongs under area:parsing conceptually even though labelled area:rendering.
-- `2026-10-05T14:51:14Z`: Implemented as an opt-in module (not in core): vendored MikkTSpace as a C target, added SwiftGLTFTangents product with TangentGeneration.generate(for:in:) that computes per-vertex tangents (expanded/unindexed triangle list) for primitives lacking TANGENT. Core SwiftGLTF stays free of the C dependency; consumers (or future renderer work) opt in. Test: TangentGenerationTests (BoxTextured -> unit tangents; model with TANGENT -> nil).
+- `2026-10-05T15:05:29Z`: Won't do here (by design): tangent generation is mesh processing and belongs ABOVE SwiftGLTF (e.g. SwiftMesh, which already owns MikkTSpace). The opt-in SwiftGLTFTangents module was reverted. Consumers should generate tangents from the decoded model (Container.floatComponents) in a higher-level library.
 
 ---
 
