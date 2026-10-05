@@ -197,54 +197,54 @@ Acceptance: a PBR model (DamagedHelmet) renders with normal/metallic-roughness/e
 
 ---
 
-## 11: Animation support (channels, samplers, playback)
+## 11: Decode animation data (channels, samplers, keyframes)
 
 +++
 status: open
 priority: medium
 kind: feature
-labels: effort:xl, area:rendering
+labels: area:parsing, effort:l
 created: 2026-10-05T13:57:24Z
-updated: 2026-10-05T13:58:26Z
+updated: 2026-10-05T14:39:32Z
 +++
 
-Animation is an empty stub: no channels/samplers, no keyframe sampling. Parse animation channels/samplers (TRS + morph weights targets) and drive SCNAnimation / RealityKit animation.
+Animation is an empty stub. Decode the glTF animation model into renderer-agnostic types on Document: animations -> channels (target node + path: translation/rotation/scale/weights) and samplers (input/output accessors, interpolation LINEAR/STEP/CUBICSPLINE). Provide a way to sample a channel at time t. No SceneKit/RealityKit here.
 
-Acceptance: an animated sample (e.g. AnimatedCube, BoxAnimated) plays in at least one backend.
+Acceptance: AnimatedCube/BoxAnimated decode into typed channels/samplers; a unit test samples a known keyframe value at a given time. Rendering is tracked separately (depends-on).
 
 ---
 
-## 12: Skinning support (joints, inverseBindMatrices)
+## 12: Decode skin data (joints, inverseBindMatrices, weights)
 
 +++
 status: open
 priority: low
 kind: feature
-labels: effort:xl, area:rendering
+labels: effort:m, area:parsing
 created: 2026-10-05T13:57:24Z
-updated: 2026-10-05T13:58:26Z
+updated: 2026-10-05T14:39:53Z
 +++
 
-Skin is a stub; Node.skin and Node.weights are commented out. Implement skinned meshes: parse Skin (joints, inverseBindMatrices, skeleton), wire JOINTS_0/WEIGHTS_0.
+Skin is a stub; Node.skin and Node.weights are commented out. Decode the skinning model: Skin (joints, inverseBindMatrices accessor, optional skeleton), Node.skin, and expose JOINTS_0/WEIGHTS_0 vertex data via the accessor layer. Renderer-agnostic.
 
-Acceptance: a skinned sample (RiggedSimple/RiggedFigure) deforms correctly.
+Acceptance: RiggedSimple/RiggedFigure decode joints + inverse bind matrices + joint/weight attributes; unit test checks counts and a sample bind matrix. Rendering tracked separately (depends-on).
 
 ---
 
-## 13: Morph target support
+## 13: Decode morph target data (targets + weights)
 
 +++
 status: open
 priority: low
 kind: feature
-labels: effort:l, area:rendering
+labels: effort:m, area:parsing
 created: 2026-10-05T13:57:24Z
-updated: 2026-10-05T13:58:26Z
+updated: 2026-10-05T14:39:53Z
 +++
 
-Mesh primitive 'targets' and node 'weights' are ignored. Parse morph targets and apply weights.
+Mesh primitive 'targets' and node 'weights' are ignored. Decode morph targets into the model: per-primitive target attribute sets (POSITION/NORMAL/TANGENT deltas) and node/mesh default weights. Renderer-agnostic.
 
-Acceptance: AnimatedMorphCube morphs correctly.
+Acceptance: AnimatedMorphCube/MorphPrimitivesTest decode their targets + weights; unit test reads a target delta accessor. Rendering tracked separately (depends-on).
 
 ---
 
@@ -459,12 +459,14 @@ priority: low
 kind: enhancement
 labels: effort:m, area:rendering
 created: 2026-10-05T13:58:21Z
-updated: 2026-10-05T13:58:26Z
+updated: 2026-10-05T14:40:28Z
 +++
 
 Normal mapping requires tangents; when a primitive has a normal map but no TANGENT attribute, tangents must be generated (MikkTSpace or equivalent). Currently absent tangents mean broken normal mapping.
 
 Acceptance: a normal-mapped model without TANGENT renders correct normal mapping.
+
+- `2026-10-05T14:40:28Z`: Implementation note: a ready-to-vendor MikkTSpace C library lives at ~/Shared/Projects/Current/SwiftMesh/Sources/MikkTSpace (mikktspace.c + mikktspace.h; declared there as a C target with publicHeadersPath: "."). Plan: copy it into SwiftGLTF as a C target (e.g. Sources/MikkTSpace), add a small Swift wrapper that implements SMikkTSpaceInterface over a primitive's POSITION/NORMAL/TEXCOORD_0/indices, and compute TANGENT when a material has a normal map but the primitive lacks TANGENT. This sits in the parse/model layer (renderer-agnostic) so both generators benefit. Belongs under area:parsing conceptually even though labelled area:rendering.
 
 ---
 
@@ -499,5 +501,76 @@ updated: 2026-10-05T13:58:26Z
 Add a validation pass that surfaces spec violations with clear messages (index bounds, required fields, accessor/bufferView consistency, unsupported required extensions) instead of failing deep in parsing/rendering.
 
 Acceptance: invalid models report actionable diagnostics; a validate() API or test exists.
+
+---
+
+## 27: RealityKit render path needs image-based lighting (IBL)
+
++++
+status: open
+priority: medium
+kind: enhancement
+labels: effort:m, area:rendering
+created: 2026-10-05T14:38:29Z
++++
+
+The gltf-render RealityKit backend (and RealityRenderer-based tests) render highly-metallic models (e.g. DamagedHelmet) as washed-out uniform gray. RealityRenderer has no lighting environment set, so metallic/rough surfaces have nothing to reflect except the directional key/fill lights -> they read as flat bright gray instead of showing base color + reflections. SceneKit already looks correct because it uses lightingEnvironment.
+
+Set RealityRenderer.lighting.resource to an EnvironmentResource (IBL):
+- Generate one from an equirectangular image (a simple gradient or a bundled studio HDR), or load a bundled .exr/.hdr.
+- Expose it in gltf-render (and reuse in the RealityKit render tests for nicer, more representative goldens).
+
+Acceptance: DamagedHelmet via 'gltf-render -b realitykit' shows its base-color texture and plausible metallic reflections instead of a uniform white/gray blob.
+
+---
+
+## 28: Play glTF animations in SceneKit/RealityKit
+
++++
+status: open
+priority: medium
+kind: feature
+labels: effort:l, area:rendering
+depends: 11
+created: 2026-10-05T14:39:43Z
++++
+
+Using the decoded animation model (#11), drive playback in the generators: build SCNAnimation / CAAnimationGroup keyed to nodes for SceneKit, and RealityKit AnimationResource / BlendTree for TRS (and morph weights once #13 lands). Map interpolation modes.
+
+Acceptance: AnimatedCube/BoxAnimated plays in at least one backend; gltf-render could optionally render a frame at time t.
+
+---
+
+## 29: Render skinned meshes in SceneKit/RealityKit
+
++++
+status: open
+priority: low
+kind: feature
+labels: effort:l, area:rendering
+depends: 12
+created: 2026-10-05T14:39:43Z
++++
+
+Using the decoded skin model (#12), build skinned geometry: SCNSkinner (bones, boneInverseBindTransforms, boneWeights/boneIndices) for SceneKit; RealityKit skinning via MeshResource joints/skeleton. Bind to the node hierarchy.
+
+Acceptance: RiggedSimple/RiggedFigure deforms correctly in at least one backend.
+
+---
+
+## 30: Apply morph targets in SceneKit/RealityKit
+
++++
+status: open
+priority: low
+kind: feature
+labels: effort:m, area:rendering
+depends: 13
+created: 2026-10-05T14:39:43Z
++++
+
+Using the decoded morph model (#13), apply targets: SCNMorpher (targets + weights) for SceneKit; RealityKit blend-shape equivalent. Respect default and animated weights.
+
+Acceptance: AnimatedMorphCube morphs correctly (static weights minimum; animated once #11/the animation render issue lands).
 
 ---
