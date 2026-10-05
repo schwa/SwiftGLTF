@@ -737,3 +737,127 @@ The writer is only checked by our own validator and round-trip tests. Add a CI s
 Acceptance: CI job runs the validator over writer output for the sample assets; zero errors.
 
 ---
+
+## 37: Demo app fails to build: deployment target below package minimum
+
++++
+status: open
+priority: high
+kind: bug
+labels: effort:xs, area:api
+created: 2026-10-05T15:54:49Z
++++
+
+Demo/SwiftGLTFDemo targets macOS 14 (and likely iOS 17), but the SwiftGLTF package was raised to macOS 15 / iOS 18 for the GoldenImage test dependency. Every Demo file fails with: 'compiling for macOS 14, but module SwiftGLTF has a minimum deployment target of macOS 15.0'. The xcode.yml CI workflow builds the Demo, so CI is red.
+
+Regression from the platform bump; an earlier 'Demo builds fine' check was wrong (likely stale build).
+
+Fix: raise the Demo project's deployment targets to macOS 15 / iOS 18.
+
+Acceptance: xcb build --target SwiftGLTFDemo succeeds for macOS and generic iOS.
+
+---
+
+## 38: SceneKit ignores emissiveFactor when an emissive texture is present
+
++++
+status: open
+priority: medium
+kind: bug
+labels: effort:s, area:rendering
+created: 2026-10-05T15:54:49Z
++++
+
+glTF emissive = emissiveFactor * emissiveTexture. SceneKitGenerator sets emission.contents to the texture and only logs a warning about the factor, so a non-white factor is dropped. Same class of bug fixed for RealityKit in #27.
+
+Fix: multiply the factor into the texture (CIColorMatrix, as RealityKit does) or otherwise apply it.
+
+Acceptance: a material with emissiveFactor [1, 0, 0] and an emissive texture renders red-tinted emission in SceneKit.
+
+---
+
+## 39: RealityKit golden test reads back with wrong gamma
+
++++
+status: open
+priority: low
+kind: task
+labels: effort:xs, area:rendering
+created: 2026-10-05T15:54:49Z
++++
+
+RealityKitRenderingTests renders into rgba8Unorm and reads the bytes as sRGB. RealityRenderer writes linear color, so the goldens are darker than the real output (fixed in gltf-render via rgba8Unorm_srgb in #27).
+
+Fix: use .rgba8Unorm_srgb in the test helper and regenerate the RealityKit goldens.
+
+Acceptance: test render background 0.12 gray reads back as ~31/255, matching the CLI.
+
+---
+
+## 40: Preserve extensions on sub-objects (sparse, perspective, orthographic)
+
++++
+status: open
+priority: low
+kind: enhancement
+labels: effort:s, area:parsing
+created: 2026-10-05T15:54:49Z
++++
+
+#33 made every top-level object keep extensions/extras, but some nested objects still drop them: Accessor.Sparse (and its indices/values), Camera.Perspective, Camera.Orthographic. They are therefore lost on write (#25). Related to #34 (lossless round trip).
+
+Acceptance: extensions/extras on each of these sub-objects survive decode and the writer round trip.
+
+---
+
+## 41: CLI: expose writer (convert) and standalone validate
+
++++
+status: open
+priority: low
+kind: enhancement
+labels: effort:s, area:api
+created: 2026-10-05T15:54:49Z
++++
+
+The writer (#25) and validator (#26) are library-only, except validate as a gltf-render flag. Add CLI support, e.g. a convert mode (gltf-render in.gltf --convert out.glb [--embed]) or a separate gltf-tool with convert/validate/render subcommands.
+
+Acceptance: a GLB can be converted to self-contained glTF and back from the command line; validate works without rendering flags.
+
+---
+
+## 42: Validator gaps: min/max, index range, texture-info fields
+
++++
+status: open
+priority: low
+kind: enhancement
+labels: effort:s, area:api
+created: 2026-10-05T15:54:49Z
++++
+
+Document.validate() (#26) does not yet check:
+- accessor min/max match the actual data;
+- index values are < the vertex count of their primitive;
+- scale on non-normal textures / strength on non-occlusion textures (TextureInfo models both as optional fields since #35).
+
+Acceptance: each case has a test with one targeted defect; sample corpus still has no false-positive errors.
+
+---
+
+## 43: Document known RealityKit generator limitations
+
++++
+status: open
+priority: low
+kind: documentation
+labels: effort:xs, area:rendering
+created: 2026-10-05T15:54:49Z
+updated: 2026-10-05T15:54:49Z
++++
+
+Several features are unsupported by the RealityKit generator and only surface as runtime warnings: KHR_texture_transform, COLOR_0 vertex colors, TEXCOORD_1, orthographic cameras. Add a 'Known limitations' section to the README (per backend), and note that tangent generation is expected above this library (#24).
+
+Acceptance: README lists per-backend limitations.
+
+---
