@@ -589,3 +589,24 @@ Using the decoded morph model (#13), apply targets: SCNMorpher (targets + weight
 Acceptance: AnimatedMorphCube morphs correctly (static weights minimum; animated once #11/the animation render issue lands).
 
 ---
+
+## 31: SceneKit generator applies glTF quaternion rotation as axis-angle
+
++++
+status: open
+priority: high
+kind: bug
+labels: effort:xs, area:rendering
+created: 2026-10-05T15:00:06Z
+updated: 2026-10-05T15:00:06Z
++++
+
+glTF node.rotation is a unit quaternion [x, y, z, w]. SceneKitGenerator.generateSCNNode assigns it to scnNode.simdRotation, which SceneKit interprets as axis-angle (axis xyz, angle w). Any rotated node gets the wrong orientation. RealityKit is correct (simd_quatf(vector:)).
+
+Evidence: DamagedHelmet (root node rotation [0.7071, 0, 0, 0.7071]) faces different directions in gltf-render SceneKit vs RealityKit with identical camera setup.
+
+Fix: use scnNode.simdOrientation = simd_quatf(vector: rotation). Add a test asserting a rotated node's orientation matches the quaternion, and regenerate any SceneKit goldens that change (DamagedHelmet-scenekit).
+
+Acceptance: SceneKit and RealityKit render DamagedHelmet in the same orientation.
+
+---
