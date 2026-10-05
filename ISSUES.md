@@ -1170,7 +1170,7 @@ priority: low
 kind: bug
 labels: effort:xs, area:api
 created: 2026-10-05T17:12:51Z
-updated: 2026-10-05T17:12:51Z
+updated: 2026-10-05T17:49:03Z
 +++
 
 Sources/gltf-render/GLTFRender.swift:209 calls DispatchSemaphore.wait() inside an async function (the RealityKit render path). The compiler warns: 'instance method wait is unavailable from asynchronous contexts ... this is an error in the Swift 6 language mode'. It blocks a cooperative thread today and will fail to compile under Swift 6.
@@ -1178,5 +1178,115 @@ Sources/gltf-render/GLTFRender.swift:209 calls DispatchSemaphore.wait() inside a
 Fix: wrap RealityRenderer.updateAndRender's completion in withCheckedThrowingContinuation and await it.
 
 Acceptance: no warning; gltf-render -b realitykit still renders (e.g. DamagedHelmet).
+
+- `2026-10-05T17:49:03Z`: From the concurrency review (-strict-concurrency=complete): the semaphore blocks the main actor (renderRealityKit is @MainActor) and only works because RealityKit happens to call onComplete off-main. Fix with withCheckedThrowingContinuation that resumes exactly once, including when updateAndRender throws synchronously (then onComplete never fires), and mark the completion closure @Sendable so it does not inherit MainActor isolation and trip a runtime isolation check when invoked from another thread.
+
+---
+
+## 57: RealityKitGLTFGenerator is not @MainActor
+
++++
+status: open
+priority: medium
+kind: bug
+labels: effort:s, area:rendering
+created: 2026-10-05T17:49:03Z
+updated: 2026-10-05T17:49:58Z
++++
+
+With -strict-concurrency=complete, gltf+RealityKit.swift produces ~20 diagnostics (lines 34-135, 218): Entity(), .components, .transform, addChild, MeshResource.generate(from:) and TextureResource.generate are main-actor isolated but called from a nonisolated class. Line 135 also warns 'sending descriptors risks causing data races'. All are errors in Swift 6 mode. Callers running generateRootEntity() off the main thread touch RealityKit objects off-main today; the tests already have to mark every RealityKit test @MainActor.
+
+Fix: annotate the class '@MainActor public final class RealityKitGLTFGenerator'.
+
+Acceptance: no actor-isolation or sending diagnostics from gltf+RealityKit.swift under -strict-concurrency=complete; tests pass.
+
+---
+
+## 58: Resolver.documentKeyPath static lets are not concurrency-safe
+
++++
+status: open
+priority: low
+kind: task
+labels: effort:xs, area:parsing
+created: 2026-10-05T17:49:03Z
+updated: 2026-10-05T17:49:58Z
++++
+
+13 'public static let documentKeyPath = \\Document.x' (gltf.swift, Animation.swift, Skin.swift) warn under -strict-concurrency=complete: 'static property is not concurrency-safe because non-Sendable type KeyPath<Document, ...>'. Errors in Swift 6 mode.
+
+Fix: make them computed, e.g. 'public static var documentKeyPath: KeyPath<Document, [Accessor]> { \\.accessors }' (satisfies the protocol's { get } requirement, stores no global state).
+
+Acceptance: no documentKeyPath diagnostics under -strict-concurrency=complete.
+
+---
+
+## 59: Make Container Sendable (thread-safe cache)
+
++++
+status: open
+priority: medium
+kind: enhancement
+labels: effort:s, area:parsing
+created: 2026-10-05T17:49:03Z
+updated: 2026-10-05T17:49:58Z
++++
+
+Container holds a plain mutable class Cache ([URI: Data]) and non-Sendable GLB data, so it cannot be Sendable. Under Swift 6 an app cannot load a Container in a background task (file I/O) and pass it to the @MainActor RealityKit generator - the natural usage. Struct copies also silently share the unsynchronized cache.
+
+Fix: back the cache with Mutex<[URI: Data]> (Synchronization; available on the macOS 15 / iOS 18 minimum) in a final Sendable class; add Sendable to GLB, Header, Chunk, Chunk.ChunkType, Container.Kind, and Container. Not @unchecked Sendable.
+
+Acceptance: Container: Sendable compiles under -strict-concurrency=complete; a test loads a Container in a detached/background task and generates on the main actor.
+
+---
+
+## 60: Demo: 1.1 GB sample unzip runs on the main actor
+
++++
+status: open
+priority: medium
+kind: bug
+labels: effort:xs, area:demo
+created: 2026-10-05T17:49:04Z
+updated: 2026-10-05T17:49:58Z
++++
+
+Demo/SwiftGLTFDemo/ContentView.swift lines 38-46: the download Task {} is created in a SwiftUI button, so it inherits main-actor isolation. After the awaited download, FileManager.moveItem and the synchronous Zip.unzipFile run on the main thread and freeze the UI for the whole unzip.
+
+Fix: move the blocking work into a function that runs off the main actor (@concurrent in Swift 6.2, or a nonisolated async func in Swift 5 mode) and await it.
+
+Acceptance: the UI stays responsive (progress view animates) during unzip.
+
+---
+
+## 61: Demo: mark GLTFModelBrowser.Model @MainActor
+
++++
+status: open
+priority: low
+kind: task
+labels: effort:xs, area:demo
+created: 2026-10-05T17:49:04Z
+updated: 2026-10-05T17:49:58Z
++++
+
+Demo/SwiftGLTFDemo/ContentView.swift line 72: 'class Model: ObservableObject' mutates @Published modelInfo and is read by SwiftUI, but its isolation is unstated. Safe today (only called from the view, Swift 5 mode); make it explicit: '@MainActor final class Model: ObservableObject'.
+
+---
+
+## 62: RealityKit render test helper blocks the main actor on a semaphore
+
++++
+status: open
+priority: low
+kind: task
+labels: effort:xs, area:rendering
+created: 2026-10-05T17:49:04Z
+updated: 2026-10-05T17:49:58Z
++++
+
+Tests/SwiftGLTFTests/RealityKitRenderingTests.swift: the synchronous @MainActor render(...) helper waits on a DispatchSemaphore for RealityRenderer's completion, blocking the main actor for the whole render (serializing other @MainActor tests) with the same deadlock risk as #56. No diagnostic today because the function is synchronous.
+
+Fix: make render(...) async using the same exactly-once checked continuation with a @Sendable completion as #56; make the calling tests async.
 
 ---
