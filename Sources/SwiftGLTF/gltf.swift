@@ -3,6 +3,7 @@
 
 import Foundation
 import simd
+import Synchronization
 
 // https://github.com/KhronosGroup/glTF/tree/master/specification/2.0
 
@@ -16,8 +17,8 @@ public enum GLTFError: Error {
     case invalidDocument(String)
 }
 
-public struct Container {
-    public enum Kind {
+public struct Container: Sendable {
+    public enum Kind: Sendable {
         case json
         case binary(GLB)
     }
@@ -59,14 +60,24 @@ public struct Container {
         }
     }
 
-    class Cache {
-        var cache: [URI: Data] = [:]
+    // Decoded data-URI payloads. Shared by every copy of the Container, so it is
+    // guarded by a Mutex.
+    final class Cache: Sendable {
+        private let storage = Mutex<[URI: Data]>([:])
+
+        func value(for uri: URI) -> Data? {
+            storage.withLock { $0[uri] }
+        }
+
+        func store(_ data: Data, for uri: URI) {
+            storage.withLock { $0[uri] = data }
+        }
     }
 
     let cache = Cache()
 
     public func data(for uri: URI) throws -> Data {
-        if let data = cache.cache[uri] {
+        if let data = cache.value(for: uri) {
             return data
         }
         guard let url = URL(string: uri.string) else {
@@ -85,7 +96,7 @@ public struct Container {
             guard metadata.hasSuffix(";base64"), let data = Data(base64Encoded: payload) else {
                 throw GLTFError.unsupported("Unsupported data URI '\(metadata)'")
             }
-            cache.cache[uri] = data
+            cache.store(data, for: uri)
             return data
         case .none:
             let url = self.url.deletingLastPathComponent().appendingPathComponent(uri.relativePath)

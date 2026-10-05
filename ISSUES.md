@@ -1227,12 +1227,13 @@ Acceptance: no documentKeyPath diagnostics under -strict-concurrency=complete.
 ## 59: Make Container Sendable (thread-safe cache)
 
 +++
-status: open
+status: closed
 priority: medium
 kind: enhancement
 labels: effort:s, area:parsing
 created: 2026-10-05T17:49:03Z
-updated: 2026-10-05T17:49:58Z
+updated: 2026-10-05T18:01:21Z
+closed: 2026-10-05T18:01:21Z
 +++
 
 Container holds a plain mutable class Cache ([URI: Data]) and non-Sendable GLB data, so it cannot be Sendable. Under Swift 6 an app cannot load a Container in a background task (file I/O) and pass it to the @MainActor RealityKit generator - the natural usage. Struct copies also silently share the unsynchronized cache.
@@ -1240,6 +1241,8 @@ Container holds a plain mutable class Cache ([URI: Data]) and non-Sendable GLB d
 Fix: back the cache with Mutex<[URI: Data]> (Synchronization; available on the macOS 15 / iOS 18 minimum) in a final Sendable class; add Sendable to GLB, Header, Chunk, Chunk.ChunkType, Container.Kind, and Container. Not @unchecked Sendable.
 
 Acceptance: Container: Sendable compiles under -strict-concurrency=complete; a test loads a Container in a detached/background task and generates on the main actor.
+
+- `2026-10-05T18:01:21Z`: Container is now Sendable. The data-URI cache is a final Sendable class backed by Mutex<[URI: Data]> (Synchronization; macOS 15 / iOS 18). Added Sendable to Container.Kind, GLB, Header, Chunk, Chunk.ChunkType. No @unchecked Sendable. Tests: ContainerSendableTests (load via Task.detached then generate on @MainActor; 64 concurrent cache reads). Note: in the package's Swift 5 language mode these tests compile even without the fix (Sendable violations are not enforced), so the red/green evidence is the strict build: before, 'Container does not conform to Sendable' plus a 'sending closure risks data races' diagnostic on the concurrent test; after, none.
 
 ---
 

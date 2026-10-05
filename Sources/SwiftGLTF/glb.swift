@@ -1,7 +1,7 @@
 // import Everything
 import Foundation
 
-public struct GLB {
+public struct GLB: Sendable {
     public let header: Header
     public let chunks: [Chunk]
 }
@@ -32,17 +32,17 @@ public extension GLB {
     }
 }
 
-public struct Header {
+public struct Header: Sendable {
     public let magic: UInt32
     public let version: UInt32
     public let length: UInt32
 }
 
-public struct Chunk {
+public struct Chunk: Sendable {
     public let chunkLength: UInt32
     public let chunkType: ChunkType
 
-    public enum ChunkType: RawRepresentable {
+    public enum ChunkType: RawRepresentable, Sendable {
         case json
         case bin
         case other(UInt32)
