@@ -337,6 +337,8 @@ public class SceneKitGenerator {
         else if let emissiveFactor = material.emissiveFactor {
             scnMaterial.emission.contents = SIMD4<Float>(emissiveFactor.x, emissiveFactor.y, emissiveFactor.z, 1).cgColor
         }
+        // KHR_materials_emissive_strength multiplies the emissive output.
+        scnMaterial.emission.intensity = CGFloat(material.emissiveStrength)
 
         scnMaterial.isDoubleSided = material.doubleSided ?? false
 

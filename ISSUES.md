@@ -342,18 +342,21 @@ Acceptance: an unlit model renders without lighting response.
 ## 18: KHR_materials_emissive_strength
 
 +++
-status: open
+status: closed
 priority: low
 kind: enhancement
 labels: effort:xs, area:rendering
 depends: 14
 created: 2026-10-05T13:58:08Z
-updated: 2026-10-05T13:58:26Z
+updated: 2026-10-05T14:53:20Z
+closed: 2026-10-05T14:53:20Z
 +++
 
 Decode KHR_materials_emissive_strength and scale emissive output accordingly.
 
 Acceptance: emissive strength multiplies emissive factor/texture in render output.
+
+- `2026-10-05T14:53:20Z`: Added KHRMaterialsEmissiveStrength decoding (Material.emissiveStrength, default 1). SceneKit sets emission.intensity; RealityKit sets emissiveIntensity (was hardcoded 1). Test: EmissiveStrengthTests on EmissiveStrengthTest.glb. Note: visible brightening needs an HDR/bloom-capable render path (CLI SceneKit sets camera.wantsHDR).
 
 ---
 

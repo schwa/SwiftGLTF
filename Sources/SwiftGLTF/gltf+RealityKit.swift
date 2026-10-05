@@ -254,7 +254,7 @@ public class RealityKitGLTFGenerator {
         if emissiveTexture != nil || emissiveFactor != [0, 0, 0] {
             let emissiveColor = color(SIMD4<Float>(emissiveFactor.x, emissiveFactor.y, emissiveFactor.z, 1))
             reMaterial.emissiveColor = .init(color: emissiveColor, texture: emissiveTexture)
-            reMaterial.emissiveIntensity = 1
+            reMaterial.emissiveIntensity = material.emissiveStrength // KHR_materials_emissive_strength
         }
 
         if material.doubleSided ?? false {
