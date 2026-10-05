@@ -9,6 +9,8 @@ import simd
 
 public enum GLTFError: Error {
     case unknown
+    case malformedGLB(String)
+    case accessorOutOfBounds
 }
 
 public struct Container {
@@ -135,7 +137,26 @@ public struct Container {
         if let bufferView = try accessor.bufferView?.resolve(in: document) {
             let start = accessor.byteOffset + bufferView.byteOffset
             let data = try data(for: bufferView.buffer)
-            subdata = data.subdata(in: start ..< (start + elementsSize))
+            if let byteStride = bufferView.byteStride, byteStride != elementSize {
+                // Interleaved buffer view: elements are spaced `byteStride` apart.
+                // Copy each element out into a tightly packed result.
+                var packed = Data(capacity: elementsSize)
+                for index in 0 ..< accessor.count {
+                    let elementStart = start + index * byteStride
+                    let elementEnd = elementStart + elementSize
+                    guard elementEnd <= data.count else {
+                        throw GLTFError.accessorOutOfBounds
+                    }
+                    packed.append(data.subdata(in: elementStart ..< elementEnd))
+                }
+                subdata = packed
+            }
+            else {
+                guard start + elementsSize <= data.count else {
+                    throw GLTFError.accessorOutOfBounds
+                }
+                subdata = data.subdata(in: start ..< (start + elementsSize))
+            }
         }
         else {
             subdata = Data(count: elementsSize)

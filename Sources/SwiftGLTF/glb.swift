@@ -1,8 +1,6 @@
 // import Everything
 import Foundation
 
-// swiftlint:disable fatal_error_message
-
 public struct GLB {
     public let header: Header
     public let chunks: [Chunk]
@@ -12,7 +10,7 @@ public extension GLB {
     init(url: URL) throws {
         let data = try Data(contentsOf: url)
         var scanner = CollectionScanner(elements: data)
-        self = scanner.scanGLB()!
+        self = try scanner.scanGLB()
     }
 }
 
@@ -69,48 +67,40 @@ public struct Chunk {
 }
 
 extension CollectionScanner where Element == UInt8 {
-    mutating func scanGLB() -> GLB? {
-        guard let header = scanHeader() else {
-            fatalError()
-        }
+    mutating func scanGLB() throws -> GLB {
+        let header = try scanHeader()
         guard let body = scan(count: Int(header.length) - 12) else {
-            fatalError()
+            throw GLTFError.malformedGLB("Truncated GLB body")
         }
         var subscanner = CollectionScanner<[UInt8]>(elements: Array(body)) // NOTE: Seem inefficient
         var chunks: [Chunk] = []
         while subscanner.atEnd == false {
-            guard let chunk = subscanner.scanChunk() else {
-                fatalError()
-            }
-            chunks.append(chunk)
+            chunks.append(try subscanner.scanChunk())
         }
         return GLB(header: header, chunks: chunks)
     }
 
-    mutating func scanHeader() -> Header? {
-        guard let magic = scan(type: UInt32.self) else {
-            fatalError()
-        }
-        guard let version = scan(type: UInt32.self) else {
-            fatalError()
-        }
-        guard let length = scan(type: UInt32.self) else {
-            fatalError()
+    mutating func scanHeader() throws -> Header {
+        guard let magic = scan(type: UInt32.self),
+              let version = scan(type: UInt32.self),
+              let length = scan(type: UInt32.self) else {
+            throw GLTFError.malformedGLB("Truncated GLB header")
         }
         return Header(magic: magic, version: version, length: length)
     }
 
-    mutating func scanChunk() -> Chunk? {
-        guard let chunkLength = scan(type: UInt32.self) else {
-            fatalError()
-        }
-        guard let chunkType = scan(type: UInt32.self) else {
-            fatalError()
+    mutating func scanChunk() throws -> Chunk {
+        guard let chunkLength = scan(type: UInt32.self),
+              let rawChunkType = scan(type: UInt32.self) else {
+            throw GLTFError.malformedGLB("Truncated GLB chunk header")
         }
         guard let content = scan(count: Int(chunkLength)) else {
-            fatalError()
+            throw GLTFError.malformedGLB("Truncated GLB chunk content")
         }
-        return Chunk(chunkLength: chunkLength, chunkType: .init(rawValue: chunkType)!, content: Data(content))
+        guard let chunkType = Chunk.ChunkType(rawValue: rawChunkType) else {
+            throw GLTFError.malformedGLB("Unknown GLB chunk type \(rawChunkType)")
+        }
+        return Chunk(chunkLength: chunkLength, chunkType: chunkType, content: Data(content))
     }
 }
 

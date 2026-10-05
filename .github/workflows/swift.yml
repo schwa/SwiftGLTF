@@ -23,6 +23,8 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - name: Trust plugins
         run: defaults write com.apple.dt.Xcode IDESkipPackagePluginFingerprintValidation -bool YES
+      - name: Download glTF sample assets
+        run: git clone --depth 1 https://github.com/KhronosGroup/glTF-Sample-Assets.git .sample-assets
       - name: Build (macOS)
         run: swift build -v
       - name: Test (macOS)

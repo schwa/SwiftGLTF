@@ -5,12 +5,13 @@
 ## 1: Crash parsing BarramundiFish.glb - fatalError in scanChunk()
 
 +++
-status: open
+status: closed
 priority: medium
 kind: bug
 labels: effort:s, area:parsing
 created: 2026-04-02T23:25:38Z
-updated: 2026-10-05T12:47:50Z
+updated: 2026-10-05T13:18:48Z
+closed: 2026-10-05T13:18:48Z
 +++
 
 Loading /Users/schwa/Shared/Organised/3D Models/glTF-Sample-Models/1.0/BarramundiFish/glTF-Binary/BarramundiFish.glb (2.7MB) crashes in Scanner.scanChunk() with a fatalError. The crash is in the force-unwrap of ChunkType(rawValue:) — likely an unrecognized chunk type in the binary container.
@@ -26,6 +27,7 @@ mutating func scanChunk() -> Chunk? {
 The force-unwrap on ChunkType init should be replaced with proper error handling.
 
 - `2026-10-05T12:47:50Z`: Related: #2 adds a test suite that would catch this crash.
+- `2026-10-05T13:18:48Z`: Fixed: GLB scanner now throws GLTFError.malformedGLB instead of fatalError; removed ChunkType force-unwrap.
 
 ---
 
@@ -66,15 +68,18 @@ GH#1 (originally CLOSED). User gets errors when using SwiftGLTF as a dependency 
 ## 4: Models fail to import when byteStride is non-zero
 
 +++
-status: open
+status: closed
 priority: medium
 kind: bug
 labels: effort:s, area:parsing
 created: 2026-04-04T02:59:03Z
-updated: 2026-10-05T12:47:50Z
+updated: 2026-10-05T13:18:48Z
+closed: 2026-10-05T13:18:48Z
 +++
 
 GH#2. The model's bufferView contains a byteStride of 12 and fails to import. Tracked to gltf.swift L133-135.
+
+- `2026-10-05T13:18:48Z`: Fixed: data(for accessor:) de-interleaves non-zero byteStride buffer views and bounds-checks.
 
 ---
 
