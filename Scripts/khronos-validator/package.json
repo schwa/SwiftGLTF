@@ -1,0 +1,9 @@
+{
+  "name": "swiftgltf-khronos-validator",
+  "private": true,
+  "type": "module",
+  "description": "Runs the Khronos glTF-Validator over files written by SwiftGLTF (CI check).",
+  "dependencies": {
+    "gltf-validator": "2.0.0-dev.3.10"
+  }
+}

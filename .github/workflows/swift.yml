@@ -29,3 +29,5 @@ jobs:
         run: swift build -v
       - name: Test (macOS)
         run: swift test -v
+      - name: Validate writer output (Khronos glTF-Validator)
+        run: Scripts/validate-writer-output.sh "$(swift build --show-bin-path)/gltf-render"

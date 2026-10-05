@@ -50,6 +50,7 @@ playground.xcworkspace
 
 .build/
 .sample-assets/
+node_modules/
 
 # CocoaPods
 # We recommend against adding the Pods directory to your .gitignore. However

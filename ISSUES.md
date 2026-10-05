@@ -729,16 +729,20 @@ Acceptance: a material with scale 0.5 / strength 0.3 decodes those values and ro
 ## 36: CI: validate writer output with Khronos glTF-Validator
 
 +++
-status: open
+status: closed
 priority: low
 kind: task
 labels: effort:s, area:api
 created: 2026-10-05T15:47:27Z
+updated: 2026-10-05T16:21:02Z
+closed: 2026-10-05T16:21:02Z
 +++
 
 The writer is only checked by our own validator and round-trip tests. Add a CI step that writes the sample corpus (GLB and embedded glTF) and runs the official Khronos glTF-Validator (npx gltf-validator) on the output, failing on errors.
 
 Acceptance: CI job runs the validator over writer output for the sample assets; zero errors.
+
+- `2026-10-05T16:21:02Z`: Added Scripts/khronos-validator (pinned gltf-validator 2.0.0-dev.3.10 + package-lock; the npm package has no CLI, so validate.mjs uses its validateBytes JS API with external-resource resolution) and Scripts/validate-writer-output.sh (converts every sample GLB to GLB and embedded glTF via gltf-render convert, then validates). CI step added to swift.yml after tests. Locally: 120 models / 240 files, all pass. The first run found a real writer bug (#46, min/max precision), fixed separately. Unverified: that the macos-26 runner image ships Node/npm; if not, add a pinned actions/setup-node step.
 
 ---
 
