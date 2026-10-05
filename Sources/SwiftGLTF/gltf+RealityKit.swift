@@ -78,7 +78,7 @@ public class RealityKitGLTFGenerator {
         let meshResource = try MeshResource.generate(from: [meshDescriptor])
 
         guard let material = try primitive.material?.resolve(in: document) else {
-            fatalError()
+            throw GLTFError.missingResource("Primitive has no material")
         }
         let reMaterial = try makeMaterial(from: material)
         return ModelComponent(mesh: meshResource, materials: [reMaterial])
@@ -116,7 +116,7 @@ extension Container {
             return try data(for: bufferView)
         }
         else {
-            fatalError()
+            throw GLTFError.missingResource("Image has neither uri nor bufferView")
         }
     }
 }
@@ -161,7 +161,7 @@ extension Mesh.Primitive {
         case .UNSIGNED_SHORT:
             values = [SIMD3<Float>](withUnsafeData: try container.data(for: accessor)).map { SIMD3<Float>($0.map { Float($0) }) }
         default:
-            fatalError()
+            throw GLTFError.unsupported("Unsupported SIMD3 component type \(accessor.componentType)")
         }
 
         assert(values.count == accessor.count)
@@ -182,7 +182,7 @@ extension Mesh.Primitive {
 
     func indices(type: UInt32.Type, in container: Container) throws -> [UInt32]? {
         guard let indicesAccessor = try indices?.resolve(in: container.document) else {
-            fatalError()
+            throw GLTFError.missingResource("Primitive has no indices")
         }
         switch indicesAccessor.componentType {
         case .UNSIGNED_BYTE:
@@ -201,7 +201,7 @@ extension Mesh.Primitive {
             assert(indices.count == indicesAccessor.count)
             return indices
         default:
-            fatalError()
+            throw GLTFError.unsupported("Unsupported index component type \(indicesAccessor.componentType)")
         }
     }
 }

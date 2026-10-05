@@ -6,8 +6,6 @@ import os
 import SceneKit
 // import SIMDSupport
 
-// swiftlint:disable fatal_error_message
-
 public class SceneKitGenerator {
     let rootURL: URL?
     let document: Document
@@ -57,17 +55,16 @@ public class SceneKitGenerator {
         return scnNode
     }
 
-    func resolve(uri: URI) -> URL {
+    func resolve(uri: URI) throws -> URL {
         let url = URL(string: uri.string)
         if let url = url, url.scheme != nil {
             return url
         }
         else {
             guard let rootURL = rootURL else {
-                fatalError()
+                throw GLTFError.missingResource("Relative URI '\(uri.string)' needs a rootURL")
             }
-            let url = rootURL.deletingLastPathComponent().appendingPathComponent(uri.string)
-            return url
+            return rootURL.deletingLastPathComponent().appendingPathComponent(uri.string)
         }
     }
 
@@ -78,10 +75,10 @@ public class SceneKitGenerator {
         else {
             let buffer = try bufferIndex.resolve(in: document)
             guard let uri = buffer.uri else {
-                fatalError()
+                throw GLTFError.missingResource("Buffer has no uri (GLB binary chunk is unsupported by the SceneKit generator)")
             }
 
-            let url = resolve(uri: uri)
+            let url = try resolve(uri: uri)
             let data = try Data(contentsOf: url)
 
             cachedData[bufferIndex] = data
@@ -104,7 +101,7 @@ public class SceneKitGenerator {
             usesFloatComponents = false
             bytesPerComponent = MemoryLayout<UInt8>.size
         default:
-            fatalError()
+            throw GLTFError.unsupported("Unsupported accessor component type \(accessor.componentType)")
         }
 
         let componentsPerVector: Int
@@ -116,14 +113,22 @@ public class SceneKitGenerator {
         case .VEC4:
             componentsPerVector = 4
         default:
-            fatalError()
+            throw GLTFError.unsupported("Unsupported accessor type \(accessor.type)")
         }
 
         // `bufferData` starts at the buffer view; the accessor's byteOffset is
         // relative to that, and matters for interleaved buffer views.
         let dataStride = bufferView.byteStride ?? (componentsPerVector * bytesPerComponent)
-        let scnSource = SCNGeometrySource(data: bufferData, semantic: semantic, vectorCount: accessor.count, usesFloatComponents: usesFloatComponents, componentsPerVector: componentsPerVector, bytesPerComponent: bytesPerComponent, dataOffset: accessor.byteOffset, dataStride: dataStride)
-        return scnSource
+        return SCNGeometrySource(
+            data: bufferData,
+            semantic: semantic,
+            vectorCount: accessor.count,
+            usesFloatComponents: usesFloatComponents,
+            componentsPerVector: componentsPerVector,
+            bytesPerComponent: bytesPerComponent,
+            dataOffset: accessor.byteOffset,
+            dataStride: dataStride
+        )
     }
 
     struct PrimitiveGeometry {
@@ -170,7 +175,7 @@ public class SceneKitGenerator {
                     primitiveType = .triangles
                     primitiveCount = indicesAccessor.count / 3
                 default:
-                    fatalError()
+                    throw GLTFError.unsupported("Unsupported primitive mode \(primitive.mode)")
                 }
 
                 let bytesPerIndex: Int
@@ -182,7 +187,7 @@ public class SceneKitGenerator {
                 case (.SCALAR, .UNSIGNED_INT):
                     bytesPerIndex = MemoryLayout<UInt32>.size
                 default:
-                    fatalError()
+                    throw GLTFError.unsupported("Unsupported index type \(indicesAccessor.type)/\(indicesAccessor.componentType)")
                 }
 
                 let indicesStart = indicesBufferView.byteOffset + indicesAccessor.byteOffset
@@ -269,7 +274,10 @@ public class SceneKitGenerator {
         let texture = try textureInfo.index.resolve(in: document)
         let sampler = try texture.sampler?.resolve(in: document) ?? Sampler()
         let source = try texture.source!.resolve(in: document)
-        let url = resolve(uri: source.uri!)
+        guard let sourceURI = source.uri else {
+            throw GLTFError.missingResource("Texture image has no uri")
+        }
+        let url = try resolve(uri: sourceURI)
         let cgImage: CGImage = try {
             let cgImage = try CGImage.load(contentsOf: url)
             switch channel {

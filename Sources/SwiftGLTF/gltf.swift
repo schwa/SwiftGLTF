@@ -1,6 +1,5 @@
 // swiftlint:disable file_length
 // swiftlint:disable type_name
-// swiftlint:disable fatal_error_message
 
 import Foundation
 import simd
@@ -11,6 +10,8 @@ public enum GLTFError: Error {
     case unknown
     case malformedGLB(String)
     case accessorOutOfBounds
+    case unsupported(String)
+    case missingResource(String)
 }
 
 public struct Container {
