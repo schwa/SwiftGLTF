@@ -84,9 +84,7 @@ struct AnimationTests {
 
     @Test
     func decodesRealAnimatedSample() throws {
-        let url = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-            .appendingPathComponent(".sample-assets/Models/BoxAnimated/glTF-Binary/BoxAnimated.glb")
+        let url = TestSupport.sampleModels.appendingPathComponent("BoxAnimated/glTF-Binary/BoxAnimated.glb")
         guard FileManager.default.fileExists(atPath: url.path) else {
             return // run `just download-sample-assets`
         }

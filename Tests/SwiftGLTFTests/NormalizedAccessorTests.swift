@@ -5,11 +5,7 @@ import Testing
 
 struct NormalizedAccessorTests {
     private func sampleModel(_ path: String) -> URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent(".sample-assets/Models/\(path)")
+        TestSupport.sampleModels.appendingPathComponent(path)
     }
 
     // RecursiveSkeletons' COLOR_0 is a normalized UNSIGNED_BYTE VEC4; values must

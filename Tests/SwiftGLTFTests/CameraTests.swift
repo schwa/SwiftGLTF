@@ -8,11 +8,7 @@ import Testing
 
 struct CameraTests {
     private var camerasURL: URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent(".sample-assets/Models/Cameras/glTF-Embedded/Cameras.gltf")
+        TestSupport.sampleModels.appendingPathComponent("Cameras/glTF-Embedded/Cameras.gltf")
     }
 
     @Test

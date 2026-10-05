@@ -35,21 +35,29 @@ struct SubObjectExtensionsTests {
     }
     """
 
+    private struct Preserved {
+        let name: String
+        let extensions: Extensions?
+        let extras: JSONValue?
+    }
+
     private func check(_ document: Document, _ label: String) {
         let sparse = document.accessors[0].sparse
-        let objects: [(String, Extensions?, JSONValue?)] = [
-            ("sparse", sparse?.extensions, sparse?.extras),
-            ("sparse.indices", sparse?.indices.extensions, sparse?.indices.extras),
-            ("sparse.values", sparse?.values.extensions, sparse?.values.extras),
-            ("perspective", document.cameras[0].perspective?.extensions, document.cameras[0].perspective?.extras),
-            ("orthographic", document.cameras[1].orthographic?.extensions, document.cameras[1].orthographic?.extras),
-            ("channel", document.animations[0].channels[0].extensions, document.animations[0].channels[0].extras),
-            ("channel.target", document.animations[0].channels[0].target.extensions, document.animations[0].channels[0].target.extras),
-            ("animation.sampler", document.animations[0].samplers[0].extensions, document.animations[0].samplers[0].extras)
+        let channel = document.animations[0].channels[0]
+        let sampler = document.animations[0].samplers[0]
+        let objects = [
+            Preserved(name: "sparse", extensions: sparse?.extensions, extras: sparse?.extras),
+            Preserved(name: "sparse.indices", extensions: sparse?.indices.extensions, extras: sparse?.indices.extras),
+            Preserved(name: "sparse.values", extensions: sparse?.values.extensions, extras: sparse?.values.extras),
+            Preserved(name: "perspective", extensions: document.cameras[0].perspective?.extensions, extras: document.cameras[0].perspective?.extras),
+            Preserved(name: "orthographic", extensions: document.cameras[1].orthographic?.extensions, extras: document.cameras[1].orthographic?.extras),
+            Preserved(name: "channel", extensions: channel.extensions, extras: channel.extras),
+            Preserved(name: "channel.target", extensions: channel.target.extensions, extras: channel.target.extras),
+            Preserved(name: "animation.sampler", extensions: sampler.extensions, extras: sampler.extras)
         ]
-        for (name, extensions, extras) in objects {
-            #expect(extensions == Self.expectedExtensions, "\(label): \(name) extensions")
-            #expect(extras == Self.expectedExtras, "\(label): \(name) extras")
+        for object in objects {
+            #expect(object.extensions == Self.expectedExtensions, "\(label): \(object.name) extensions")
+            #expect(object.extras == Self.expectedExtras, "\(label): \(object.name) extras")
         }
     }
 

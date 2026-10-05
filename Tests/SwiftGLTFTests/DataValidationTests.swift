@@ -95,9 +95,7 @@ struct DataValidationTests {
     // Real sample models must pass data validation without false-positive errors.
     @Test
     func sampleModelsHaveNoDataErrors() throws {
-        let models = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-            .appendingPathComponent(".sample-assets/Models")
+        let models = TestSupport.sampleModels
         guard let names = try? FileManager.default.contentsOfDirectory(atPath: models.path) else {
             return
         }

@@ -136,9 +136,7 @@ struct ValidationTests {
     // Every binary sample model should validate without structural errors.
     @Test
     func sampleModelsHaveNoErrors() throws {
-        let models = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-            .appendingPathComponent(".sample-assets/Models")
+        let models = TestSupport.sampleModels
         guard let names = try? FileManager.default.contentsOfDirectory(atPath: models.path) else {
             return // run `just download-sample-assets`
         }
@@ -149,9 +147,8 @@ struct ValidationTests {
                   let container = try? Container(url: dir.appendingPathComponent(file)) else {
                 continue
             }
-            let errors = container.document.validate().filter { $0.severity == .error }
-                // Unsupported required extensions are legitimately reported.
-                .filter { $0.path != "/extensionsRequired" }
+            // Unsupported required extensions are legitimately reported.
+            let errors = container.document.validate().filter { $0.severity == .error && $0.path != "/extensionsRequired" }
             if !errors.isEmpty {
                 failures.append("\(name): \(errors.map(\.description).joined(separator: "; "))")
             }

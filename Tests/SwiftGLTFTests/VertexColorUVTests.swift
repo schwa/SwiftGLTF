@@ -7,11 +7,7 @@ import Testing
 
 struct VertexColorUVTests {
     private func sampleModel(_ path: String) -> URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent(".sample-assets/Models/\(path)")
+        TestSupport.sampleModels.appendingPathComponent(path)
     }
 
     private func sources(in scene: SCNScene, semantic: SCNGeometrySource.Semantic) -> Int {

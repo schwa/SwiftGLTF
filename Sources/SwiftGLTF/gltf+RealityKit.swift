@@ -162,7 +162,7 @@ public class RealityKitGLTFGenerator {
         }
         else if let positions = try primitive.attributes[.POSITION]?.resolve(in: container.document) {
             // Non-indexed: vertices are drawn in order.
-            meshDescriptor.primitives = .triangles((0 ..< UInt32(positions.count)).map { $0 })
+            meshDescriptor.primitives = .triangles(Array(0 ..< UInt32(positions.count)))
         }
         return meshDescriptor
     }

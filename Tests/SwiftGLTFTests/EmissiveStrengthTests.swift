@@ -8,11 +8,7 @@ import Testing
 
 struct EmissiveStrengthTests {
     private func model() -> URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent(".sample-assets/Models/EmissiveStrengthTest/glTF-Binary/EmissiveStrengthTest.glb")
+        TestSupport.sampleModels.appendingPathComponent("EmissiveStrengthTest/glTF-Binary/EmissiveStrengthTest.glb")
     }
 
     @Test

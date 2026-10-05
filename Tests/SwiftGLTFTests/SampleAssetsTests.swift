@@ -13,10 +13,7 @@ import Testing
 private enum SampleAssets {
     // <repo>/Tests/SwiftGLTFTests/SampleAssetsTests.swift -> <repo>
     static var repoRoot: URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
+        TestSupport.repositoryRoot
     }
 
     static var modelsDirectory: URL {

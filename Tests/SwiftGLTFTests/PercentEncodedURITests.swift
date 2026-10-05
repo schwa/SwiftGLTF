@@ -1,10 +1,7 @@
 #if os(macOS)
-import CoreGraphics
 import Foundation
-import ImageIO
 import SceneKit
 import Testing
-import UniformTypeIdentifiers
 
 @testable import SwiftGLTF
 
@@ -19,16 +16,7 @@ struct PercentEncodedURITests {
         try positions.withUnsafeBufferPointer { Data(buffer: $0) }
             .write(to: directory.appendingPathComponent("my buffer.bin"))
 
-        let context = try #require(CGContext(
-            data: nil, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
-            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-        ))
-        context.setFillColor(CGColor(red: 1, green: 0, blue: 0, alpha: 1))
-        context.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
-        let pngURL = directory.appendingPathComponent("my texture.png")
-        let destination = try #require(CGImageDestinationCreateWithURL(pngURL as CFURL, UTType.png.identifier as CFString, 1, nil))
-        CGImageDestinationAddImage(destination, try #require(context.makeImage()), nil)
-        CGImageDestinationFinalize(destination)
+        try TestSupport.png(red: 1, green: 0, blue: 0).write(to: directory.appendingPathComponent("my texture.png"))
 
         let json = """
         {

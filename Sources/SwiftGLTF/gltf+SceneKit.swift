@@ -287,7 +287,7 @@ public class SceneKitGenerator {
                 guard primitive.mode == .TRIANGLES else {
                     throw GLTFError.unsupported("Unsupported primitive mode \(primitive.mode)")
                 }
-                let indices = (0 ..< UInt32(positions.count)).map { $0 }
+                let indices = Array(0 ..< UInt32(positions.count))
                 scnElement = SCNGeometryElement(indices: indices, primitiveType: .triangles)
             }
 

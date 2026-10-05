@@ -67,11 +67,7 @@ struct SceneKitRenderingTests {
     }
 
     private var sampleAssetsModels: URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent(".sample-assets/Models")
+        TestSupport.sampleModels
     }
 
     private func renderAndCompare(scene: SCNScene, device: MTLDevice, goldenNamed name: String) throws {

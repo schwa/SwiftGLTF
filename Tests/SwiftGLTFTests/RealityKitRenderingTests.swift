@@ -97,12 +97,7 @@ struct RealityKitRenderingTests {
             return
         }
         let image = try render(root: Entity(), device: device, from: [0, 0, 4], background: CGColor(gray: 0.12, alpha: 1))
-        var pixel = [UInt8](repeating: 0, count: 4)
-        let context = try #require(CGContext(
-            data: &pixel, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
-            space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-        ))
-        context.draw(image.cropping(to: CGRect(x: 0, y: 0, width: 1, height: 1))!, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+        let pixel = TestSupport.firstPixel(of: image, space: CGColorSpace(name: CGColorSpace.sRGB)!)
         #expect((25 ... 55).contains(Int(pixel[0])), "background red channel \(pixel[0]); ~3-7 means linear readback")
     }
 
@@ -166,10 +161,7 @@ struct RealityKitRenderingTests {
 }
 
 private var repoRoot: URL {
-    URL(fileURLWithPath: #filePath)
-        .deletingLastPathComponent()
-        .deletingLastPathComponent()
-        .deletingLastPathComponent()
+    TestSupport.repositoryRoot
 }
 
 private func firstModelComponent(_ entity: Entity) -> ModelComponent? {

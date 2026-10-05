@@ -27,24 +27,55 @@ enum TestSupport {
         values.withUnsafeBufferPointer { Data(buffer: $0) }
     }
 
-    // A 1x1 opaque PNG of the given color.
-    static func png(red: CGFloat = 1, green: CGFloat = 1, blue: CGFloat = 1) -> Data {
-        let context = CGContext(
-            data: nil, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
-            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+    // A 1x1 RGBA8 bitmap context in `space` (device RGB by default).
+    static func pixelContext(data: UnsafeMutableRawPointer? = nil, space: CGColorSpace = CGColorSpaceCreateDeviceRGB()) -> CGContext {
+        CGContext(
+            data: data,
+            width: 1,
+            height: 1,
+            bitsPerComponent: 8,
+            bytesPerRow: 4,
+            space: space,
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
         )!
+    }
+
+    // A 1x1 opaque image of the given color.
+    static func image(red: CGFloat = 1, green: CGFloat = 1, blue: CGFloat = 1) -> CGImage {
+        let context = pixelContext()
         context.setFillColor(CGColor(red: red, green: green, blue: blue, alpha: 1))
         context.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
+        return context.makeImage()!
+    }
+
+    // A 1x1 opaque PNG of the given color.
+    static func png(red: CGFloat = 1, green: CGFloat = 1, blue: CGFloat = 1) -> Data {
         let data = NSMutableData()
         let destination = CGImageDestinationCreateWithData(data, UTType.png.identifier as CFString, 1, nil)!
-        CGImageDestinationAddImage(destination, context.makeImage()!, nil)
+        CGImageDestinationAddImage(destination, image(red: red, green: green, blue: blue), nil)
         CGImageDestinationFinalize(destination)
         return data as Data
     }
 
-    static var sampleModels: URL {
+    // RGBA of the top-left pixel of `image`, drawn into `space`.
+    static func firstPixel(of image: CGImage, space: CGColorSpace = CGColorSpaceCreateDeviceRGB()) -> [UInt8] {
+        var pixel = [UInt8](repeating: 0, count: 4)
+        pixel.withUnsafeMutableBytes { buffer in
+            let context = pixelContext(data: buffer.baseAddress, space: space)
+            let corner = image.cropping(to: CGRect(x: 0, y: 0, width: 1, height: 1)) ?? image
+            context.draw(corner, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+        }
+        return pixel
+    }
+
+    static var repositoryRoot: URL {
         URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-            .appendingPathComponent(".sample-assets/Models")
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+    }
+
+    static var sampleModels: URL {
+        repositoryRoot.appendingPathComponent(".sample-assets/Models")
     }
 }

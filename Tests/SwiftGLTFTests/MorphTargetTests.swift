@@ -59,9 +59,7 @@ struct MorphTargetTests {
 
     @Test
     func decodesRealMorphSample() throws {
-        let url = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-            .appendingPathComponent(".sample-assets/Models/AnimatedMorphCube/glTF-Binary/AnimatedMorphCube.glb")
+        let url = TestSupport.sampleModels.appendingPathComponent("AnimatedMorphCube/glTF-Binary/AnimatedMorphCube.glb")
         guard FileManager.default.fileExists(atPath: url.path) else {
             return // run `just download-sample-assets`
         }

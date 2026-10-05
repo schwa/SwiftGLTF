@@ -54,13 +54,7 @@ struct TextureInfoScaleTests {
     func occlusionStrengthBakesTowardWhite() throws {
         // Opaque black (an empty context is transparent, and premultiplied
         // alpha 0 would cancel the bias).
-        let context = try #require(CGContext(
-            data: nil, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
-            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-        ))
-        context.setFillColor(CGColor(red: 0, green: 0, blue: 0, alpha: 1))
-        context.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
-        let black = try #require(context.makeImage())
+        let black = TestSupport.image(red: 0, green: 0, blue: 0)
         let baked = try black.occlusionAdjusted(strength: 0)
         let pixel = try #require(baked.dataProvider?.data as Data?)
         #expect(pixel[0] > 250) // red channel now ~white

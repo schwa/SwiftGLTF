@@ -5,9 +5,7 @@ import Testing
 
 struct WriterTests {
     private var models: URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-            .appendingPathComponent(".sample-assets/Models")
+        TestSupport.sampleModels
     }
 
     private func temporaryDirectory() throws -> URL {

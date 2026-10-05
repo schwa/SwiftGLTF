@@ -6,9 +6,7 @@ import Testing
 
 struct SkinTests {
     private var modelURL: URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-            .appendingPathComponent(".sample-assets/Models/RiggedSimple/glTF-Binary/RiggedSimple.glb")
+        TestSupport.sampleModels.appendingPathComponent("RiggedSimple/glTF-Binary/RiggedSimple.glb")
     }
 
     @Test

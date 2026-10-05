@@ -6,11 +6,7 @@ import Testing
 
 struct SparseAccessorTests {
     private var modelURL: URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent(".sample-assets/Models/SimpleSparseAccessor/glTF-Embedded/SimpleSparseAccessor.gltf")
+        TestSupport.sampleModels.appendingPathComponent("SimpleSparseAccessor/glTF-Embedded/SimpleSparseAccessor.gltf")
     }
 
     @Test
