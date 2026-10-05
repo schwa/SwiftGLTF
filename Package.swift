@@ -15,6 +15,10 @@ let package = Package(
             name: "SwiftGLTF",
             targets: ["SwiftGLTF"]
         ),
+        .library(
+            name: "SwiftGLTFTangents",
+            targets: ["SwiftGLTFTangents"]
+        ),
         .executable(
             name: "gltf-render",
             targets: ["gltf-render"]
@@ -27,6 +31,13 @@ let package = Package(
     targets: [
         .target(
             name: "SwiftGLTF"
+        ),
+        .target(
+            name: "MikkTSpace"
+        ),
+        .target(
+            name: "SwiftGLTFTangents",
+            dependencies: ["SwiftGLTF", "MikkTSpace"]
         ),
         .executableTarget(
             name: "gltf-render",
@@ -43,6 +54,10 @@ let package = Package(
                 .copy("Box-byteStride.glb"),
                 .copy("GoldenImages"),
             ]
+        ),
+        .testTarget(
+            name: "SwiftGLTFTangentsTests",
+            dependencies: ["SwiftGLTFTangents"]
         ),
     ]
 )
