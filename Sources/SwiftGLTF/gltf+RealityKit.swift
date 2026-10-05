@@ -1,3 +1,5 @@
+// swiftlint:disable file_length type_body_length
+
 #if os(macOS)
 import AppKit
 #elseif os(iOS)
@@ -176,7 +178,8 @@ public class RealityKitGLTFGenerator {
     private func texture(
         from info: TextureInfo,
         semantic: TextureResource.Semantic,
-        channel: TextureChannel? = nil
+        channel: TextureChannel? = nil,
+        tint: SIMD3<Float>? = nil
     ) throws -> MaterialParameters.Texture {
         if info.textureTransform != nil {
             // PhysicallyBasedMaterial has no public per-texture UV transform.
@@ -191,6 +194,9 @@ public class RealityKitGLTFGenerator {
         case .green: image = image.greenChannel
         case .blue: image = image.blueChannel
         case .none: break
+        }
+        if let tint {
+            image = try image.multiplied(by: tint)
         }
         let resource = try TextureResource.generate(from: image, options: .init(semantic: semantic))
         return MaterialParameters.Texture(resource)
@@ -247,14 +253,20 @@ public class RealityKitGLTFGenerator {
         }
 
         let emissiveFactor = material.emissiveFactor ?? [0, 0, 0]
-        var emissiveTexture: MaterialParameters.Texture?
         if let emissiveInfo = material.emissiveTexture {
-            emissiveTexture = try texture(from: emissiveInfo, semantic: .color)
-        }
-        if emissiveTexture != nil || emissiveFactor != [0, 0, 0] {
-            let emissiveColor = color(SIMD4<Float>(emissiveFactor.x, emissiveFactor.y, emissiveFactor.z, 1))
-            reMaterial.emissiveColor = .init(color: emissiveColor, texture: emissiveTexture)
+            // glTF emissive = emissiveFactor * emissiveTexture. RealityKit's
+            // EmissiveColor(color:texture:) does not multiply this way (a white
+            // color makes the whole surface glow), so pass the texture alone and
+            // bake a non-white factor into it.
+            let tint: SIMD3<Float>? = emissiveFactor == [1, 1, 1] ? nil : emissiveFactor
+            let emissive = try texture(from: emissiveInfo, semantic: .color, tint: tint)
+            reMaterial.emissiveColor = .init(texture: emissive)
             reMaterial.emissiveIntensity = material.emissiveStrength // KHR_materials_emissive_strength
+        }
+        else if emissiveFactor != [0, 0, 0] {
+            let emissiveColor = color(SIMD4<Float>(emissiveFactor.x, emissiveFactor.y, emissiveFactor.z, 1))
+            reMaterial.emissiveColor = .init(color: emissiveColor)
+            reMaterial.emissiveIntensity = material.emissiveStrength
         }
 
         if material.doubleSided ?? false {
@@ -299,6 +311,20 @@ extension Container {
 }
 
 extension CGImage {
+    // Multiplies the RGB channels by `factor` (alpha unchanged).
+    func multiplied(by factor: SIMD3<Float>) throws -> CGImage {
+        let filter = CIFilter(name: "CIColorMatrix")!
+        filter.setValue(CIImage(cgImage: self), forKey: kCIInputImageKey)
+        filter.setValue(CIVector(x: CGFloat(factor.x), y: 0, z: 0, w: 0), forKey: "inputRVector")
+        filter.setValue(CIVector(x: 0, y: CGFloat(factor.y), z: 0, w: 0), forKey: "inputGVector")
+        filter.setValue(CIVector(x: 0, y: 0, z: CGFloat(factor.z), w: 0), forKey: "inputBVector")
+        guard let output = filter.outputImage,
+              let image = CIContext().createCGImage(output, from: output.extent) else {
+            throw GLTFError.unknown
+        }
+        return image
+    }
+
     static func image(with data: Data) throws -> CGImage {
         let source = CGImageSourceCreateWithData(data as CFData, nil)!
         let image = CGImageSourceCreateImageAtIndex(source, 0, nil)

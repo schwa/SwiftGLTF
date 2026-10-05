@@ -31,19 +31,29 @@ struct GLTFRender: AsyncParsableCommand {
     @Option(name: [.short, .long], help: "Rendering backend: scenekit or realitykit.")
     var backend: Backend = .scenekit
 
+    @Option(name: [.short, .long], help: "Equirectangular HDR/EXR image used for image-based lighting.")
+    var environment: String?
+
+    @Option(help: "RealityKit IBL intensity exponent (intensity is multiplied by 2^exposure).")
+    var exposure: Float = 0
+
     func run() async throws {
         let modelURL = URL(fileURLWithPath: model)
         let outputURL = URL(fileURLWithPath: output)
         let container = try Container(url: modelURL)
+        let environmentImage = try environment.map { try loadImage(at: URL(fileURLWithPath: $0)) }
 
         let image: CGImage
         switch backend {
         case .scenekit:
-            image = try renderSceneKit(container: container, size: size)
+            image = try renderSceneKit(container: container, size: size, environment: environmentImage)
         case .realitykit:
-            image = try await MainActor.run {
-                try renderRealityKit(container: container, size: size)
-            }
+            image = try await renderRealityKit(
+                container: container,
+                size: size,
+                environment: environmentImage,
+                exposure: exposure
+            )
         }
 
         let rep = NSBitmapImageRep(cgImage: image)
@@ -57,7 +67,7 @@ struct GLTFRender: AsyncParsableCommand {
 
 // MARK: - SceneKit
 
-private func renderSceneKit(container: Container, size: Int) throws -> CGImage {
+private func renderSceneKit(container: Container, size: Int, environment: CGImage?) throws -> CGImage {
     let scene = try SceneKitGenerator(container: container).generateSCNScene()
 
     let (center, radius) = scene.rootNode.boundingSphere
@@ -76,8 +86,14 @@ private func renderSceneKit(container: Container, size: Int) throws -> CGImage {
     cameraNode.look(at: center)
     scene.rootNode.addChildNode(cameraNode)
 
-    scene.lightingEnvironment.contents = gradientEnvironment()
-    scene.lightingEnvironment.intensity = 2.0
+    if let environment {
+        scene.lightingEnvironment.contents = environment
+        scene.lightingEnvironment.intensity = 1.0
+    }
+    else {
+        scene.lightingEnvironment.contents = gradientEnvironment()
+        scene.lightingEnvironment.intensity = 2.0
+    }
     scene.background.contents = CGColor(gray: 0.12, alpha: 1)
 
     let keyLight = SCNNode()
@@ -109,7 +125,12 @@ private func renderSceneKit(container: Container, size: Int) throws -> CGImage {
 // MARK: - RealityKit
 
 @MainActor
-private func renderRealityKit(container: Container, size: Int) throws -> CGImage {
+private func renderRealityKit(
+    container: Container,
+    size: Int,
+    environment: CGImage?,
+    exposure: Float
+) async throws -> CGImage {
     guard let device = MTLCreateSystemDefaultDevice() else {
         throw ValidationError("No Metal device")
     }
@@ -123,15 +144,23 @@ private func renderRealityKit(container: Container, size: Int) throws -> CGImage
     renderer.cameraSettings.colorBackground = .color(CGColor(gray: 0.12, alpha: 1))
     renderer.entities.append(root)
 
-    let keyLight = Entity()
-    keyLight.components.set(DirectionalLightComponent(color: .white, intensity: 1200))
-    keyLight.look(at: center, from: center + SIMD3<Float>(1, 2, 3) * radius, relativeTo: nil)
-    renderer.entities.append(keyLight)
+    if let environment {
+        // Image-based lighting: metallic/rough PBR surfaces need an environment
+        // to reflect, otherwise they read as flat gray.
+        renderer.lighting.resource = try await EnvironmentResource(equirectangular: environment, withName: nil)
+        renderer.lighting.intensityExponent = exposure
+    }
+    else {
+        let keyLight = Entity()
+        keyLight.components.set(DirectionalLightComponent(color: .white, intensity: 1200))
+        keyLight.look(at: center, from: center + SIMD3<Float>(1, 2, 3) * radius, relativeTo: nil)
+        renderer.entities.append(keyLight)
 
-    let fill = Entity()
-    fill.components.set(DirectionalLightComponent(color: .white, intensity: 400))
-    fill.look(at: center, from: center + SIMD3<Float>(-2, 1, -1) * radius, relativeTo: nil)
-    renderer.entities.append(fill)
+        let fill = Entity()
+        fill.components.set(DirectionalLightComponent(color: .white, intensity: 400))
+        fill.look(at: center, from: center + SIMD3<Float>(-2, 1, -1) * radius, relativeTo: nil)
+        renderer.entities.append(fill)
+    }
 
     let camera = Entity()
     camera.components.set(PerspectiveCameraComponent())
@@ -140,8 +169,10 @@ private func renderRealityKit(container: Container, size: Int) throws -> CGImage
     renderer.entities.append(camera)
     renderer.activeCamera = camera
 
+    // RealityRenderer writes linear color; an _srgb target encodes it so the
+    // bytes read back as proper sRGB.
     let descriptor = MTLTextureDescriptor.texture2DDescriptor(
-        pixelFormat: .rgba8Unorm,
+        pixelFormat: .rgba8Unorm_srgb,
         width: size,
         height: size,
         mipmapped: false
@@ -167,6 +198,14 @@ private func renderRealityKit(container: Container, size: Int) throws -> CGImage
 }
 
 // MARK: - Helpers
+
+private func loadImage(at url: URL) throws -> CGImage {
+    guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+          let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
+        throw ValidationError("Could not load environment image at \(url.path)")
+    }
+    return image
+}
 
 private extension SIMD3 where Scalar == Float {
     var normalized: SIMD3<Float> {

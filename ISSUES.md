@@ -518,11 +518,13 @@ Acceptance: invalid models report actionable diagnostics; a validate() API or te
 ## 27: RealityKit render path needs image-based lighting (IBL)
 
 +++
-status: open
+status: closed
 priority: medium
 kind: enhancement
 labels: effort:m, area:rendering
 created: 2026-10-05T14:38:29Z
+updated: 2026-10-05T14:59:04Z
+closed: 2026-10-05T14:59:04Z
 +++
 
 The gltf-render RealityKit backend (and RealityRenderer-based tests) render highly-metallic models (e.g. DamagedHelmet) as washed-out uniform gray. RealityRenderer has no lighting environment set, so metallic/rough surfaces have nothing to reflect except the directional key/fill lights -> they read as flat bright gray instead of showing base color + reflections. SceneKit already looks correct because it uses lightingEnvironment.
@@ -532,6 +534,8 @@ Set RealityRenderer.lighting.resource to an EnvironmentResource (IBL):
 - Expose it in gltf-render (and reuse in the RealityKit render tests for nicer, more representative goldens).
 
 Acceptance: DamagedHelmet via 'gltf-render -b realitykit' shows its base-color texture and plausible metallic reflections instead of a uniform white/gray blob.
+
+- `2026-10-05T14:59:04Z`: Done, but the original diagnosis was incomplete. IBL alone did NOT fix the washed-out look. Root cause (found by disabling emissive): RealityKit's EmissiveColor(color:texture:) doesn't compute factor*texture, so DamagedHelmet's white emissiveFactor made the whole surface glow. Fixed in makeMaterial: pass the emissive texture alone and bake a non-white factor into it. Also: RealityRenderer writes linear color, so the CLI now renders into rgba8Unorm_srgb (was too dark). Added gltf-render --environment <equirect HDR/EXR> (RealityKit IBL via EnvironmentResource + SceneKit lightingEnvironment) and --exposure. Regenerated the DamagedHelmet-realitykit golden (old one encoded the emissive bug).
 
 ---
 
