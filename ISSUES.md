@@ -703,11 +703,13 @@ Acceptance: for the sample corpus, a load -> save round trip re-emits a field on
 ## 35: Model normalTexture.scale and occlusionTexture.strength
 
 +++
-status: open
+status: closed
 priority: medium
 kind: bug
 labels: effort:s, area:parsing
 created: 2026-10-05T15:47:27Z
+updated: 2026-10-05T15:50:42Z
+closed: 2026-10-05T15:50:42Z
 +++
 
 Material.normalTexture and occlusionTexture are decoded as TextureInfo, which only has index/texCoord. The spec's normalTextureInfo.scale (default 1) and occlusionTextureInfo.strength (default 1) are dropped on load and therefore lost on write (#25).
@@ -715,6 +717,8 @@ Material.normalTexture and occlusionTexture are decoded as TextureInfo, which on
 Add NormalTextureInfo (scale) and OcclusionTextureInfo (strength) types (or optional fields), decode/encode them, and apply them in the generators where possible (SceneKit normal intensity / ambientOcclusion intensity; RealityKit normal/AO scale).
 
 Acceptance: a material with scale 0.5 / strength 0.3 decodes those values and round-trips through the writer.
+
+- `2026-10-05T15:50:42Z`: TextureInfo gains optional scale/strength (written back only if present) with normalScale/occlusionStrength defaults of 1. SceneKit: normal.intensity = scale, ambientOcclusion.intensity = strength (and AO now reads the R channel per spec). RealityKit has no such parameters, so they are baked into the texture with a non-color-managed CIColorMatrix (normal: n' = s*n + (1-s)/2 on RG; AO: ao' = 1 + s*(ao-1)). Tests: TextureInfoScaleTests (decode, defaults, encoder round-trip, both bakes).
 
 ---
 
@@ -726,7 +730,6 @@ priority: low
 kind: task
 labels: effort:s, area:api
 created: 2026-10-05T15:47:27Z
-updated: 2026-10-05T15:47:27Z
 +++
 
 The writer is only checked by our own validator and round-trip tests. Add a CI step that writes the sample corpus (GLB and embedded glTF) and runs the official Khronos glTF-Validator (npx gltf-validator) on the output, failing on errors.

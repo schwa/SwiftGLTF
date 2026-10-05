@@ -1,4 +1,4 @@
-// swiftlint:disable type_body_length
+// swiftlint:disable file_length type_body_length
 
 #if os(macOS)
 import AppKit
@@ -179,7 +179,8 @@ public class RealityKitGLTFGenerator {
         from info: TextureInfo,
         semantic: TextureResource.Semantic,
         channel: TextureChannel? = nil,
-        tint: SIMD3<Float>? = nil
+        tint: SIMD3<Float>? = nil,
+        adjust: ((CGImage) throws -> CGImage)? = nil
     ) throws -> MaterialParameters.Texture {
         if info.textureTransform != nil {
             // PhysicallyBasedMaterial has no public per-texture UV transform.
@@ -197,6 +198,9 @@ public class RealityKitGLTFGenerator {
         }
         if let tint {
             image = try image.multiplied(by: tint)
+        }
+        if let adjust {
+            image = try adjust(image)
         }
         let resource = try TextureResource.generate(from: image, options: .init(semantic: semantic))
         return MaterialParameters.Texture(resource)
@@ -242,14 +246,25 @@ public class RealityKitGLTFGenerator {
             }
         }
 
+        // RealityKit has no normal-scale / occlusion-strength parameters, so bake
+        // them into the texture when they differ from the default 1.
         if let normalInfo = material.normalTexture {
-            reMaterial.normal = .init(texture: try texture(from: normalInfo, semantic: .normal))
+            let scale = normalInfo.normalScale
+            reMaterial.normal = .init(texture: try texture(
+                from: normalInfo,
+                semantic: .normal,
+                adjust: scale == 1 ? nil : { try $0.normalScaled(by: scale) }
+            ))
         }
 
         if let occlusionInfo = material.occlusionTexture {
-            reMaterial.ambientOcclusion = .init(
-                texture: try texture(from: occlusionInfo, semantic: .raw, channel: .red)
-            )
+            let strength = occlusionInfo.occlusionStrength
+            reMaterial.ambientOcclusion = .init(texture: try texture(
+                from: occlusionInfo,
+                semantic: .raw,
+                channel: .red,
+                adjust: strength == 1 ? nil : { try $0.occlusionAdjusted(strength: strength) }
+            ))
         }
 
         let emissiveFactor = material.emissiveFactor ?? [0, 0, 0]
@@ -299,13 +314,35 @@ public class RealityKitGLTFGenerator {
 extension CGImage {
     // Multiplies the RGB channels by `factor` (alpha unchanged).
     func multiplied(by factor: SIMD3<Float>) throws -> CGImage {
+        try colorMatrix(scale: factor, bias: .zero, colorManaged: true)
+    }
+
+    // Normal map scale per glTF: xy *= scale. In [0,1] encoding that is
+    // n' = scale * n + (1 - scale) / 2 on R and G; B unchanged.
+    func normalScaled(by scale: Float) throws -> CGImage {
+        let offset = (1 - scale) / 2
+        return try colorMatrix(scale: [scale, scale, 1], bias: [offset, offset, 0], colorManaged: false)
+    }
+
+    // Occlusion strength per glTF: ao' = 1 + strength * (ao - 1).
+    func occlusionAdjusted(strength: Float) throws -> CGImage {
+        let offset = 1 - strength
+        return try colorMatrix(scale: [strength, strength, strength], bias: [offset, offset, offset], colorManaged: false)
+    }
+
+    // out.rgb = in.rgb * scale + bias. Data textures (normal/AO) must skip color
+    // management, otherwise sRGB<->linear conversion distorts the bias.
+    private func colorMatrix(scale: SIMD3<Float>, bias: SIMD3<Float>, colorManaged: Bool) throws -> CGImage {
         let filter = CIFilter(name: "CIColorMatrix")!
-        filter.setValue(CIImage(cgImage: self), forKey: kCIInputImageKey)
-        filter.setValue(CIVector(x: CGFloat(factor.x), y: 0, z: 0, w: 0), forKey: "inputRVector")
-        filter.setValue(CIVector(x: 0, y: CGFloat(factor.y), z: 0, w: 0), forKey: "inputGVector")
-        filter.setValue(CIVector(x: 0, y: 0, z: CGFloat(factor.z), w: 0), forKey: "inputBVector")
+        let input = colorManaged ? CIImage(cgImage: self) : CIImage(cgImage: self, options: [.colorSpace: NSNull()])
+        filter.setValue(input, forKey: kCIInputImageKey)
+        filter.setValue(CIVector(x: CGFloat(scale.x), y: 0, z: 0, w: 0), forKey: "inputRVector")
+        filter.setValue(CIVector(x: 0, y: CGFloat(scale.y), z: 0, w: 0), forKey: "inputGVector")
+        filter.setValue(CIVector(x: 0, y: 0, z: CGFloat(scale.z), w: 0), forKey: "inputBVector")
+        filter.setValue(CIVector(x: CGFloat(bias.x), y: CGFloat(bias.y), z: CGFloat(bias.z), w: 0), forKey: "inputBiasVector")
+        let context = colorManaged ? CIContext() : CIContext(options: [.workingColorSpace: NSNull(), .outputColorSpace: NSNull()])
         guard let output = filter.outputImage,
-              let image = CIContext().createCGImage(output, from: output.extent) else {
+              let image = context.createCGImage(output, from: output.extent) else {
             throw GLTFError.unknown
         }
         return image

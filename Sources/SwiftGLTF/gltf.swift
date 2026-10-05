@@ -833,12 +833,27 @@ public struct Texture: Codable, Hashable, Sendable, Resolver {
 public struct TextureInfo: Codable, Hashable, Sendable, Extensible {
     public let index: Index<Texture>
     public let texCoord: Int
+    // Only meaningful on Material.normalTexture (normalTextureInfo.scale).
+    // Kept optional so it is written back only if it was in the source.
+    public let scale: Float?
+    // Only meaningful on Material.occlusionTexture (occlusionTextureInfo.strength).
+    public let strength: Float?
     public let extensions: Extensions?
     public let extras: JSONValue?
+
+    public var normalScale: Float {
+        scale ?? 1
+    }
+
+    public var occlusionStrength: Float {
+        strength ?? 1
+    }
 
     public enum CodingKeys: CodingKey {
         case index
         case texCoord
+        case scale
+        case strength
         case extensions
         case extras
     }
@@ -847,6 +862,8 @@ public struct TextureInfo: Codable, Hashable, Sendable, Extensible {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         index = try container.decode(Index<Texture>.self, forKey: .index)
         texCoord = try container.decodeIfPresent(Int.self, forKey: .texCoord) ?? 0
+        scale = try container.decodeIfPresent(Float.self, forKey: .scale)
+        strength = try container.decodeIfPresent(Float.self, forKey: .strength)
         extensions = try container.decodeIfPresent(Extensions.self, forKey: .extensions)
         extras = try container.decodeIfPresent(JSONValue.self, forKey: .extras)
     }

@@ -324,11 +324,13 @@ public class SceneKitGenerator {
 
         if let normalTexture = material.normalTexture {
             try configureSCNMaterialProperty(property: scnMaterial.normal, from: normalTexture)
+            scnMaterial.normal.intensity = CGFloat(normalTexture.normalScale)
         }
 
         if let occlusionTexture = material.occlusionTexture {
-            warning("Hopefully ambientOcclusion == occlusionTexture")
-            try configureSCNMaterialProperty(property: scnMaterial.ambientOcclusion, from: occlusionTexture)
+            // glTF occlusion lives in the R channel.
+            try configureSCNMaterialProperty(property: scnMaterial.ambientOcclusion, channel: .red, from: occlusionTexture)
+            scnMaterial.ambientOcclusion.intensity = CGFloat(occlusionTexture.occlusionStrength)
         }
 
         if let emissiveTexture = material.emissiveTexture {
