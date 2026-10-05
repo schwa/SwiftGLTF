@@ -574,16 +574,28 @@ public struct Mesh: Decodable, Hashable, Sendable, Resolver {
     public static let documentKeyPath = \Document.meshes
 
     public struct Primitive: Decodable, Hashable, Sendable {
-        public enum Semantic: String, Decodable, Hashable, Sendable {
-            case POSITION
-            case NORMAL
-            case TANGENT
-            case TEXCOORD_0
-            case TEXCOORD_1
-            case TEXCOORD_2
-            case COLOR_0
-            case JOINTS_0
-            case WEIGHTS_0
+        // Open set: the spec allows TEXCOORD_n, COLOR_n, JOINTS_n, WEIGHTS_n for
+        // any n, plus application-specific names starting with "_".
+        public struct Semantic: RawRepresentable, Hashable, Sendable, ExpressibleByStringLiteral {
+            public let rawValue: String
+
+            public init(rawValue: String) {
+                self.rawValue = rawValue
+            }
+
+            public init(stringLiteral value: String) {
+                self.rawValue = value
+            }
+
+            public static let POSITION = Self(rawValue: "POSITION")
+            public static let NORMAL = Self(rawValue: "NORMAL")
+            public static let TANGENT = Self(rawValue: "TANGENT")
+            public static let TEXCOORD_0 = Self(rawValue: "TEXCOORD_0")
+            public static let TEXCOORD_1 = Self(rawValue: "TEXCOORD_1")
+            public static let TEXCOORD_2 = Self(rawValue: "TEXCOORD_2")
+            public static let COLOR_0 = Self(rawValue: "COLOR_0")
+            public static let JOINTS_0 = Self(rawValue: "JOINTS_0")
+            public static let WEIGHTS_0 = Self(rawValue: "WEIGHTS_0")
         }
 
         public let attributes: [Semantic: Index<Accessor>]
@@ -616,7 +628,7 @@ public struct Mesh: Decodable, Hashable, Sendable, Resolver {
 
         public init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            attributes = Dictionary(uniqueKeysWithValues: try container.decode([String: Index<Accessor>].self, forKey: .attributes).map { (Semantic(rawValue: $0)!, $1) })
+            attributes = Dictionary(uniqueKeysWithValues: try container.decode([String: Index<Accessor>].self, forKey: .attributes).map { (Semantic(rawValue: $0), $1) })
             indices = try container.decodeIfPresent(Index<Accessor>.self, forKey: .indices)
             material = try container.decodeIfPresent(Index<Material>.self, forKey: .material)
             mode = try container.decodeIfPresent(Mode.self, forKey: .mode) ?? .TRIANGLES

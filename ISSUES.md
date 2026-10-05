@@ -627,12 +627,13 @@ Acceptance: SceneKit and RealityKit render DamagedHelmet in the same orientation
 ## 32: Crash on unknown primitive attribute names (closed Semantic enum)
 
 +++
-status: open
+status: closed
 priority: high
 kind: bug
 labels: effort:s, area:parsing
 created: 2026-10-05T15:07:22Z
-updated: 2026-10-05T15:07:25Z
+updated: 2026-10-05T15:08:23Z
+closed: 2026-10-05T15:08:23Z
 +++
 
 Mesh.Primitive decodes attributes with Semantic(rawValue: $0)!, and Semantic is a closed enum (POSITION, NORMAL, TANGENT, TEXCOORD_0-2, COLOR_0, JOINTS_0, WEIGHTS_0). Any other valid attribute name crashes on load: TEXCOORD_3+, COLOR_1, JOINTS_1/WEIGHTS_1, or application-specific attributes (leading underscore, e.g. _CUSTOM), which the spec allows.
@@ -640,6 +641,8 @@ Mesh.Primitive decodes attributes with Semantic(rawValue: $0)!, and Semantic is 
 Fix: make Semantic an open type (e.g. a RawRepresentable struct with static known values), or keep unknown names as raw strings; never force-unwrap.
 
 Acceptance: a primitive with TEXCOORD_3 and a _CUSTOM attribute loads without crashing and both attributes are accessible.
+
+- `2026-10-05T15:08:23Z`: Mesh.Primitive.Semantic is now an open RawRepresentable struct (ExpressibleByStringLiteral) with static known values, so any attribute name decodes; removed the force-unwrap. Existing .POSITION etc. call sites unchanged. Test: AttributeSemanticTests (TEXCOORD_3, COLOR_1, _CUSTOM); previously a crash.
 
 ---
 
