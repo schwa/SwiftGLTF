@@ -437,17 +437,20 @@ Acceptance: a vertex-colored model shows colors; a model using texCoord=1 sample
 ## 23: normalized accessor flag is ignored
 
 +++
-status: open
+status: closed
 priority: low
 kind: bug
 labels: effort:s, area:parsing
 created: 2026-10-05T13:58:21Z
-updated: 2026-10-05T13:58:26Z
+updated: 2026-10-05T14:43:23Z
+closed: 2026-10-05T14:43:23Z
 +++
 
 Accessor.normalized is parsed but never applied; normalized integer attributes are read as raw integers instead of being scaled to [0,1]/[-1,1]. Apply normalization during data conversion.
 
 Acceptance: a model with normalized integer attributes (e.g. normalized vertex colors) loads correct values.
+
+- `2026-10-05T14:43:23Z`: Added Container.floatComponents(for:) which reads accessor components as Float and applies the normalized flag per spec (ubyte/255, ushort/65535, byte/127, short/32767, clamped). Also made Container.data(for:) compute elementSize generically (componentSize * componentCount) instead of a hardcoded whitelist, so combos like (UNSIGNED_BYTE, VEC4) work. Test: NormalizedAccessorTests on RecursiveSkeletons (normalized ubyte colors scale to [0,1]).
 
 ---
 

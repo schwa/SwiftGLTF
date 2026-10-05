@@ -114,25 +114,16 @@ public struct Container {
     }
 
     public func data(for accessor: Accessor) throws -> Data {
-        let elementSize: Int
-        switch (accessor.componentType, accessor.type) {
-        case (.FLOAT, .VEC4):
-            elementSize = 16 // TODO:
-        case (.FLOAT, .VEC3):
-            elementSize = 12 // TODO:
-        case (.FLOAT, .VEC2):
-            elementSize = 8 // TODO:
-        case (.UNSIGNED_INT, .SCALAR):
-            elementSize = 4
-        case (.UNSIGNED_SHORT, .VEC3):
-            elementSize = 6 // TODO:
-        case (.UNSIGNED_SHORT, .SCALAR):
-            elementSize = 2
-        case (.UNSIGNED_BYTE, .SCALAR):
-            elementSize = 1
-        default:
-            throw GLTFError.unknown
+        let componentSize: Int
+        switch accessor.componentType {
+        case .BYTE, .UNSIGNED_BYTE:
+            componentSize = 1
+        case .SHORT, .UNSIGNED_SHORT:
+            componentSize = 2
+        case .UNSIGNED_INT, .FLOAT:
+            componentSize = 4
         }
+        let elementSize = componentSize * accessor.type.componentCount
 
         let elementsSize = accessor.count * elementSize
 
