@@ -200,13 +200,18 @@ private func renderRealityKit(
     }
 
     let outputTexture = try RealityRenderer.CameraOutput(.singleProjection(colorTexture: texture))
-    let semaphore = DispatchSemaphore(value: 0)
-    try renderer.updateAndRender(
-        deltaTime: 0,
-        cameraOutput: outputTexture,
-        onComplete: { _ in semaphore.signal() }
-    )
-    semaphore.wait()
+    // Await the GPU completion instead of blocking the main actor on a semaphore.
+    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+        do {
+            try renderer.updateAndRender(deltaTime: 0, cameraOutput: outputTexture) { @Sendable _ in
+                continuation.resume()
+            }
+        }
+        catch {
+            // Nothing was scheduled, so onComplete will never fire.
+            continuation.resume(throwing: error)
+        }
+    }
 
     guard let cgImage = cgImage(from: texture) else {
         throw ValidationError("Could not read back texture")

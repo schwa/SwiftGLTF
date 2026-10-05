@@ -1165,12 +1165,13 @@ Acceptance: no deprecation warning; RealityKit material/golden tests still pass.
 ## 56: gltf-render: blocking semaphore in async context (Swift 6 error)
 
 +++
-status: open
+status: closed
 priority: low
 kind: bug
 labels: effort:xs, area:api
 created: 2026-10-05T17:12:51Z
-updated: 2026-10-05T17:49:03Z
+updated: 2026-10-05T18:02:43Z
+closed: 2026-10-05T18:02:43Z
 +++
 
 Sources/gltf-render/GLTFRender.swift:209 calls DispatchSemaphore.wait() inside an async function (the RealityKit render path). The compiler warns: 'instance method wait is unavailable from asynchronous contexts ... this is an error in the Swift 6 language mode'. It blocks a cooperative thread today and will fail to compile under Swift 6.
@@ -1180,6 +1181,7 @@ Fix: wrap RealityRenderer.updateAndRender's completion in withCheckedThrowingCon
 Acceptance: no warning; gltf-render -b realitykit still renders (e.g. DamagedHelmet).
 
 - `2026-10-05T17:49:03Z`: From the concurrency review (-strict-concurrency=complete): the semaphore blocks the main actor (renderRealityKit is @MainActor) and only works because RealityKit happens to call onComplete off-main. Fix with withCheckedThrowingContinuation that resumes exactly once, including when updateAndRender throws synchronously (then onComplete never fires), and mark the completion closure @Sendable so it does not inherit MainActor isolation and trip a runtime isolation check when invoked from another thread.
+- `2026-10-05T18:02:43Z`: Replaced the DispatchSemaphore with withCheckedThrowingContinuation around RealityRenderer.updateAndRender: resumes exactly once (onComplete, or resume(throwing:) if updateAndRender throws synchronously, when onComplete never fires). The SDK already declares onComplete @Sendable, so it does not inherit main-actor isolation; marked @Sendable explicitly at the call site. Verification (CLI has no test target): the 'wait unavailable from asynchronous contexts' warning is gone and gltf-render has no diagnostics under -strict-concurrency=complete; 'gltf-render render DamagedHelmet.glb -b realitykit -e <exr>' produces a complete image (7015 of 65536 non-background pixels), so the continuation resumes after the GPU completes.
 
 ---
 
