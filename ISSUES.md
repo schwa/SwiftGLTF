@@ -1280,15 +1280,18 @@ Acceptance: the UI stays responsive (progress view animates) during unzip.
 ## 61: Demo: mark GLTFModelBrowser.Model @MainActor
 
 +++
-status: open
+status: closed
 priority: low
 kind: task
 labels: effort:xs, area:demo
 created: 2026-10-05T17:49:04Z
-updated: 2026-10-05T17:49:58Z
+updated: 2026-10-05T18:05:57Z
+closed: 2026-10-05T18:05:57Z
 +++
 
 Demo/SwiftGLTFDemo/ContentView.swift line 72: 'class Model: ObservableObject' mutates @Published modelInfo and is read by SwiftUI, but its isolation is unstated. Safe today (only called from the view, Swift 5 mode); make it explicit: '@MainActor final class Model: ObservableObject'.
+
+- `2026-10-05T18:05:57Z`: GLTFModelBrowser.Model is now '@MainActor final class Model: ObservableObject'. All uses were already on the main actor (SwiftUI body / onAppear). No test: Demo has no test target and this is a declaration-only isolation change; verified by building the Demo for macOS and iOS with no new warnings.
 
 ---
 

@@ -76,7 +76,8 @@ struct DownloaderView: View {
 }
 
 struct GLTFModelBrowser: View {
-    class Model: ObservableObject {
+    @MainActor
+    final class Model: ObservableObject {
         var rootURL: URL?
         
         @Published
