@@ -38,10 +38,8 @@ struct DownloaderView: View {
                     Task {
                         do {
                             let (url, _) = try await URLSession.shared.download(for: URLRequest(url: url))
-                            let newURL = url.appendingPathExtension("zip")
-                            try FileManager().moveItem(at: url, to: newURL)
                             let finalDestination = applicationSupportDirectory.appendingPathComponent("glTF-Sample-Models")
-                            try Zip.unzipFile(newURL, destination: finalDestination, overwrite: true, password: nil)
+                            try await Self.unpack(url, to: finalDestination)
                             print(finalDestination)
                             
                             state = .downloaded(finalDestination.deletingPathExtension())
@@ -65,6 +63,15 @@ struct DownloaderView: View {
             }
         }
 
+    }
+
+    // Moving and unzipping ~1.1 GB is slow synchronous work; run it off the main
+    // actor so the UI stays responsive (the Task above inherits main-actor isolation).
+    @concurrent
+    private static func unpack(_ downloaded: URL, to destination: URL) async throws {
+        let archive = downloaded.appendingPathExtension("zip")
+        try FileManager().moveItem(at: downloaded, to: archive)
+        try Zip.unzipFile(archive, destination: destination, overwrite: true, password: nil)
     }
 }
 

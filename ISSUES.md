@@ -1243,12 +1243,13 @@ Acceptance: Container: Sendable compiles under -strict-concurrency=complete; a t
 ## 60: Demo: 1.1 GB sample unzip runs on the main actor
 
 +++
-status: open
+status: closed
 priority: medium
 kind: bug
 labels: effort:xs, area:demo
 created: 2026-10-05T17:49:04Z
-updated: 2026-10-05T17:49:58Z
+updated: 2026-10-05T17:57:52Z
+closed: 2026-10-05T17:57:52Z
 +++
 
 Demo/SwiftGLTFDemo/ContentView.swift lines 38-46: the download Task {} is created in a SwiftUI button, so it inherits main-actor isolation. After the awaited download, FileManager.moveItem and the synchronous Zip.unzipFile run on the main thread and freeze the UI for the whole unzip.
@@ -1256,6 +1257,8 @@ Demo/SwiftGLTFDemo/ContentView.swift lines 38-46: the download Task {} is create
 Fix: move the blocking work into a function that runs off the main actor (@concurrent in Swift 6.2, or a nonisolated async func in Swift 5 mode) and await it.
 
 Acceptance: the UI stays responsive (progress view animates) during unzip.
+
+- `2026-10-05T17:57:52Z`: Moved the move+unzip into a @concurrent static func unpack(_:to:) and await it from the download Task, so the ~1.1 GB unzip runs off the main actor. Test exemption: the Demo has no test target and this is UI responsiveness (where work runs), not reachable from a unit test; verified by inspection of isolation (@concurrent guarantees off-main execution) and by building the Demo for macOS and iOS. @concurrent needs Swift 6.2 (CI's Xcode 26.6 qualifies).
 
 ---
 
