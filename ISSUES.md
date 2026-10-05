@@ -956,3 +956,40 @@ Acceptance: decoding then encoding min [0.6624999940395355] re-emits exactly tha
 - `2026-10-05T16:20:10Z`: Accessor.min/max are now [Double] (exact JSON numbers). Validator and RealityKit asserts convert to Float where comparing with data (float32, like the Khronos validator). Test: AccessorBoundsPrecisionTests (0.6624999940395355 must re-emit exactly; failed before). AlphaBlendModeTest and TextureCoordinateTest round-trip outputs now pass the Khronos validator (4/4). API change: min/max type Float -> Double.
 
 ---
+
+## 47: SceneKit maps CLAMP_TO_EDGE to clampToBorder
+
++++
+status: open
+priority: medium
+kind: bug
+labels: effort:xs, area:rendering
+created: 2026-10-05T16:29:20Z
++++
+
+SCNWrapMode(Sampler.Wrap) maps glTF CLAMP_TO_EDGE (33071) to .clampToBorder, which samples the border color outside [0,1]. Clamp-to-edge is SCNWrapMode.clamp. Textures using CLAMP_TO_EDGE get wrong colors near edges.
+
+Acceptance: a sampler with CLAMP_TO_EDGE produces SCNMaterialProperty.wrapS/wrapT == .clamp.
+
+---
+
+## 48: RealityKit reads non-float vertex attributes incorrectly
+
++++
+status: open
+priority: medium
+kind: bug
+labels: effort:s, area:rendering
+created: 2026-10-05T16:29:20Z
+updated: 2026-10-05T16:29:20Z
++++
+
+Mesh.Primitive.value(semantic:type:in:) in the RealityKit generator:
+- SIMD3, UNSIGNED_SHORT: binds the UInt16 bytes as SIMD3<Float> (16-byte stride) and converts, producing garbage positions/normals (e.g. Box-byteStride.glb).
+- SIMD2/SIMD4: assert componentType == FLOAT, so spec-valid normalized UNSIGNED_BYTE/UNSIGNED_SHORT TEXCOORD/COLOR/WEIGHTS trip the assert in debug and read garbage in release.
+
+Fix: read all attributes through Container.floatComponents(for:), which handles every component type and the normalized flag.
+
+Acceptance: UNSIGNED_SHORT VEC3 positions and normalized UNSIGNED_BYTE VEC2 texcoords produce correct values.
+
+---
