@@ -15,13 +15,20 @@ public extension GLB {
 }
 
 public extension GLB {
+    // The spec requires the JSON chunk to come first.
     func document() throws -> Document {
-        let data = chunks[0].content
-        return try JSONDecoder().decode(Document.self, from: data)
+        guard let chunk = chunks.first, chunk.chunkType == .json else {
+            throw GLTFError.malformedGLB("First chunk must be JSON")
+        }
+        return try JSONDecoder().decode(Document.self, from: chunk.content)
     }
 
+    // The BIN chunk, if any (it need not be the second chunk; unknown chunks are kept).
     func binaryBuffer() throws -> Data {
-        chunks[1].content
+        guard let chunk = chunks.first(where: { $0.chunkType == .bin }) else {
+            throw GLTFError.missingResource("GLB has no BIN chunk")
+        }
+        return chunk.content
     }
 }
 
