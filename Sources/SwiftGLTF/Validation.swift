@@ -16,12 +16,21 @@ public struct ValidationIssue: Hashable, Sendable, CustomStringConvertible {
 }
 
 public extension Document {
-    // Extensions this library understands. Used to flag unsupported required ones.
+    /// Extensions SwiftGLTF reads into typed values, or handles while reading accessors (quantized attributes).
+    /// Used to flag unsupported required ones. Clients that implement more (other materials, compression through
+    /// ``BufferViewDecoder``) add their names; ``Container/supportedExtensions`` adds the registered decoders'.
     static let supportedExtensions: Set<String> = [
         KHRLightsPunctual.extensionName,
         KHRTextureTransform.extensionName,
         KHRMaterialsUnlit.extensionName,
-        KHRMaterialsEmissiveStrength.extensionName
+        KHRMaterialsEmissiveStrength.extensionName,
+        KHRMaterialsIOR.extensionName,
+        KHRMaterialsSpecular.extensionName,
+        KHRMaterialsTransmission.extensionName,
+        KHRMaterialsVolume.extensionName,
+        EXTTextureWebP.extensionName,
+        // Normalized and integer attribute types, handled by the accessor reader.
+        "KHR_mesh_quantization",
     ]
 
     // Structural validation: index bounds, accessor/bufferView ranges, attribute

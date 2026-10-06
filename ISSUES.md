@@ -1369,13 +1369,17 @@ The decoders themselves stay outside SwiftGLTF (MetalSprocketsGLTF will ship mes
 ## 65: Extension support is not declared, so required extensions cannot be checked
 
 +++
-status: new
+status: closed
 priority: low
 kind: enhancement
 labels: effort:s
 created: 2026-10-06T20:27:23Z
+updated: 2026-10-06T20:35:55Z
+closed: 2026-10-06T20:35:55Z
 +++
 
 Clients that validate extensionsRequired (MetalSprocketsGLTF rejects files requiring unsupported extensions) must keep their own list of what SwiftGLTF decodes (texture_transform, ior, specular, transmission, volume, emissive_strength, unlit, lights_punctual, texture_webp). If SwiftGLTF exposed the extension names it handles (e.g. a static set on Document or per typed extension) and registered BufferViewDecoders' names, clients could build their supported set from it instead of duplicating it. Related to the buffer view decoder issue.
+
+- `2026-10-06T20:35:55Z`: Document.supportedExtensions (already public, used by validate()) now lists everything SwiftGLTF handles: lights_punctual, texture_transform, materials unlit/emissive_strength/ior/specular/transmission/volume, EXT_texture_webp, KHR_mesh_quantization (was 4 entries, so validate() wrongly flagged the others). Container.supportedExtensions adds registered buffer view decoders' names (#64).
 
 ---
