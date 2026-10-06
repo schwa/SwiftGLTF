@@ -26,9 +26,12 @@ public struct Container: Sendable {
     public let url: URL
     public let kind: Kind
     public let document: Document
+    /// Asked, in order, for the bytes of buffer views that compression extensions replace.
+    public let bufferViewDecoders: [any BufferViewDecoder]
 
-    public init(url: URL) throws {
+    public init(url: URL, bufferViewDecoders: [any BufferViewDecoder] = []) throws {
         self.url = url
+        self.bufferViewDecoders = bufferViewDecoders
         switch url.pathExtension {
         case "glb":
             let glb = try GLB(url: url)
@@ -41,6 +44,23 @@ public struct Container: Sendable {
         default:
             throw GLTFError.unsupported("Unsupported file extension '\(url.pathExtension)' (expected .gltf or .glb)")
         }
+    }
+
+    private init(url: URL, kind: Kind, document: Document, bufferViewDecoders: [any BufferViewDecoder]) {
+        self.url = url
+        self.kind = kind
+        self.document = document
+        self.bufferViewDecoders = bufferViewDecoders
+    }
+
+    /// The same file with `decoders` replacing the buffer view decoders. Decoded views are not shared with `self`.
+    public func withBufferViewDecoders(_ decoders: [any BufferViewDecoder]) -> Container {
+        Container(url: url, kind: kind, document: document, bufferViewDecoders: decoders)
+    }
+
+    /// The extensions this container can read: ``Document/supportedExtensions`` plus the buffer view decoders'.
+    public var supportedExtensions: Set<String> {
+        bufferViewDecoders.reduce(Document.supportedExtensions) { $0.union($1.extensionNames) }
     }
 
     public func resolve(path: String) throws -> Data {
@@ -64,6 +84,8 @@ public struct Container: Sendable {
     // guarded by a Mutex.
     final class Cache: Sendable {
         private let storage = Mutex<[URI: Data]>([:])
+        // Decoded buffer views, so accessors sharing a view decode it once.
+        private let decodedViews = Mutex<[BufferView: Data]>([:])
 
         func value(for uri: URI) -> Data? {
             storage.withLock { $0[uri] }
@@ -71,6 +93,14 @@ public struct Container: Sendable {
 
         func store(_ data: Data, for uri: URI) {
             storage.withLock { $0[uri] = data }
+        }
+
+        func value(for bufferView: BufferView) -> Data? {
+            decodedViews.withLock { $0[bufferView] }
+        }
+
+        func store(_ data: Data, for bufferView: BufferView) {
+            decodedViews.withLock { $0[bufferView] = data }
         }
     }
 
@@ -106,9 +136,34 @@ public struct Container: Sendable {
         }
     }
 
+    /// The view's bytes: from the first buffer view decoder that handles it, else sliced from its buffer.
     public func data(for bufferView: BufferView) throws -> Data {
+        if !bufferViewDecoders.isEmpty {
+            if let cached = cache.value(for: bufferView) {
+                return cached
+            }
+            for decoder in bufferViewDecoders {
+                guard var data = try decoder.data(for: bufferView, in: self) else { continue }
+                // Readers index from 0; a slice of a larger Data would not.
+                if data.startIndex != 0 {
+                    data = Data(data)
+                }
+                guard data.count == bufferView.byteLength else {
+                    throw GLTFError.invalidDocument("Decoded buffer view is \(data.count) bytes; its byteLength is \(bufferView.byteLength)")
+                }
+                cache.store(data, for: bufferView)
+                return data
+            }
+        }
         let data = try data(for: bufferView.buffer)
+        guard bufferView.byteOffset + bufferView.byteLength <= data.count else {
+            throw GLTFError.accessorOutOfBounds
+        }
         return data.subdata(in: bufferView.byteOffset ..< (bufferView.byteOffset + bufferView.byteLength))
+    }
+
+    public func data(for bufferViewIndex: Index<BufferView>) throws -> Data {
+        try data(for: bufferViewIndex.resolve(in: document))
     }
 
     public func data(for bufferIndex: Index<Buffer>) throws -> Data {

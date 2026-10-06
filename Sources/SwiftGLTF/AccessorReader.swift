@@ -1,11 +1,13 @@
 import Foundation
 
 // Decodes accessor data (byte strides, sparse overrides, component types, the
-// normalized flag) from any buffer source. Container and the SceneKit generator
-// each supply their own buffer loading.
+// normalized flag) from any buffer view source. Container and the SceneKit
+// generator each supply their own loading; Container's runs buffer view decoders
+// (e.g. meshopt), so reads go through views, not straight to buffers.
 struct AccessorReader {
     let document: Document
-    let bufferData: (Index<Buffer>) throws -> Data
+    // A buffer view's bytes (byteLength long).
+    let bufferViewData: (Index<BufferView>) throws -> Data
 
     // Tightly packed element bytes, with sparse overrides applied.
     func data(for accessor: Accessor) throws -> Data {
@@ -13,9 +15,10 @@ struct AccessorReader {
         let elementsSize = accessor.count * elementSize
 
         let subdata: Data
-        if let bufferView = try accessor.bufferView?.resolve(in: document) {
-            let start = accessor.byteOffset + bufferView.byteOffset
-            let data = try bufferData(bufferView.buffer)
+        if let bufferViewIndex = accessor.bufferView {
+            let bufferView = try bufferViewIndex.resolve(in: document)
+            let start = accessor.byteOffset
+            let data = try bufferViewData(bufferViewIndex)
             if let byteStride = bufferView.byteStride, byteStride != elementSize {
                 // Interleaved buffer view: elements are spaced `byteStride` apart.
                 // Copy each element out into a tightly packed result.
@@ -59,13 +62,11 @@ struct AccessorReader {
             throw GLTFError.unsupported("Unsupported sparse index component type \(sparse.indices.componentType)")
         }
 
-        let indicesBufferView = try sparse.indices.bufferView.resolve(in: document)
-        let indicesData = try bufferData(indicesBufferView.buffer)
-        let indicesStart = indicesBufferView.byteOffset + sparse.indices.byteOffset
+        let indicesData = try bufferViewData(sparse.indices.bufferView)
+        let indicesStart = sparse.indices.byteOffset
 
-        let valuesBufferView = try sparse.values.bufferView.resolve(in: document)
-        let valuesData = try bufferData(valuesBufferView.buffer)
-        let valuesStart = valuesBufferView.byteOffset + sparse.values.byteOffset
+        let valuesData = try bufferViewData(sparse.values.bufferView)
+        let valuesStart = sparse.values.byteOffset
 
         for sparseIndex in 0 ..< sparse.count {
             let elementIndex = Int(readLittleEndianUInt(

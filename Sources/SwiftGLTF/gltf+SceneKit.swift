@@ -179,7 +179,14 @@ public class SceneKitGenerator {
     // Accessor decoding (strides, sparse, component types, normalized) backed by
     // this generator's buffer loading.
     private var accessorReader: AccessorReader {
-        AccessorReader(document: document) { try self.data(for: $0) }
+        AccessorReader(document: document) { index in
+            let bufferView = try index.resolve(in: self.document)
+            let bufferData = try self.data(for: bufferView.buffer)
+            guard bufferView.byteOffset + bufferView.byteLength <= bufferData.count else {
+                throw GLTFError.accessorOutOfBounds
+            }
+            return bufferData.subdata(in: bufferView.byteOffset ..< (bufferView.byteOffset + bufferView.byteLength))
+        }
     }
 
     // Every attribute becomes packed floats, so any component type works and the

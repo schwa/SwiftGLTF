@@ -1345,11 +1345,13 @@ The KHRMaterialsEmissiveStrength pattern (GLTFExtension type plus a Material/Tex
 ## 64: No way to decode compressed buffer views
 
 +++
-status: new
+status: closed
 priority: medium
 kind: feature
 labels: effort:m
 created: 2026-10-06T20:27:23Z
+updated: 2026-10-06T20:35:55Z
+closed: 2026-10-06T20:35:55Z
 +++
 
 Compression extensions such as EXT_meshopt_compression / KHR_meshopt_compression replace a buffer view's bytes: the bufferView carries the extension (source buffer, byteOffset, byteLength, byteStride, count, mode, filter), and its own buffer is often a placeholder with no data ('fallback': true). SwiftGLTF has no point where a decoder can supply those bytes: Container.data(for: BufferView) slices the raw buffer, and AccessorReader reads the whole buffer (bufferData(bufferView.buffer)) and applies the view's byteOffset itself, so accessors in a compressed view read garbage or throw on the placeholder buffer.
@@ -1363,6 +1365,8 @@ Wanted:
 - placeholder fallback buffers are never loaded when their views are decoded.
 
 The decoders themselves stay outside SwiftGLTF (MetalSprocketsGLTF will ship meshopt as an optional target), so SwiftGLTF needs no C++ dependency. Tests: a fake decoder supplying a view's bytes is used by data(for: accessor), including with byteStride and sparse accessors; a document whose fallback buffer has no uri loads when its views are decoded.
+
+- `2026-10-06T20:35:55Z`: Added the BufferViewDecoder protocol (extensionNames; data(for:in:) returns a view's decoded bytes or nil). Container(url:bufferViewDecoders:) and withBufferViewDecoders(_:) register them; data(for: BufferView) asks them in order (result must be byteLength long, cached per view, re-indexed from 0) before slicing the buffer; data(for: Index<BufferView>) added. AccessorReader now reads through buffer views (accessor and sparse byteOffsets within the view), so decoded views back accessors, interleaved views and sparse indices/values, and placeholder fallback buffers are never read; the SceneKit generator supplies view slices of its own buffers. Container.supportedExtensions = Document.supportedExtensions + decoders' names. Tests: BufferViewDecoderTests (5). 164 tests pass.
 
 ---
 
