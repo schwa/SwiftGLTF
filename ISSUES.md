@@ -1341,3 +1341,41 @@ SwiftGLTF decodes KHR_materials_unlit and KHR_materials_emissive_strength as typ
 The KHRMaterialsEmissiveStrength pattern (GLTFExtension type plus a Material/Texture convenience with spec defaults) would fit each of them.
 
 ---
+
+## 64: No way to decode compressed buffer views
+
++++
+status: new
+priority: medium
+kind: feature
+labels: effort:m
+created: 2026-10-06T20:27:23Z
++++
+
+Compression extensions such as EXT_meshopt_compression / KHR_meshopt_compression replace a buffer view's bytes: the bufferView carries the extension (source buffer, byteOffset, byteLength, byteStride, count, mode, filter), and its own buffer is often a placeholder with no data ('fallback': true). SwiftGLTF has no point where a decoder can supply those bytes: Container.data(for: BufferView) slices the raw buffer, and AccessorReader reads the whole buffer (bufferData(bufferView.buffer)) and applies the view's byteOffset itself, so accessors in a compressed view read garbage or throw on the placeholder buffer.
+
+Wanted:
+- a public protocol, e.g. BufferViewDecoder: Sendable { var extensionNames: Set<String> { get }; func data(for bufferView: BufferView, in container: Container) throws -> Data? } returning the view's decoded bytes (byteLength long), or nil to leave the view alone;
+- Container holds an ordered list of decoders (e.g. Container(url:bufferViewDecoders:), plus a way to attach them to an existing Container);
+- Container.data(for: BufferView) asks the decoders first, then slices the buffer as today;
+- AccessorReader reads per buffer view (the view's bytes, accessor.byteOffset within them) instead of per buffer, so decoded views are used for accessors, sparse indices and values, and image bufferViews alike;
+- decoded results cached per buffer view (Container's Cache), since many accessors share a view;
+- placeholder fallback buffers are never loaded when their views are decoded.
+
+The decoders themselves stay outside SwiftGLTF (MetalSprocketsGLTF will ship meshopt as an optional target), so SwiftGLTF needs no C++ dependency. Tests: a fake decoder supplying a view's bytes is used by data(for: accessor), including with byteStride and sparse accessors; a document whose fallback buffer has no uri loads when its views are decoded.
+
+---
+
+## 65: Extension support is not declared, so required extensions cannot be checked
+
++++
+status: new
+priority: low
+kind: enhancement
+labels: effort:s
+created: 2026-10-06T20:27:23Z
++++
+
+Clients that validate extensionsRequired (MetalSprocketsGLTF rejects files requiring unsupported extensions) must keep their own list of what SwiftGLTF decodes (texture_transform, ior, specular, transmission, volume, emissive_strength, unlit, lights_punctual, texture_webp). If SwiftGLTF exposed the extension names it handles (e.g. a static set on Document or per typed extension) and registered BufferViewDecoders' names, clients could build their supported set from it instead of duplicating it. Related to the buffer view decoder issue.
+
+---
