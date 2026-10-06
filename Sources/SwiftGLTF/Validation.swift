@@ -30,7 +30,7 @@ public extension Document {
         KHRMaterialsVolume.extensionName,
         EXTTextureWebP.extensionName,
         // Normalized and integer attribute types, handled by the accessor reader.
-        "KHR_mesh_quantization",
+        "KHR_mesh_quantization"
     ]
 
     // Structural validation: index bounds, accessor/bufferView ranges, attribute

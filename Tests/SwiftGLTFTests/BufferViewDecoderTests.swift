@@ -21,7 +21,9 @@ private final class FakeViewDecoder: BufferViewDecoder {
     }
 
     func data(for bufferView: BufferView, in container: Container) throws -> Data? {
-        guard let id = try bufferView.extensionValue(DecodedViewExtension.self)?.id else { return nil }
+        guard let id = try bufferView.extensionValue(DecodedViewExtension.self)?.id else {
+            return nil
+        }
         calls.withLock { $0 += 1 }
         return payloads[id]
     }
@@ -65,7 +67,7 @@ private func makeDecoder() -> FakeViewDecoder {
         0: TestSupport.bytes([Float](arrayLiteral: 1, 2, 3, 4, 5, 6)),
         1: interleaved,
         2: Data([1]),
-        3: TestSupport.bytes([Float](arrayLiteral: 9, 9, 9)),
+        3: TestSupport.bytes([Float](arrayLiteral: 9, 9, 9))
     ])
 }
 
