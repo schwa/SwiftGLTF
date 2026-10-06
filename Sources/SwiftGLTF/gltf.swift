@@ -58,6 +58,12 @@ public struct Container: Sendable {
         Container(url: url, kind: kind, document: document, bufferViewDecoders: decoders)
     }
 
+    /// The same file (buffers, GLB chunks, relative URIs, decoders) with `document` in place of its own, e.g. one with
+    /// some extensions removed. `document` must index the same buffers.
+    public func withDocument(_ document: Document) -> Container {
+        Container(url: url, kind: kind, document: document, bufferViewDecoders: bufferViewDecoders)
+    }
+
     /// The extensions this container can read: ``Document/supportedExtensions`` plus the buffer view decoders'.
     public var supportedExtensions: Set<String> {
         bufferViewDecoders.reduce(Document.supportedExtensions) { $0.union($1.extensionNames) }
