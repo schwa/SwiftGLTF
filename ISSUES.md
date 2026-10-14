@@ -1387,3 +1387,35 @@ Clients that validate extensionsRequired (MetalSprocketsGLTF rejects files requi
 - `2026-10-06T20:35:55Z`: Document.supportedExtensions (already public, used by validate()) now lists everything SwiftGLTF handles: lights_punctual, texture_transform, materials unlit/emissive_strength/ior/specular/transmission/volume, EXT_texture_webp, KHR_mesh_quantization (was 4 entries, so validate() wrongly flagged the others). Container.supportedExtensions adds registered buffer view decoders' names (#64).
 
 ---
+
+## 66: Camera, Perspective and Orthographic cannot be built or changed by clients
+
++++
+status: new
+priority: low
+kind: enhancement
+labels: area:api, effort:s
+created: 2026-10-14T17:17:52Z
++++
+
+Camera, Camera.Perspective and Camera.Orthographic have only let properties and no public init. A client that needs a changed camera (e.g. MetalSprocketsGLTF applying KHR_animation_pointer values such as perspective/yfov) has to encode the camera to JSON, patch the dictionary and decode it again. MetalSprocketsGLTF does this on every cameras(pose:) call with animated parameters (MetalSprocketsGLTF #168).
+
+Fix: add public memberwise inits to the three types, or make the projection fields var. Keep Codable output unchanged.
+
+---
+
+## 67: Document cannot be copied with extensions removed without a JSON round-trip
+
++++
+status: new
+priority: low
+kind: enhancement
+labels: area:api, effort:m
+created: 2026-10-14T17:17:52Z
++++
+
+MetalSprocketsGLTF's GLTFExtensionFilter (GLTFLoadOptions.disabledExtensions) encodes the whole Document to JSON, strips the named keys from every 'extensions' object and decodes it again, because the model types are immutable and have no public inits. This is slow for large documents and loses anything that does not round-trip.
+
+Fix options: a Document API that returns a copy without some extensions (e.g. Document.removingExtensions(_:)), or make Extensions on model types settable.
+
+---
