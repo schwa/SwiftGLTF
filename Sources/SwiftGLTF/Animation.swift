@@ -11,14 +11,14 @@ public struct Animation: Codable, Hashable, Sendable, Resolver, Extensible {
             // Absent when the target is supplied by an extension (e.g. KHR_animation_pointer).
             public let node: Index<Node>?
             public let path: Path
-            public let extensions: Extensions?
+            public internal(set) var extensions: Extensions?
             public let extras: JSONValue?
         }
 
         // Index into the owning animation's `samplers`.
         public let sampler: Int
-        public let target: Target
-        public let extensions: Extensions?
+        public internal(set) var target: Target
+        public internal(set) var extensions: Extensions?
         public let extras: JSONValue?
     }
 
@@ -50,7 +50,7 @@ public struct Animation: Codable, Hashable, Sendable, Resolver, Extensible {
         public let input: Index<Accessor> // keyframe times (seconds)
         public let output: Index<Accessor> // keyframe values
         public let interpolation: Interpolation
-        public let extensions: Extensions?
+        public internal(set) var extensions: Extensions?
         public let extras: JSONValue?
 
         public enum CodingKeys: CodingKey {
@@ -71,10 +71,10 @@ public struct Animation: Codable, Hashable, Sendable, Resolver, Extensible {
         }
     }
 
-    public let channels: [Channel]
-    public let samplers: [Sampler]
+    public internal(set) var channels: [Channel]
+    public internal(set) var samplers: [Sampler]
     public let name: String?
-    public let extensions: Extensions?
+    public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
 }
 

@@ -202,24 +202,24 @@ public struct Container: Sendable {
 // MARK: -
 
 public struct Document: Codable, Hashable, Sendable {
-    public let extensionsUsed: [String]
-    public let extensionsRequired: [String]
-    public let accessors: [Accessor]
-    public let animations: [Animation]
-    public let asset: Asset
-    public let buffers: [Buffer]
-    public let bufferViews: [BufferView]
-    public let cameras: [Camera]
-    public let images: [Image]
-    public let materials: [Material]
-    public let meshes: [Mesh]
-    public let nodes: [Node]
-    public let samplers: [Sampler]
+    public internal(set) var extensionsUsed: [String]
+    public internal(set) var extensionsRequired: [String]
+    public internal(set) var accessors: [Accessor]
+    public internal(set) var animations: [Animation]
+    public internal(set) var asset: Asset
+    public internal(set) var buffers: [Buffer]
+    public internal(set) var bufferViews: [BufferView]
+    public internal(set) var cameras: [Camera]
+    public internal(set) var images: [Image]
+    public internal(set) var materials: [Material]
+    public internal(set) var meshes: [Mesh]
+    public internal(set) var nodes: [Node]
+    public internal(set) var samplers: [Sampler]
     public let scene: Index<Scene>?
-    public let scenes: [Scene]
-    public let skins: [Skin]
-    public let textures: [Texture]
-    public let extensions: Extensions?
+    public internal(set) var scenes: [Scene]
+    public internal(set) var skins: [Skin]
+    public internal(set) var textures: [Texture]
+    public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
 
     public enum CodingKeys: CodingKey {
@@ -302,9 +302,9 @@ public struct Accessor: Codable, Hashable, Sendable, Resolver {
     // and breaks the spec's exact-bounds requirement on write.
     public let max: [Double]?
     public let min: [Double]?
-    public let sparse: Sparse?
+    public internal(set) var sparse: Sparse?
     public let name: String?
-    public let extensions: Extensions?
+    public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
 
     public struct Sparse: Codable, Hashable, Sendable {
@@ -312,7 +312,7 @@ public struct Accessor: Codable, Hashable, Sendable, Resolver {
             public let bufferView: Index<BufferView>
             public let byteOffset: Int
             public let componentType: ComponentType
-            public let extensions: Extensions?
+            public internal(set) var extensions: Extensions?
             public let extras: JSONValue?
 
             public enum CodingKeys: CodingKey {
@@ -336,7 +336,7 @@ public struct Accessor: Codable, Hashable, Sendable, Resolver {
         public struct Values: Codable, Hashable, Sendable {
             public let bufferView: Index<BufferView>
             public let byteOffset: Int
-            public let extensions: Extensions?
+            public internal(set) var extensions: Extensions?
             public let extras: JSONValue?
 
             public enum CodingKeys: CodingKey {
@@ -356,9 +356,9 @@ public struct Accessor: Codable, Hashable, Sendable, Resolver {
         }
 
         public let count: Int
-        public let indices: Indices
-        public let values: Values
-        public let extensions: Extensions?
+        public internal(set) var indices: Indices
+        public internal(set) var values: Values
+        public internal(set) var extensions: Extensions?
         public let extras: JSONValue?
     }
 
@@ -399,7 +399,7 @@ public struct Asset: Codable, Hashable, Sendable {
     public let generator: String?
     public let version: Version
     public let minVersion: Version?
-    public let extensions: Extensions?
+    public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
 
     public struct Version: RawRepresentable, Codable, Hashable, Sendable {
@@ -422,7 +422,7 @@ public struct Buffer: Codable, Hashable, Sendable, Resolver {
     public let uri: URI?
     public let byteLength: Int
     public let name: String?
-    public let extensions: Extensions?
+    public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
 }
 
@@ -440,7 +440,7 @@ public struct BufferView: Codable, Hashable, Sendable, Resolver {
 
     public let target: Target?
     public let name: String?
-    public let extensions: Extensions?
+    public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
 
     public enum CodingKeys: CodingKey {
@@ -480,7 +480,7 @@ public struct Camera: Codable, Hashable, Sendable, Resolver {
         public let yfov: Float
         public let zfar: Float?
         public let znear: Float
-        public let extensions: Extensions?
+        public internal(set) var extensions: Extensions?
         public let extras: JSONValue?
 
         public init(aspectRatio: Float? = nil, yfov: Float, zfar: Float? = nil, znear: Float, extensions: Extensions? = nil, extras: JSONValue? = nil) {
@@ -498,7 +498,7 @@ public struct Camera: Codable, Hashable, Sendable, Resolver {
         public let ymag: Float
         public let zfar: Float
         public let znear: Float
-        public let extensions: Extensions?
+        public internal(set) var extensions: Extensions?
         public let extras: JSONValue?
 
         public init(xmag: Float, ymag: Float, zfar: Float, znear: Float, extensions: Extensions? = nil, extras: JSONValue? = nil) {
@@ -512,10 +512,10 @@ public struct Camera: Codable, Hashable, Sendable, Resolver {
     }
 
     public let type: Projection
-    public let perspective: Perspective?
-    public let orthographic: Orthographic?
+    public internal(set) var perspective: Perspective?
+    public internal(set) var orthographic: Orthographic?
     public let name: String?
-    public let extensions: Extensions?
+    public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
 
     public init(type: Projection, perspective: Perspective? = nil, orthographic: Orthographic? = nil, name: String? = nil, extensions: Extensions? = nil, extras: JSONValue? = nil) {
@@ -543,7 +543,7 @@ public struct Image: Codable, Hashable, Sendable, Resolver {
     public let mimeType: String? // spec key is "mimeType"
     public let bufferView: Index<BufferView>?
     public let name: String?
-    public let extensions: Extensions?
+    public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
 }
 
@@ -554,11 +554,11 @@ public struct Material: Codable, Hashable, Sendable, Resolver {
 
     public struct PBRMetallicRoughness: Codable, Hashable, Sendable {
         public let baseColorFactor: SIMD4<Float>
-        public let baseColorTexture: TextureInfo?
+        public internal(set) var baseColorTexture: TextureInfo?
         public let metallicFactor: Float
         public let roughnessFactor: Float
-        public let metallicRoughnessTexture: TextureInfo?
-        public let extensions: Extensions?
+        public internal(set) var metallicRoughnessTexture: TextureInfo?
+        public internal(set) var extensions: Extensions?
         public let extras: JSONValue?
 
         public enum CodingKeys: CodingKey {
@@ -583,10 +583,10 @@ public struct Material: Codable, Hashable, Sendable, Resolver {
         }
     }
 
-    public let pbrMetallicRoughness: PBRMetallicRoughness?
-    public let normalTexture: TextureInfo?
-    public let occlusionTexture: TextureInfo?
-    public let emissiveTexture: TextureInfo?
+    public internal(set) var pbrMetallicRoughness: PBRMetallicRoughness?
+    public internal(set) var normalTexture: TextureInfo?
+    public internal(set) var occlusionTexture: TextureInfo?
+    public internal(set) var emissiveTexture: TextureInfo?
     public let emissiveFactor: SIMD3<Float>? // [0,0,0]
     public enum AlphaMode: String, Codable, Hashable, Sendable {
         case OPAQUE
@@ -597,7 +597,7 @@ public struct Material: Codable, Hashable, Sendable, Resolver {
     public let alphaCutoff: Float? // 0.5
     // swiftlint:disable:next discouraged_optional_boolean
     public let doubleSided: Bool? // false
-    public let extensions: Extensions?
+    public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
 }
 
@@ -660,7 +660,7 @@ public struct Mesh: Codable, Hashable, Sendable, Resolver {
         // Morph targets: per target, attribute -> accessor of displacements
         // (POSITION/NORMAL/TANGENT deltas) added to the base attribute.
         public let targets: [[Semantic: Index<Accessor>]]
-        public let extensions: Extensions?
+        public internal(set) var extensions: Extensions?
         public let extras: JSONValue?
 
         public enum CodingKeys: CodingKey {
@@ -686,10 +686,10 @@ public struct Mesh: Codable, Hashable, Sendable, Resolver {
         }
     }
 
-    public let primitives: [Primitive]
+    public internal(set) var primitives: [Primitive]
     public let weights: [Float]
     public let name: String?
-    public let extensions: Extensions?
+    public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
 
     public enum CodingKeys: CodingKey {
@@ -724,7 +724,7 @@ public struct Node: Codable, Hashable, Sendable, Resolver {
     // Morph target weights for this node's mesh (overrides Mesh.weights).
     public let weights: [Float]?
     public let name: String?
-    public let extensions: Extensions?
+    public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
 
     public enum CodingKeys: CodingKey {
@@ -802,7 +802,7 @@ public struct Sampler: Codable, Hashable, Sendable, Resolver {
     public let wrapS: Wrap
     public let wrapT: Wrap
     public let name: String??
-    public let extensions: Extensions?
+    public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
 
     public enum CodingKeys: CodingKey {
@@ -842,7 +842,7 @@ public struct Scene: Codable, Hashable, Sendable, Resolver {
 
     public let nodes: [Index<Node>]
     public let name: String?
-    public let extensions: Extensions?
+    public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
 
     public enum CodingKeys: CodingKey {
@@ -869,7 +869,7 @@ public struct Texture: Codable, Hashable, Sendable, Resolver {
     public let sampler: Index<Sampler>?
     public let source: Index<Image>?
     public let name: String?
-    public let extensions: Extensions?
+    public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
 }
 
@@ -881,7 +881,7 @@ public struct TextureInfo: Codable, Hashable, Sendable, Extensible {
     public let scale: Float?
     // Only meaningful on Material.occlusionTexture (occlusionTextureInfo.strength).
     public let strength: Float?
-    public let extensions: Extensions?
+    public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
 
     public var normalScale: Float {

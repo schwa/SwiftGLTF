@@ -13,7 +13,7 @@ public struct Skin: Codable, Hashable, Sendable, Resolver, Extensible {
     // Joint nodes; JOINTS_n vertex values index into this array.
     public let joints: [Index<Node>]
     public let name: String?
-    public let extensions: Extensions?
+    public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
 }
 
