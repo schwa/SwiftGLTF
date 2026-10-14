@@ -1391,11 +1391,13 @@ Clients that validate extensionsRequired (MetalSprocketsGLTF rejects files requi
 ## 66: Camera, Perspective and Orthographic cannot be built or changed by clients
 
 +++
-status: new
+status: closed
 priority: low
 kind: enhancement
 labels: area:api, effort:s
 created: 2026-10-14T17:17:52Z
+updated: 2026-10-14T17:21:08Z
+closed: 2026-10-14T17:21:08Z
 +++
 
 Camera, Camera.Perspective and Camera.Orthographic have only let properties and no public init. A client that needs a changed camera (e.g. MetalSprocketsGLTF applying KHR_animation_pointer values such as perspective/yfov) has to encode the camera to JSON, patch the dictionary and decode it again. MetalSprocketsGLTF does this on every cameras(pose:) call with animated parameters (MetalSprocketsGLTF #168).
@@ -1407,11 +1409,12 @@ Fix: add public memberwise inits to the three types, or make the projection fiel
 ## 67: Document cannot be copied with extensions removed without a JSON round-trip
 
 +++
-status: new
+status: open
 priority: low
 kind: enhancement
 labels: area:api, effort:m
 created: 2026-10-14T17:17:52Z
+updated: 2026-10-14T17:19:38Z
 +++
 
 MetalSprocketsGLTF's GLTFExtensionFilter (GLTFLoadOptions.disabledExtensions) encodes the whole Document to JSON, strips the named keys from every 'extensions' object and decodes it again, because the model types are immutable and have no public inits. This is slow for large documents and loses anything that does not round-trip.

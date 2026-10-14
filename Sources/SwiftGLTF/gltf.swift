@@ -482,6 +482,15 @@ public struct Camera: Codable, Hashable, Sendable, Resolver {
         public let znear: Float
         public let extensions: Extensions?
         public let extras: JSONValue?
+
+        public init(aspectRatio: Float? = nil, yfov: Float, zfar: Float? = nil, znear: Float, extensions: Extensions? = nil, extras: JSONValue? = nil) {
+            self.aspectRatio = aspectRatio
+            self.yfov = yfov
+            self.zfar = zfar
+            self.znear = znear
+            self.extensions = extensions
+            self.extras = extras
+        }
     }
 
     public struct Orthographic: Codable, Hashable, Sendable {
@@ -491,6 +500,15 @@ public struct Camera: Codable, Hashable, Sendable, Resolver {
         public let znear: Float
         public let extensions: Extensions?
         public let extras: JSONValue?
+
+        public init(xmag: Float, ymag: Float, zfar: Float, znear: Float, extensions: Extensions? = nil, extras: JSONValue? = nil) {
+            self.xmag = xmag
+            self.ymag = ymag
+            self.zfar = zfar
+            self.znear = znear
+            self.extensions = extensions
+            self.extras = extras
+        }
     }
 
     public let type: Projection
@@ -499,6 +517,23 @@ public struct Camera: Codable, Hashable, Sendable, Resolver {
     public let name: String?
     public let extensions: Extensions?
     public let extras: JSONValue?
+
+    public init(type: Projection, perspective: Perspective? = nil, orthographic: Orthographic? = nil, name: String? = nil, extensions: Extensions? = nil, extras: JSONValue? = nil) {
+        self.type = type
+        self.perspective = perspective
+        self.orthographic = orthographic
+        self.name = name
+        self.extensions = extensions
+        self.extras = extras
+    }
+
+    public init(perspective: Perspective, name: String? = nil, extensions: Extensions? = nil, extras: JSONValue? = nil) {
+        self.init(type: .perspective, perspective: perspective, name: name, extensions: extensions, extras: extras)
+    }
+
+    public init(orthographic: Orthographic, name: String? = nil, extensions: Extensions? = nil, extras: JSONValue? = nil) {
+        self.init(type: .orthographic, orthographic: orthographic, name: name, extensions: extensions, extras: extras)
+    }
 }
 
 public struct Image: Codable, Hashable, Sendable, Resolver {
