@@ -1423,3 +1423,19 @@ MetalSprocketsGLTF's GLTFExtensionFilter (GLTFLoadOptions.disabledExtensions) en
 Fix options: a Document API that returns a copy without some extensions (e.g. Document.removingExtensions(_:)), or make Extensions on model types settable.
 
 ---
+
+## 68: removingExtensions(_:) cannot keep extensionsUsed / extensionsRequired
+
++++
+status: new
+priority: low
+kind: enhancement
+labels: area:api, effort:xs
+created: 2026-10-14T17:33:58Z
++++
+
+Document.removingExtensions(_:) (#67) also removes the names from extensionsUsed and extensionsRequired. MetalSprocketsGLTF's disabledExtensions option needs to keep them: disabling an extension the file requires must still fail the required-extension check, and asset statistics should still report what the file declares. Both lists are internal(set), so clients cannot restore them.
+
+Fix: add a parameter, e.g. removingExtensions(_:keepingDeclarations: Bool = false), or make extensionsUsed / extensionsRequired publicly settable.
+
+---
