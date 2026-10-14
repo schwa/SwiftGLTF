@@ -3,7 +3,7 @@ import Foundation
 public extension Document {
     // Returns a copy with the named extensions removed from every object and
     // from `extensionsUsed` / `extensionsRequired`. Empty `extensions` maps become nil.
-    func removingExtensions(_ names: Set<String>) -> Document {
+    func removingExtensions(_ names: Set<String>, keepingDeclarations: Bool = false) -> Document {
         guard !names.isEmpty else {
             return self
         }
@@ -28,8 +28,10 @@ public extension Document {
         }
 
         var document = self
-        document.extensionsUsed.removeAll { names.contains($0) }
-        document.extensionsRequired.removeAll { names.contains($0) }
+        if !keepingDeclarations {
+            document.extensionsUsed.removeAll { names.contains($0) }
+            document.extensionsRequired.removeAll { names.contains($0) }
+        }
         strip(&document.extensions)
         strip(&document.asset.extensions)
 

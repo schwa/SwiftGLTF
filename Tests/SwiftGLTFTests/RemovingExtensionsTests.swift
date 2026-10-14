@@ -80,4 +80,13 @@ struct RemovingExtensionsTests {
         let document = try JSONDecoder().decode(Document.self, from: Data(Self.json.utf8))
         #expect(document.removingExtensions([]) == document)
     }
+
+    @Test
+    func keepingDeclarations() throws {
+        let document = try JSONDecoder().decode(Document.self, from: Data(Self.json.utf8))
+        let result = document.removingExtensions(["A"], keepingDeclarations: true)
+        #expect(result.extensionsUsed == document.extensionsUsed)
+        #expect(result.extensionsRequired == document.extensionsRequired)
+        #expect(result.nodes[0].extensions == nil)
+    }
 }

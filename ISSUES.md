@@ -1427,11 +1427,13 @@ Fix options: a Document API that returns a copy without some extensions (e.g. Do
 ## 68: removingExtensions(_:) cannot keep extensionsUsed / extensionsRequired
 
 +++
-status: new
+status: closed
 priority: low
 kind: enhancement
 labels: area:api, effort:xs
 created: 2026-10-14T17:33:58Z
+updated: 2026-10-14T17:36:02Z
+closed: 2026-10-14T17:36:02Z
 +++
 
 Document.removingExtensions(_:) (#67) also removes the names from extensionsUsed and extensionsRequired. MetalSprocketsGLTF's disabledExtensions option needs to keep them: disabling an extension the file requires must still fail the required-extension check, and asset statistics should still report what the file declares. Both lists are internal(set), so clients cannot restore them.
