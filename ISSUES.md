@@ -1543,8 +1543,9 @@ Node TRS, material factors, camera values, and other scalar fields are stored as
 status: new
 priority: low
 kind: bug
-labels: effort:s, area:parsing
+labels: effort:s, area:parsing, deferred
 created: 2026-10-22T15:51:10Z
+updated: 2026-10-22T15:56:39Z
 +++
 
 JSONValue stores every number as Double, so integers larger than 2^53 in extras or extension payloads are rounded on load and written back changed. Found by reading the code; not reproduced.
@@ -1554,11 +1555,12 @@ JSONValue stores every number as Double, so integers larger than 2^53 in extras 
 ## 76: GLB output drops per-buffer name, extensions, and extras
 
 +++
-status: new
+status: open
 priority: medium
 kind: bug
 labels: effort:s, area:api
 created: 2026-10-22T15:51:10Z
+updated: 2026-10-22T15:58:00Z
 +++
 
 When writing .glb, all buffers are packed into one BIN buffer that has only byteLength. Each source buffer's name, extensions, and extras are lost (e.g. EXT_meshopt_compression's fallback flag). .gltf output keeps them. Found by reading Writer.swift; not reproduced.
@@ -1568,11 +1570,12 @@ When writing .glb, all buffers are packed into one BIN buffer that has only byte
 ## 77: GLB output leaves relative image URIs pointing at files it did not copy
 
 +++
-status: new
+status: open
 priority: high
 kind: bug
 labels: effort:s, area:api
 created: 2026-10-22T15:51:10Z
+updated: 2026-10-22T15:58:00Z
 +++
 
 When writing .glb, images referenced by a relative uri keep the uri, but the file is neither embedded nor copied next to the output. Writing to another directory gives a broken texture reference. .gltf output handles this (embeds or copies). Found by reading Writer.swift; not reproduced.
@@ -1596,11 +1599,12 @@ Unknown GLB chunks are read and kept in GLB.chunks but writeGLB only emits JSON 
 ## 79: Writing EXT_meshopt_compression models produces broken files
 
 +++
-status: new
+status: open
 priority: medium
 kind: bug
 labels: effort:m, area:api
 created: 2026-10-22T15:51:10Z
+updated: 2026-10-22T15:58:00Z
 +++
 
 EXT_meshopt_compression stores its own buffer index and byteOffset inside each bufferView's extension object. When writing .glb, buffers are repacked and bufferView buffer/byteOffset are rewritten, but the extension's buffer/byteOffset are not, so they point at the wrong data or a buffer that no longer exists. The meshopt fallback buffer has no uri and no data; when writing it the writer likely packs the GLB BIN chunk again (bigger file), or fails for .gltf sources. Found by reading the code; not reproduced.
