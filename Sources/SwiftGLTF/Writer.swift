@@ -86,10 +86,12 @@ public extension Container {
         for (index, buffer) in document.buffers.enumerated() {
             guard case var .object(fields) = buffers[index] else { continue }
             if index == 0 {
-                binary = try data(for: buffer).prefix(buffer.byteLength)
+                if hasBytes(bufferAt: 0) {
+                    binary = try data(for: buffer).prefix(buffer.byteLength)
+                }
                 fields["uri"] = nil
             }
-            else if buffer.uri != nil {
+            else if hasBytes(bufferAt: index) {
                 let bytes = try data(for: buffer).prefix(buffer.byteLength)
                 fields["uri"] = .string("data:application/octet-stream;base64,\(bytes.base64EncodedString())")
             }
@@ -116,6 +118,17 @@ public extension Container {
             binary: hasBinary ? binary : nil
         )
         try glb.write(to: url)
+    }
+
+    // Whether the buffer has bytes: a uri, or the BIN chunk of a GLB. Others are placeholders.
+    private func hasBytes(bufferAt index: Int) -> Bool {
+        if document.buffers[index].uri != nil {
+            return true
+        }
+        if index == 0, case .binary = kind {
+            return true
+        }
+        return false
     }
 
     // A GLB is self-contained: images referenced by uri move into the BIN chunk as new buffer views.
@@ -195,7 +208,10 @@ public extension Container {
                 fields["extensions"] = original["extensions"]
                 fields["extras"] = original["extras"]
             }
-            if embedResources {
+            if !hasBytes(bufferAt: index) {
+                // A placeholder such as an EXT_meshopt_compression fallback buffer: no uri, nothing to write.
+            }
+            else if embedResources {
                 let bytes = try data(for: buffer).prefix(buffer.byteLength)
                 fields["uri"] = .string("data:application/octet-stream;base64,\(bytes.base64EncodedString())")
             }

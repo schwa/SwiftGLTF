@@ -1601,12 +1601,13 @@ Unknown GLB chunks are read and kept in GLB.chunks but writeGLB only emits JSON 
 ## 79: Writing EXT_meshopt_compression models produces broken files
 
 +++
-status: open
+status: closed
 priority: medium
 kind: bug
 labels: effort:m, area:api
 created: 2026-10-22T15:51:10Z
-updated: 2026-10-22T15:58:00Z
+updated: 2026-10-22T16:02:08Z
+closed: 2026-10-22T16:02:08Z
 +++
 
 EXT_meshopt_compression stores its own buffer index and byteOffset inside each bufferView's extension object. When writing .glb, buffers are repacked and bufferView buffer/byteOffset are rewritten, but the extension's buffer/byteOffset are not, so they point at the wrong data or a buffer that no longer exists. The meshopt fallback buffer has no uri and no data; when writing it the writer likely packs the GLB BIN chunk again (bigger file), or fails for .gltf sources. Found by reading the code; not reproduced.
