@@ -1522,3 +1522,87 @@ closed: 2026-10-22T15:48:18Z
 Container.write aligns the encoded JSON to the JSON the container was loaded from (Writer.swift align(_:to:)), keeping only keys present in the source, matched by path. Its comment assumes Document is immutable, which is no longer true since #70. From reading the code (not reproduced yet): load a .gltf with no meshes, add a mesh to the document, call withDocument(_:), and write. The written file will not contain the new mesh. Expected: edits are written.
 
 ---
+
+## 74: Float storage loses precision from source JSON numbers
+
++++
+status: new
+priority: low
+kind: bug
+labels: effort:m, area:parsing
+created: 2026-10-22T15:51:09Z
++++
+
+Node TRS, material factors, camera values, and other scalar fields are stored as Float. A source value with more precision than float32 (e.g. 0.123456789012, or large world coordinates) is written back rounded (0.12345679). Accessor min/max are Double and not affected. Found by reading the code; not reproduced.
+
+---
+
+## 75: Integers above 2^53 in extras/extensions lose precision
+
++++
+status: new
+priority: low
+kind: bug
+labels: effort:s, area:parsing
+created: 2026-10-22T15:51:10Z
++++
+
+JSONValue stores every number as Double, so integers larger than 2^53 in extras or extension payloads are rounded on load and written back changed. Found by reading the code; not reproduced.
+
+---
+
+## 76: GLB output drops per-buffer name, extensions, and extras
+
++++
+status: new
+priority: medium
+kind: bug
+labels: effort:s, area:api
+created: 2026-10-22T15:51:10Z
++++
+
+When writing .glb, all buffers are packed into one BIN buffer that has only byteLength. Each source buffer's name, extensions, and extras are lost (e.g. EXT_meshopt_compression's fallback flag). .gltf output keeps them. Found by reading Writer.swift; not reproduced.
+
+---
+
+## 77: GLB output leaves relative image URIs pointing at files it did not copy
+
++++
+status: new
+priority: high
+kind: bug
+labels: effort:s, area:api
+created: 2026-10-22T15:51:10Z
++++
+
+When writing .glb, images referenced by a relative uri keep the uri, but the file is neither embedded nor copied next to the output. Writing to another directory gives a broken texture reference. .gltf output handles this (embeds or copies). Found by reading Writer.swift; not reproduced.
+
+---
+
+## 78: GLB output drops chunks other than JSON and BIN
+
++++
+status: new
+priority: low
+kind: bug
+labels: effort:xs, area:api
+created: 2026-10-22T15:51:10Z
++++
+
+Unknown GLB chunks are read and kept in GLB.chunks but writeGLB only emits JSON and BIN, so they are lost on save. Found by reading the code; not reproduced.
+
+---
+
+## 79: Writing EXT_meshopt_compression models produces broken files
+
++++
+status: new
+priority: medium
+kind: bug
+labels: effort:m, area:api
+created: 2026-10-22T15:51:10Z
++++
+
+EXT_meshopt_compression stores its own buffer index and byteOffset inside each bufferView's extension object. When writing .glb, buffers are repacked and bufferView buffer/byteOffset are rewritten, but the extension's buffer/byteOffset are not, so they point at the wrong data or a buffer that no longer exists. The meshopt fallback buffer has no uri and no data; when writing it the writer likely packs the GLB BIN chunk again (bigger file), or fails for .gltf sources. Found by reading the code; not reproduced.
+
+---
