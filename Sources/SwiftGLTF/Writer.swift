@@ -85,9 +85,6 @@ public extension Container {
             offsets.append(binary.count)
             binary += try data(for: buffer).prefix(buffer.byteLength)
         }
-        if !document.buffers.isEmpty {
-            object["buffers"] = .array([.object(["byteLength": .number(Double(binary.count))])])
-        }
         if case let .array(views)? = object["bufferViews"] {
             object["bufferViews"] = .array(views.map { view in
                 guard case var .object(fields) = view,
@@ -106,11 +103,64 @@ public extension Container {
                 return .object(fields)
             })
         }
+        try embedImages(in: &object, binary: &binary)
+        let hasBinary = !document.buffers.isEmpty || !binary.isEmpty
+        if hasBinary {
+            object["buffers"] = .array([.object(["byteLength": .number(Double(binary.count))])])
+        }
         let glb = GLTFWriter.glbData(
             json: try encoded(object, prettyPrinted: false),
-            binary: document.buffers.isEmpty ? nil : binary
+            binary: hasBinary ? binary : nil
         )
         try glb.write(to: url)
+    }
+
+    // A GLB is self-contained: images referenced by uri move into the BIN chunk as new buffer views.
+    private func embedImages(in object: inout [String: JSONValue], binary: inout Data) throws {
+        guard case let .array(images)? = object["images"] else {
+            return
+        }
+        var views: [JSONValue] = {
+            if case let .array(views)? = object["bufferViews"] {
+                return views
+            }
+            return []
+        }()
+        object["images"] = .array(try zip(images, document.images).map { value, image in
+            guard case var .object(fields) = value, let uri = image.uri else {
+                return value
+            }
+            while !binary.count.isMultiple(of: 4) {
+                binary.append(0)
+            }
+            let bytes = try data(for: image)
+            var view: [String: JSONValue] = ["buffer": .number(0), "byteLength": .number(Double(bytes.count))]
+            if !binary.isEmpty {
+                view["byteOffset"] = .number(Double(binary.count))
+            }
+            binary += bytes
+            views.append(.object(view))
+            fields["uri"] = nil
+            fields["bufferView"] = .number(Double(views.count - 1))
+            fields["mimeType"] = .string(image.mimeType ?? Self.mimeType(for: uri))
+            return .object(fields)
+        })
+        object["bufferViews"] = .array(views)
+    }
+
+    // GLB images need a mimeType; guess it from the uri when the source has none.
+    static func mimeType(for uri: URI) -> String {
+        let lowercased = uri.string.lowercased()
+        if lowercased.hasPrefix("data:"), let end = lowercased.firstIndex(of: ";") ?? lowercased.firstIndex(of: ",") {
+            return String(lowercased[lowercased.index(lowercased.startIndex, offsetBy: 5) ..< end])
+        }
+        if lowercased.hasSuffix(".png") {
+            return "image/png"
+        }
+        if lowercased.hasSuffix(".webp") {
+            return "image/webp"
+        }
+        return "image/jpeg"
     }
 
     private func writeGLTF(to url: URL, embedResources: Bool) throws {
@@ -169,7 +219,7 @@ public extension Container {
                 }
                 if embedResources {
                     let bytes = try data(for: image)
-                    let mimeType = image.mimeType ?? (uri.string.lowercased().hasSuffix(".png") ? "image/png" : "image/jpeg")
+                    let mimeType = image.mimeType ?? Self.mimeType(for: uri)
                     fields["uri"] = .string("data:\(mimeType);base64,\(bytes.base64EncodedString())")
                 }
                 else {

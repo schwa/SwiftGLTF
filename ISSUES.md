@@ -1570,12 +1570,13 @@ When writing .glb, all buffers are packed into one BIN buffer that has only byte
 ## 77: GLB output leaves relative image URIs pointing at files it did not copy
 
 +++
-status: open
+status: closed
 priority: high
 kind: bug
 labels: effort:s, area:api
 created: 2026-10-22T15:51:10Z
-updated: 2026-10-22T15:58:00Z
+updated: 2026-10-22T15:59:19Z
+closed: 2026-10-22T15:59:19Z
 +++
 
 When writing .glb, images referenced by a relative uri keep the uri, but the file is neither embedded nor copied next to the output. Writing to another directory gives a broken texture reference. .gltf output handles this (embeds or copies). Found by reading Writer.swift; not reproduced.
