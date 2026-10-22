@@ -9,8 +9,8 @@ public extension Document {
 }
 
 public enum GLTFWriter {
-    // Assembles a GLB from a JSON chunk and an optional BIN chunk.
-    public static func glbData(json: Data, binary: Data?) -> Data {
+    // Assembles a GLB from a JSON chunk, an optional BIN chunk, and any other chunks (written after them).
+    public static func glbData(json: Data, binary: Data?, otherChunks: [Chunk] = []) -> Data {
         func padded(_ data: Data, with byte: UInt8) -> Data {
             var data = data
             while !data.count.isMultiple(of: 4) {
@@ -26,6 +26,10 @@ public enum GLTFWriter {
         if let binary {
             let binChunk = padded(binary, with: 0)
             body += uint32(binChunk.count) + uint32(0x004E_4942) + binChunk
+        }
+        for chunk in otherChunks {
+            let content = padded(chunk.content, with: 0)
+            body += uint32(content.count) + uint32(Int(chunk.chunkType.rawValue)) + content
         }
         return uint32(0x4654_6C67) + uint32(2) + uint32(12 + body.count) + body
     }
@@ -113,9 +117,14 @@ public extension Container {
             }
             object["buffers"] = .array(buffers)
         }
+        var otherChunks: [Chunk] = []
+        if case let .binary(source) = kind {
+            otherChunks = source.chunks.filter { $0.chunkType != .json && $0.chunkType != .bin }
+        }
         let glb = GLTFWriter.glbData(
             json: try encoded(object, prettyPrinted: false),
-            binary: hasBinary ? binary : nil
+            binary: hasBinary ? binary : nil,
+            otherChunks: otherChunks
         )
         try glb.write(to: url)
     }

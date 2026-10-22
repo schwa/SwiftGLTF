@@ -1594,11 +1594,13 @@ When writing .glb, images referenced by a relative uri keep the uri, but the fil
 ## 78: GLB output drops chunks other than JSON and BIN
 
 +++
-status: new
+status: closed
 priority: low
 kind: bug
 labels: effort:xs, area:api
 created: 2026-10-22T15:51:10Z
+updated: 2026-10-22T16:10:15Z
+closed: 2026-10-22T16:10:15Z
 +++
 
 Unknown GLB chunks are read and kept in GLB.chunks but writeGLB only emits JSON and BIN, so they are lost on save. Found by reading the code; not reproduced.
