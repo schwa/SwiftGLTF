@@ -1526,29 +1526,36 @@ Container.write aligns the encoded JSON to the JSON the container was loaded fro
 ## 74: Float storage loses precision from source JSON numbers
 
 +++
-status: new
+status: closed
 priority: low
 kind: bug
-labels: effort:m, area:parsing
+labels: effort:m, area:parsing, wontfix
 created: 2026-10-22T15:51:09Z
+updated: 2026-10-22T16:08:33Z
+closed: 2026-10-22T16:08:33Z
 +++
 
 Node TRS, material factors, camera values, and other scalar fields are stored as Float. A source value with more precision than float32 (e.g. 0.123456789012, or large world coordinates) is written back rounded (0.12345679). Accessor min/max are Double and not affected. Found by reading the code; not reproduced.
+
+- `2026-10-22T16:08:33Z`: Won't fix. Corpus probe: 454 of 490,766 numbers change, max relative error 5.4e-8 (float32 rounding).
 
 ---
 
 ## 75: Integers above 2^53 in extras/extensions lose precision
 
 +++
-status: new
+status: closed
 priority: low
 kind: bug
-labels: effort:s, area:parsing, deferred
+labels: effort:s, area:parsing, deferred, wontfix
 created: 2026-10-22T15:51:10Z
-updated: 2026-10-22T15:56:39Z
+updated: 2026-10-22T16:08:33Z
+closed: 2026-10-22T16:08:33Z
 +++
 
 JSONValue stores every number as Double, so integers larger than 2^53 in extras or extension payloads are rounded on load and written back changed. Found by reading the code; not reproduced.
+
+- `2026-10-22T16:08:33Z`: Won't fix.
 
 ---
 
