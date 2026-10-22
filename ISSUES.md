@@ -1460,12 +1460,13 @@ Outside the module, most model types (Document, Node, Mesh, Mesh.Primitive, Acce
 ## 70: Document properties cannot be mutated by consumers
 
 +++
-status: open
+status: closed
 priority: medium
 kind: feature
 labels: effort:xs, area:api
 created: 2026-10-22T15:28:15Z
-updated: 2026-10-22T15:29:01Z
+updated: 2026-10-22T15:30:19Z
+closed: 2026-10-22T15:30:19Z
 +++
 
 Document properties are public internal(set) (and scene/extras are let), so a consumer cannot add or edit nodes, meshes, accessors, etc. on a loaded or new document.

@@ -202,25 +202,25 @@ public struct Container: Sendable {
 // MARK: -
 
 public struct Document: Codable, Hashable, Sendable {
-    public internal(set) var extensionsUsed: [String]
-    public internal(set) var extensionsRequired: [String]
-    public internal(set) var accessors: [Accessor]
-    public internal(set) var animations: [Animation]
-    public internal(set) var asset: Asset
-    public internal(set) var buffers: [Buffer]
-    public internal(set) var bufferViews: [BufferView]
-    public internal(set) var cameras: [Camera]
-    public internal(set) var images: [Image]
-    public internal(set) var materials: [Material]
-    public internal(set) var meshes: [Mesh]
-    public internal(set) var nodes: [Node]
-    public internal(set) var samplers: [Sampler]
-    public let scene: Index<Scene>?
-    public internal(set) var scenes: [Scene]
-    public internal(set) var skins: [Skin]
-    public internal(set) var textures: [Texture]
-    public internal(set) var extensions: Extensions?
-    public let extras: JSONValue?
+    public var extensionsUsed: [String]
+    public var extensionsRequired: [String]
+    public var accessors: [Accessor]
+    public var animations: [Animation]
+    public var asset: Asset
+    public var buffers: [Buffer]
+    public var bufferViews: [BufferView]
+    public var cameras: [Camera]
+    public var images: [Image]
+    public var materials: [Material]
+    public var meshes: [Mesh]
+    public var nodes: [Node]
+    public var samplers: [Sampler]
+    public var scene: Index<Scene>?
+    public var scenes: [Scene]
+    public var skins: [Skin]
+    public var textures: [Texture]
+    public var extensions: Extensions?
+    public var extras: JSONValue?
 
     public enum CodingKeys: CodingKey {
         case extensionsUsed
