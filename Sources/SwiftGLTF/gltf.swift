@@ -373,6 +373,14 @@ public struct Accessor: Codable, Hashable, Sendable, Resolver {
         public internal(set) var values: Values
         public internal(set) var extensions: Extensions?
         public let extras: JSONValue?
+
+        public init(count: Int, indices: Indices, values: Values, extensions: Extensions? = nil, extras: JSONValue? = nil) {
+            self.count = count
+            self.indices = indices
+            self.values = values
+            self.extensions = extensions
+            self.extras = extras
+        }
     }
 
     public enum CodingKeys: CodingKey {
@@ -558,6 +566,15 @@ public struct Image: Codable, Hashable, Sendable, Resolver {
     public let name: String?
     public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
+
+    public init(uri: URI? = nil, mimeType: String? = nil, bufferView: Index<BufferView>? = nil, name: String? = nil, extensions: Extensions? = nil, extras: JSONValue? = nil) {
+        self.uri = uri
+        self.mimeType = mimeType
+        self.bufferView = bufferView
+        self.name = name
+        self.extensions = extensions
+        self.extras = extras
+    }
 }
 
 public struct Material: Codable, Hashable, Sendable, Resolver {
@@ -612,6 +629,32 @@ public struct Material: Codable, Hashable, Sendable, Resolver {
     public let doubleSided: Bool? // false
     public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
+
+    public init(
+        name: String? = nil,
+        pbrMetallicRoughness: PBRMetallicRoughness? = nil,
+        normalTexture: TextureInfo? = nil,
+        occlusionTexture: TextureInfo? = nil,
+        emissiveTexture: TextureInfo? = nil,
+        emissiveFactor: SIMD3<Float>? = nil,
+        alphaMode: AlphaMode? = nil,
+        alphaCutoff: Float? = nil,
+        doubleSided: Bool? = nil, // swiftlint:disable:this discouraged_optional_boolean
+        extensions: Extensions? = nil,
+        extras: JSONValue? = nil
+    ) {
+        self.name = name
+        self.pbrMetallicRoughness = pbrMetallicRoughness
+        self.normalTexture = normalTexture
+        self.occlusionTexture = occlusionTexture
+        self.emissiveTexture = emissiveTexture
+        self.emissiveFactor = emissiveFactor
+        self.alphaMode = alphaMode
+        self.alphaCutoff = alphaCutoff
+        self.doubleSided = doubleSided
+        self.extensions = extensions
+        self.extras = extras
+    }
 }
 
 extension Material: Extensible {}

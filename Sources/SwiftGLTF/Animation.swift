@@ -13,6 +13,13 @@ public struct Animation: Codable, Hashable, Sendable, Resolver, Extensible {
             public let path: Path
             public internal(set) var extensions: Extensions?
             public let extras: JSONValue?
+
+            public init(node: Index<Node>?, path: Path, extensions: Extensions? = nil, extras: JSONValue? = nil) {
+                self.node = node
+                self.path = path
+                self.extensions = extensions
+                self.extras = extras
+            }
         }
 
         // Index into the owning animation's `samplers`.
@@ -20,6 +27,13 @@ public struct Animation: Codable, Hashable, Sendable, Resolver, Extensible {
         public internal(set) var target: Target
         public internal(set) var extensions: Extensions?
         public let extras: JSONValue?
+
+        public init(sampler: Int, target: Target, extensions: Extensions? = nil, extras: JSONValue? = nil) {
+            self.sampler = sampler
+            self.target = target
+            self.extensions = extensions
+            self.extras = extras
+        }
     }
 
     // Open set so extension paths (e.g. "pointer") don't fail decoding.
@@ -76,6 +90,14 @@ public struct Animation: Codable, Hashable, Sendable, Resolver, Extensible {
     public let name: String?
     public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
+
+    public init(channels: [Channel], samplers: [Sampler], name: String? = nil, extensions: Extensions? = nil, extras: JSONValue? = nil) {
+        self.channels = channels
+        self.samplers = samplers
+        self.name = name
+        self.extensions = extensions
+        self.extras = extras
+    }
 }
 
 // Decoded keyframes for one sampler: times plus a flat array of output values.

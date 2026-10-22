@@ -1445,12 +1445,13 @@ Fix: add a parameter, e.g. removingExtensions(_:keepingDeclarations: Bool = fals
 ## 69: Consumers cannot construct glTF model types in code
 
 +++
-status: open
+status: closed
 priority: medium
 kind: feature
 labels: effort:m, area:api
 created: 2026-10-22T15:28:15Z
-updated: 2026-10-22T15:29:01Z
+updated: 2026-10-22T15:33:06Z
+closed: 2026-10-22T15:33:06Z
 +++
 
 Outside the module, most model types (Document, Node, Mesh, Mesh.Primitive, Accessor, Buffer, BufferView, Material, Material.PBRMetallicRoughness, Image, Texture, TextureInfo, Scene, Skin, Animation, Asset) and Index<R> have no public initializers. They can only be produced by decoding JSON. Camera and Sampler are the exceptions.
