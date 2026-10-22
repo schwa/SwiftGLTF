@@ -1510,11 +1510,13 @@ Writing only supports round-tripping a loaded file. Building a model in code and
 ## 73: Writing an edited document drops keys the source file did not have
 
 +++
-status: new
+status: closed
 priority: medium
 kind: bug
 labels: effort:s, area:api
 created: 2026-10-22T15:31:15Z
+updated: 2026-10-22T15:48:18Z
+closed: 2026-10-22T15:48:18Z
 +++
 
 Container.write aligns the encoded JSON to the JSON the container was loaded from (Writer.swift align(_:to:)), keeping only keys present in the source, matched by path. Its comment assumes Document is immutable, which is no longer true since #70. From reading the code (not reproduced yet): load a .gltf with no meshes, add a mesh to the document, call withDocument(_:), and write. The written file will not contain the new mesh. Expected: edits are written.

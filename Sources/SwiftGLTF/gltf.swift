@@ -35,8 +35,8 @@ public struct Container: Sendable {
         switch url.pathExtension {
         case "glb":
             let glb = try GLB(url: url)
-            kind = .binary(glb)
             document = try glb.document()
+            kind = .binary(glb.discardingJSON())
         case "gltf":
             kind = .json
             let data = try Data(contentsOf: url)
@@ -53,10 +53,8 @@ public struct Container: Sendable {
         binaryBuffer: Data? = nil,
         url: URL = FileManager.default.temporaryDirectory.appendingPathComponent("untitled.glb"),
         bufferViewDecoders: [any BufferViewDecoder] = []
-    ) throws {
-        let glbData = GLTFWriter.glbData(json: try document.jsonData(), binary: binaryBuffer)
-        var scanner = CollectionScanner(elements: glbData)
-        self.init(url: url, kind: .binary(try scanner.scanGLB()), document: document, bufferViewDecoders: bufferViewDecoders)
+    ) {
+        self.init(url: url, kind: .binary(GLB(binary: binaryBuffer)), document: document, bufferViewDecoders: bufferViewDecoders)
     }
 
     private init(url: URL, kind: Kind, document: Document, bufferViewDecoders: [any BufferViewDecoder]) {

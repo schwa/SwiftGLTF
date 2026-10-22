@@ -7,7 +7,7 @@ struct AuthoringTests {
     let positions: [Float] = [0, 0, 0, 1, 0, 0, 0, 1, 0]
     let indices: [UInt16] = [0, 1, 2]
 
-    func makeContainer() throws -> Container {
+    func makeContainer() -> Container {
         var binary = positions.withUnsafeBytes { Data($0) }
         let indexOffset = binary.count
         binary += indices.withUnsafeBytes { Data($0) }
@@ -28,7 +28,7 @@ struct AuthoringTests {
             buffers: [Buffer(byteLength: binary.count)],
             materials: [Material(pbrMetallicRoughness: .init(baseColorFactor: [1, 0, 0, 1]))]
         )
-        return try Container(document: document, binaryBuffer: binary)
+        return Container(document: document, binaryBuffer: binary)
     }
 
     @Test(arguments: ["glb", "gltf"])

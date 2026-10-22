@@ -24,7 +24,7 @@ struct InMemoryContainerTests {
     }
 
     @Test func readsTheBinaryBuffer() throws {
-        let container = try Container(document: document, binaryBuffer: payload)
+        let container = Container(document: document, binaryBuffer: payload)
         #expect(try readBack(container) == payload)
     }
 
@@ -40,7 +40,7 @@ struct InMemoryContainerTests {
 
     @Test func documentWithoutBuffers() throws {
         let empty = try JSONDecoder().decode(Document.self, from: Data(#"{"asset": {"version": "2.0"}}"#.utf8))
-        let container = try Container(document: empty)
+        let container = Container(document: empty)
         #expect(container.document == empty)
     }
 }

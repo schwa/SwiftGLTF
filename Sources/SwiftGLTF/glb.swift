@@ -23,6 +23,20 @@ public extension GLB {
         return try JSONDecoder().decode(Document.self, from: chunk.content)
     }
 
+    // The same GLB with the JSON chunk emptied, once it has been decoded. Chunk indices are unchanged.
+    func discardingJSON() -> GLB {
+        GLB(header: header, chunks: chunks.map { chunk in
+            chunk.chunkType == .json ? Chunk(chunkLength: 0, chunkType: .json, content: Data()) : chunk
+        })
+    }
+
+    // A GLB holding only `binary`, for documents built in memory.
+    init(binary: Data?) {
+        let chunks = binary.map { [Chunk(chunkLength: UInt32($0.count), chunkType: .bin, content: $0)] } ?? []
+        let length = 12 + chunks.reduce(0) { $0 + 8 + Int($1.chunkLength) }
+        self.init(header: Header(magic: 0x4654_6C67, version: 2, length: UInt32(length)), chunks: chunks)
+    }
+
     // The BIN chunk, if any (it need not be the second chunk; unknown chunks are kept).
     func binaryBuffer() throws -> Data {
         guard let chunk = chunks.first(where: { $0.chunkType == .bin }) else {
