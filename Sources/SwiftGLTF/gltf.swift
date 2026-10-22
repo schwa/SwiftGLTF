@@ -46,6 +46,19 @@ public struct Container: Sendable {
         }
     }
 
+    // An in-memory model, held as a GLB. `binaryBuffer` backs any buffer without a uri. `url` is the base for relative
+    // URIs; nothing is read from it unless the document references relative files.
+    public init(
+        document: Document,
+        binaryBuffer: Data? = nil,
+        url: URL = FileManager.default.temporaryDirectory.appendingPathComponent("untitled.glb"),
+        bufferViewDecoders: [any BufferViewDecoder] = []
+    ) throws {
+        let glbData = GLTFWriter.glbData(json: try document.jsonData(), binary: binaryBuffer)
+        var scanner = CollectionScanner(elements: glbData)
+        self.init(url: url, kind: .binary(try scanner.scanGLB()), document: document, bufferViewDecoders: bufferViewDecoders)
+    }
+
     private init(url: URL, kind: Kind, document: Document, bufferViewDecoders: [any BufferViewDecoder]) {
         self.url = url
         self.kind = kind

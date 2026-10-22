@@ -1476,12 +1476,13 @@ Document properties are public internal(set) (and scene/extras are let), so a co
 ## 71: No way to create a Container from an in-memory Document and buffer data
 
 +++
-status: open
+status: closed
 priority: medium
 kind: feature
 labels: effort:s, area:api
 created: 2026-10-22T15:28:19Z
-updated: 2026-10-22T15:29:01Z
+updated: 2026-10-22T15:31:15Z
+closed: 2026-10-22T15:31:15Z
 +++
 
 Container's only public initializer is init(url:), which loads from disk, and write(to:) lives on Container. A consumer with a Document and binary buffer data in memory has no way to get a Container to save.
@@ -1501,5 +1502,19 @@ updated: 2026-10-22T15:29:01Z
 +++
 
 Writing only supports round-tripping a loaded file. Building a model in code and writing it as .gltf or .glb is not possible through the public API. Also needs a test that builds a simple model (e.g. one triangle mesh) in code, writes .gltf and .glb, and reloads them.
+
+---
+
+## 73: Writing an edited document drops keys the source file did not have
+
++++
+status: new
+priority: medium
+kind: bug
+labels: effort:s, area:api
+created: 2026-10-22T15:31:15Z
++++
+
+Container.write aligns the encoded JSON to the JSON the container was loaded from (Writer.swift align(_:to:)), keeping only keys present in the source, matched by path. Its comment assumes Document is immutable, which is no longer true since #70. From reading the code (not reproduced yet): load a .gltf with no meshes, add a mesh to the document, call withDocument(_:), and write. The written file will not contain the new mesh. Expected: edits are written.
 
 ---
