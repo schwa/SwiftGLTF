@@ -1441,3 +1441,64 @@ Document.removingExtensions(_:) (#67) also removes the names from extensionsUsed
 Fix: add a parameter, e.g. removingExtensions(_:keepingDeclarations: Bool = false), or make extensionsUsed / extensionsRequired publicly settable.
 
 ---
+
+## 69: Consumers cannot construct glTF model types in code
+
++++
+status: open
+priority: medium
+kind: feature
+labels: effort:m, area:api
+created: 2026-10-22T15:28:15Z
+updated: 2026-10-22T15:29:01Z
++++
+
+Outside the module, most model types (Document, Node, Mesh, Mesh.Primitive, Accessor, Buffer, BufferView, Material, Material.PBRMetallicRoughness, Image, Texture, TextureInfo, Scene, Skin, Animation, Asset) and Index<R> have no public initializers. They can only be produced by decoding JSON. Camera and Sampler are the exceptions.
+
+---
+
+## 70: Document properties cannot be mutated by consumers
+
++++
+status: open
+priority: medium
+kind: feature
+labels: effort:xs, area:api
+created: 2026-10-22T15:28:15Z
+updated: 2026-10-22T15:29:01Z
++++
+
+Document properties are public internal(set) (and scene/extras are let), so a consumer cannot add or edit nodes, meshes, accessors, etc. on a loaded or new document.
+
+---
+
+## 71: No way to create a Container from an in-memory Document and buffer data
+
++++
+status: open
+priority: medium
+kind: feature
+labels: effort:s, area:api
+created: 2026-10-22T15:28:19Z
+updated: 2026-10-22T15:29:01Z
++++
+
+Container's only public initializer is init(url:), which loads from disk, and write(to:) lives on Container. A consumer with a Document and binary buffer data in memory has no way to get a Container to save.
+
+---
+
+## 72: Consumers cannot author and save a glTF model from scratch
+
++++
+status: open
+priority: medium
+kind: feature
+labels: effort:s, area:api
+depends: 69, 70, 71
+created: 2026-10-22T15:28:19Z
+updated: 2026-10-22T15:29:01Z
++++
+
+Writing only supports round-tripping a loaded file. Building a model in code and writing it as .gltf or .glb is not possible through the public API. Also needs a test that builds a simple model (e.g. one triangle mesh) in code, writes .gltf and .glb, and reloads them.
+
+---
