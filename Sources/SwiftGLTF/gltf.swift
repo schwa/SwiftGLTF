@@ -855,7 +855,7 @@ public struct Sampler: Codable, Hashable, Sendable, Resolver {
     public let minFilter: MinFilter?
     public let wrapS: Wrap
     public let wrapT: Wrap
-    public let name: String??
+    public let name: String?
     public internal(set) var extensions: Extensions?
     public let extras: JSONValue?
 
