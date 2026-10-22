@@ -72,41 +72,44 @@ public extension Container {
         return try encoder.encode(JSONValue.object(object))
     }
 
-    // Packs every buffer into one BIN chunk (4-byte aligned) and rewrites the
-    // buffers/bufferViews accordingly.
+    // Buffers stay one-to-one, so buffer and bufferView indices and offsets are unchanged:
+    // buffer 0 becomes the BIN chunk, and other buffers with data are embedded as data URIs.
     private func writeGLB(to url: URL) throws {
         var object = try jsonObject()
-        var binary = Data()
-        var offsets: [Int] = []
-        for buffer in document.buffers {
-            while !binary.count.isMultiple(of: 4) {
-                binary.append(0)
+        var buffers: [JSONValue] = {
+            if case let .array(buffers)? = object["buffers"] {
+                return buffers
             }
-            offsets.append(binary.count)
-            binary += try data(for: buffer).prefix(buffer.byteLength)
-        }
-        if case let .array(views)? = object["bufferViews"] {
-            object["bufferViews"] = .array(views.map { view in
-                guard case var .object(fields) = view,
-                      case let .number(bufferIndex)? = fields["buffer"] else {
-                    return view
-                }
-                let base: Double = {
-                    if case let .number(offset)? = fields["byteOffset"] {
-                        return offset
-                    }
-                    return 0
-                }()
-                fields["buffer"] = .number(0)
-                let shifted = base + Double(offsets[Int(bufferIndex)])
-                fields["byteOffset"] = shifted == 0 ? nil : .number(shifted)
-                return .object(fields)
-            })
+            return []
+        }()
+        var binary = Data()
+        for (index, buffer) in document.buffers.enumerated() {
+            guard case var .object(fields) = buffers[index] else { continue }
+            if index == 0 {
+                binary = try data(for: buffer).prefix(buffer.byteLength)
+                fields["uri"] = nil
+            }
+            else if buffer.uri != nil {
+                let bytes = try data(for: buffer).prefix(buffer.byteLength)
+                fields["uri"] = .string("data:application/octet-stream;base64,\(bytes.base64EncodedString())")
+            }
+            buffers[index] = .object(fields)
         }
         try embedImages(in: &object, binary: &binary)
-        let hasBinary = !document.buffers.isEmpty || !binary.isEmpty
+        let hasBinary = !buffers.isEmpty || !binary.isEmpty
         if hasBinary {
-            object["buffers"] = .array([.object(["byteLength": .number(Double(binary.count))])])
+            var first: [String: JSONValue] = [:]
+            if case let .object(fields)? = buffers.first {
+                first = fields
+            }
+            first["byteLength"] = .number(Double(binary.count))
+            if buffers.isEmpty {
+                buffers.append(.object(first))
+            }
+            else {
+                buffers[0] = .object(first)
+            }
+            object["buffers"] = .array(buffers)
         }
         let glb = GLTFWriter.glbData(
             json: try encoded(object, prettyPrinted: false),

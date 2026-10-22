@@ -118,11 +118,11 @@ struct WriterFidelityTests {
             let output = temporaryURL("\(name).glb")
             try container.write(to: output)
             defer { try? FileManager.default.removeItem(at: output) }
-            // GLB output repacks buffers and rebases bufferViews by design.
-            var problems = lostKeys(try json(at: source), try json(at: output), ignored: ["/buffers", "/bufferViews"])
+            var problems = lostKeys(try json(at: source), try json(at: output), ignored: [])
             let reloaded = try Container(url: output).document
             if reloaded.nodes != container.document.nodes || reloaded.meshes != container.document.meshes
-                || reloaded.materials != container.document.materials || reloaded.accessors != container.document.accessors {
+                || reloaded.materials != container.document.materials || reloaded.accessors != container.document.accessors
+                || reloaded.bufferViews != container.document.bufferViews {
                 problems.append("reloaded document differs")
             }
             if !problems.isEmpty {

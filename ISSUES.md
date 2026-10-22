@@ -1555,12 +1555,13 @@ JSONValue stores every number as Double, so integers larger than 2^53 in extras 
 ## 76: GLB output drops per-buffer name, extensions, and extras
 
 +++
-status: open
+status: closed
 priority: medium
 kind: bug
 labels: effort:s, area:api
 created: 2026-10-22T15:51:10Z
-updated: 2026-10-22T15:58:00Z
+updated: 2026-10-22T16:01:01Z
+closed: 2026-10-22T16:01:01Z
 +++
 
 When writing .glb, all buffers are packed into one BIN buffer that has only byteLength. Each source buffer's name, extensions, and extras are lost (e.g. EXT_meshopt_compression's fallback flag). .gltf output keeps them. Found by reading Writer.swift; not reproduced.
