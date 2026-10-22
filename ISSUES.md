@@ -1493,13 +1493,14 @@ Container's only public initializer is init(url:), which loads from disk, and wr
 ## 72: Consumers cannot author and save a glTF model from scratch
 
 +++
-status: open
+status: closed
 priority: medium
 kind: feature
 labels: effort:s, area:api
 depends: 69, 70, 71
 created: 2026-10-22T15:28:19Z
-updated: 2026-10-22T15:29:01Z
+updated: 2026-10-22T15:33:54Z
+closed: 2026-10-22T15:33:54Z
 +++
 
 Writing only supports round-tripping a loaded file. Building a model in code and writing it as .gltf or .glb is not possible through the public API. Also needs a test that builds a simple model (e.g. one triangle mesh) in code, writes .gltf and .glb, and reloads them.
