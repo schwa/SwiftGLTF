@@ -21,7 +21,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/schwa/GoldenImage.git", branch: "main"),
+        .package(url: "https://github.com/schwa/GoldenImage.git", from: "0.1.7"),
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
     ],
     targets: [

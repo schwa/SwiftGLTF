@@ -5,8 +5,17 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/schwa/GoldenImage.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "0ded59d4d0fe6d7796695aacea76b3bc56be410b"
+        "revision" : "a1d17d68e763bf3ea02e5d634bb69460a1f7be9c",
+        "version" : "0.1.7"
+      }
+    },
+    {
+      "identity" : "metalcompilerplugin",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/schwa/MetalCompilerPlugin",
+      "state" : {
+        "revision" : "4ad74195623b0bc11662eb3c6f0495e119521a0d",
+        "version" : "0.4.1"
       }
     },
     {
