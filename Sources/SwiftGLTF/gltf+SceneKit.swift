@@ -8,6 +8,7 @@ import os
 import SceneKit
 // import SIMDSupport
 
+@available(*, deprecated, message: "Use the RealityKit APIs instead.")
 public class SceneKitGenerator {
     let rootURL: URL?
     let document: Document
@@ -45,8 +46,12 @@ public class SceneKitGenerator {
     }
 
     func generateSCNNode(from node: Node) throws -> SCNNode {
-        let geometry = try node.mesh.map { try generateSCNGeometry(from: $0.resolve(in: document)) }
-        let scnNode = SCNNode(geometry: geometry)
+        let geometries = try node.mesh.map { try generateSCNGeometries(from: $0.resolve(in: document)) } ?? []
+        // SceneKit uses only the first source per semantic, so each primitive needs its own geometry.
+        let scnNode = SCNNode(geometry: geometries.count == 1 ? geometries[0] : nil)
+        if geometries.count > 1 {
+            geometries.forEach { scnNode.addChildNode(SCNNode(geometry: $0)) }
+        }
 
         if let cameraIndex = node.camera {
             scnNode.camera = makeSCNCamera(from: try cameraIndex.resolve(in: document))
@@ -224,7 +229,7 @@ public class SceneKitGenerator {
         var materials: [SCNMaterial]
     }
 
-    func generateSCNGeometry(from mesh: Mesh) throws -> SCNGeometry {
+    func generateSCNGeometries(from mesh: Mesh) throws -> [SCNGeometry] {
         let sourcesAndElements: [PrimitiveGeometry] = try mesh.primitives.map { primitive in
             let semantics: [(Mesh.Primitive.Semantic, SCNGeometrySource.Semantic?)] = [
                 (.POSITION, .vertex),
@@ -301,13 +306,14 @@ public class SceneKitGenerator {
             return PrimitiveGeometry(sources: sources, element: scnElement, materials: [scnMaterial].compactMap { $0 })
         }
 
-        let sources = sourcesAndElements.flatMap(\.sources)
-        let elements = sourcesAndElements.compactMap(\.element)
-        let materials = sourcesAndElements.flatMap(\.materials)
-
-        let geometry = SCNGeometry(sources: sources, elements: elements)
-        geometry.materials = materials
-        return geometry
+        return sourcesAndElements.compactMap { primitive in
+            guard let element = primitive.element else {
+                return nil
+            }
+            let geometry = SCNGeometry(sources: primitive.sources, elements: [element])
+            geometry.materials = primitive.materials
+            return geometry
+        }
     }
 
     func generateSCNMaterial(from material: Material) throws -> SCNMaterial {

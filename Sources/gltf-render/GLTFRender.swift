@@ -37,8 +37,8 @@ struct Render: AsyncParsableCommand {
     @Option(name: [.short, .long], help: "Output image size (square), in pixels.")
     var size = 1024
 
-    @Option(name: [.short, .long], help: "Rendering backend: scenekit or realitykit.")
-    var backend: Backend = .scenekit
+    @Option(name: [.short, .long], help: "Rendering backend: realitykit or scenekit.")
+    var backend: Backend = .realitykit
 
     @Option(name: [.short, .long], help: "Equirectangular HDR/EXR image used for image-based lighting.")
     var environment: String?

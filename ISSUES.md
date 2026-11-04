@@ -1626,11 +1626,12 @@ EXT_meshopt_compression stores its own buffer index and byteOffset inside each b
 ## 80: gltf-render SceneKit backend shows only slivers of some flat-shaded models
 
 +++
-status: new
+status: closed
 priority: low
 kind: bug
 created: 2026-11-04T15:58:57Z
-updated: 2026-11-04T16:00:01Z
+updated: 2026-11-04T16:05:43Z
+closed: 2026-11-04T16:05:43Z
 +++
 
 Some valid GLB models render as only a few bright slivers with the SceneKit backend. The same files look correct in Finder/Quick Look and with the RealityKit backend.
