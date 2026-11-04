@@ -1630,22 +1630,22 @@ status: new
 priority: low
 kind: bug
 created: 2026-11-04T15:58:57Z
+updated: 2026-11-04T16:00:01Z
 +++
 
 Some valid GLB models render as only a few bright slivers with the SceneKit backend. The same files look correct in Finder/Quick Look and with the RealityKit backend.
 
 ## Repro
-1. Build gltf-render.
-2. `gltf-render render ~/Projects/Scratch/SidraLine/Models/cg-ticonderoga.glb -o /tmp/cg.png -s 600` (default backend: scenekit)
-3. Also: `osa-ii.glb` in the same folder.
+Files are in `Repros/Issue80/`.
+1. `xcb run gltf-render -- render "$PWD/Repros/Issue80/cg-ticonderoga.glb" -o /tmp/cg.png -s 600` (default backend: scenekit)
+2. Compare: same command with `-b realitykit`.
+3. Control: `Repros/Issue80/sh-60b-seahawk.glb` renders correctly with SceneKit.
 
 ## Expected
 The whole ship (hull, superstructure, masts) is visible, as with `-b realitykit` or Quick Look.
 
 ## Actual
 Only two thin bright slivers (hull sides) are visible. Everything else is missing or black against the background.
-
-`sh-60b-seahawk.glb` from the same exporter renders correctly with SceneKit.
 
 ## Model details
 - Made by SidraLine's `sidra-export` (SwiftGLTF Document + GLTFWriter).
