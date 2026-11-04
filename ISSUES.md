@@ -1658,3 +1658,17 @@ Only two thin bright slivers (hull sides) are visible. Everything else is missin
 Maybe the SceneKit render needs default lighting, or the scene is lit or framed differently. Not investigated.
 
 ---
+
+## 81: Remove SceneKit support
+
++++
+status: new
+priority: low
+kind: task
+labels: deferred
+created: 2026-11-04T16:05:56Z
++++
+
+SceneKitGenerator is deprecated in favor of the RealityKit APIs, and gltf-render now defaults to the RealityKit backend. SceneKit support still exists in the library (SceneKitGenerator, SceneKit texture-transform helpers), in gltf-render (the scenekit backend), and in many tests. It should eventually be removed.
+
+---
