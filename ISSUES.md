@@ -1622,3 +1622,38 @@ closed: 2026-10-22T16:02:08Z
 EXT_meshopt_compression stores its own buffer index and byteOffset inside each bufferView's extension object. When writing .glb, buffers are repacked and bufferView buffer/byteOffset are rewritten, but the extension's buffer/byteOffset are not, so they point at the wrong data or a buffer that no longer exists. The meshopt fallback buffer has no uri and no data; when writing it the writer likely packs the GLB BIN chunk again (bigger file), or fails for .gltf sources. Found by reading the code; not reproduced.
 
 ---
+
+## 80: gltf-render SceneKit backend shows only slivers of some flat-shaded models
+
++++
+status: new
+priority: low
+kind: bug
+created: 2026-11-04T15:58:57Z
++++
+
+Some valid GLB models render as only a few bright slivers with the SceneKit backend. The same files look correct in Finder/Quick Look and with the RealityKit backend.
+
+## Repro
+1. Build gltf-render.
+2. `gltf-render render ~/Projects/Scratch/SidraLine/Models/cg-ticonderoga.glb -o /tmp/cg.png -s 600` (default backend: scenekit)
+3. Also: `osa-ii.glb` in the same folder.
+
+## Expected
+The whole ship (hull, superstructure, masts) is visible, as with `-b realitykit` or Quick Look.
+
+## Actual
+Only two thin bright slivers (hull sides) are visible. Everything else is missing or black against the background.
+
+`sh-60b-seahawk.glb` from the same exporter renders correctly with SceneKit.
+
+## Model details
+- Made by SidraLine's `sidra-export` (SwiftGLTF Document + GLTFWriter).
+- `gltf-render validate`: 0 errors, 0 warnings.
+- Non-indexed triangles with POSITION + NORMAL, many primitives (one per color), `doubleSided: true`, PBR factors only (no textures). Some materials use emissiveFactor.
+- Size: ~173 m long (the helicopter that renders is ~20 m).
+
+## Proposed fix (per schwa)
+Maybe the SceneKit render needs default lighting, or the scene is lit or framed differently. Not investigated.
+
+---
